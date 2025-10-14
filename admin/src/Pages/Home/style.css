@@ -1,0 +1,242 @@
+.dashboardMainSection {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  background: #ffffff;
+  position: relative;
+}
+.mainSection {
+  width: 100%;
+}
+.mainNavBar {
+  width: 100%;
+  height: 40px;
+  background: #5ab15b5e;
+  display: flex;
+  align-items: center;
+  padding: 20px;
+}
+.menuIcon {
+  width: 40px;
+}
+.mainBox {
+  width: 100%;
+  height: 100%;
+  display: none;
+  padding: 20px;
+  background: #fa8a0514;
+}
+.mainBoxActive {
+  display: block;
+  overflow-y: scroll;
+  position: relative;
+}
+.sectionHeader {
+  font-size: 30px;
+  font-weight: 600;
+  margin-bottom: 30px;
+}
+.inputBox {
+  width: 50%;
+  min-width: 300px;
+  margin-bottom: 20px;
+}
+.inputField {
+  width: 100%;
+  height: 45px;
+  border: 1px solid rgba(128, 128, 128, 0.301);
+  border-radius: 5px;
+  overflow: hidden;
+  padding-left: 10px;
+  margin-bottom: 10px;
+}
+textarea {
+  width: 100%;
+  height: 60px;
+  border: 1px solid rgba(128, 128, 128, 0.301);
+  border-radius: 5px;
+  overflow: hidden;
+  padding-left: 10px;
+}
+.textareaBox {
+  height: 100px;
+}
+.inputField input,
+.inputField textarea {
+  width: 100%;
+  height: 100%;
+  border: none;
+  padding-left: 20px;
+  font-size: 18px;
+}
+.inputField input,
+.inputField textarea :focus {
+  outline: none;
+}
+.inputBox p {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+input,
+textarea {
+  border: none;
+}
+input:focus,
+textarea:focus {
+  outline: none;
+}
+.dumText {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+.imageUploadBox {
+  width: 50%;
+  margin-top: 20px;
+}
+.imageUploadBox p {
+  font-size: 20px;
+}
+
+.btnBox {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: end;
+  gap: 30px;
+  align-items: center;
+}
+
+.loaderBox {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.servImgUpdateBox {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+/* delete pop */
+.grayBox {
+  position: absolute;
+  width: -webkit-fill-available;
+  height: -webkit-fill-available;
+  background: #00000041;
+  z-index: 9;
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+.ActiveGrayBox {
+  display: flex;
+}
+.popBox {
+  position: absolute;
+  width: 300px;
+  background: #fff;
+  border-radius: 15px;
+  display: flex;
+  padding: 20px;
+  top: 30%;
+  left: 38%;
+  z-index: 999;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+.popBox h3 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.popBtnBox {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 20px;
+}
+.sectionListBox {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.section {
+  width: 100%;
+  padding: 5px 0;
+  position: relative;
+  background: #5ab15b5e;
+  margin-bottom: 20px;
+  padding: 20px;
+  border-radius: 20px;
+  padding-right: 95px;
+}
+.sectionOutBox {
+  width: 100%;
+  padding: 20px;
+  border-radius: 20px;
+  background: #fff;
+}
+.inSerErr {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: start;
+}
+.inSerErr img {
+  width: 80% !important;
+  height: 80%;
+  border-radius: 20px;
+}
+.logGrayBox {
+  display: flex;
+  align-items: start;
+  padding-top: 15%;
+  background: linear-gradient(135deg, #244889, #1ca2a2);
+}
+.logInputBox {
+  width: 36%;
+  padding: 20px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.13);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 36px;
+}
+.logInputBox h1 {
+  text-align: center;
+  color: #fff;
+}
+.LoginputBox {
+  width: 88%;
+  height: 50px;
+  background: #fff;
+  border-radius: 10px;
+  position: relative;
+}
+.LoginputBox input {
+  border: none;
+  width: 100%;
+  height: 100%;
+  padding-left: 20px;
+  background: transparent;
+  border-radius: 10px;
+}
+.LoginputBox input:focus {
+  outline: none;
+}
+.inputIcon {
+  width: 20px;
+  position: absolute;
+  top: 15px;
+  right: 17px;
+  opacity: 0.8;
+}
+.logBtnBox {
+  width: 88%;
+}

@@ -1,0 +1,32 @@
+{
+  "name": "taxque",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.9.0",
+    "axios": "^1.12.2",
+    "html-react-parser": "^5.2.6",
+    "maplibre-gl": "^5.8.0",
+    "next": "15.5.4",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-multi-carousel": "^2.8.6",
+    "react-redux": "^9.2.0",
+    "react-toastify": "^11.0.5",
+    "react-type-animation": "^3.2.0",
+    "truncate-html": "^1.2.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

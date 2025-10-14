@@ -1,0 +1,451 @@
+"use client";
+
+import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import parse from "html-react-parser";
+import truncate from "truncate-html";
+
+import type { CategoryDataType } from "@/store/slices/categorySlice";
+import type { BlogDataType } from "@/store/slices/blogSlice";
+import type { ServiceDataType } from "@/store/slices/serviceSlice";
+import type { TeamDataType } from "@/store/slices/teamSlice";
+import type { JobDataType } from "@/store/slices/jobSlice";
+
+import { AppBtn, AppOrangeBtn, AppHoloBtn } from "@/components/Button";
+
+const ITNIcon = "/assests/images/ITNIcon.svg";
+const GreenTik = "/assests/images/GreenTik.svg";
+const greenTik2 = "/assests/images/greenTikV2.svg";
+const avatarIcom = "/assests/images/Avatar.svg";
+const watchIcom = "/assests/images/timeIcon.svg";
+const UPRightArrow = "/assests/images/right-up.svg";
+const facebookIcon = "/assests/images/facebookIcon.svg";
+const twittercon = "/assests/images/twitterIcon.svg";
+const linkedinIcon = "/assests/images/linkdinIcon.svg";
+const featuresIcon = "/assests/images/featuresIcon.png";
+const locationIcon = "/assests/images/locationYicon.svg";
+const watchYIcom = "/assests/images/watchYicon.svg";
+const blackArrowIcon = "/assests/images/blackArrowIcon.svg";
+const star = "/assests/images/star.png";
+
+
+interface PriceCardProps {
+  title: string;
+  basicPrice: string;
+  price: string;
+  plan: string;
+  summary: string;
+  fetures: string[];
+  MostPopular: boolean;
+  priceTabe: number;
+  index: number;
+  isMobile: boolean;
+  productName: string;
+  id: string;
+  priceId: string;
+  className?: string;
+}
+
+interface FeaturesProps {
+  title: string;
+  summary: string;
+  className?: string;
+}
+
+interface BenefitsProps {
+  title: string;
+  summary: string;
+  index: number;
+  className?: string;
+}
+
+interface DropProps {
+  setDropVal: (value: string) => void;
+  list?: (number | string)[];
+  defaultVal: string;
+  width?: string;
+  className?: string;
+}
+
+interface ServiceCardProps extends CategoryDataType {
+  className?: string;
+}
+
+interface BlogCardProps extends BlogDataType {
+  className?: string;
+}
+
+interface PriceCardComponentProps extends PriceCardProps {
+  className?: string;
+}
+
+// Utility function
+const scrollToTop = () => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
+// Service Card Component
+export const ServiceCard = ({ 
+  imageUrl, 
+  title, 
+  summary, 
+  Slug, 
+  _id, 
+  className = "" 
+}: ServiceCardProps) => {
+  const router = useRouter();
+  const truncatedHTML = truncate(summary || "", 100, { byWords: false });
+
+  const handleClick = () => {
+    if (_id) localStorage.setItem("selectedCategory", _id);
+    router.push(`/category/${Slug}`);
+    scrollToTop();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleClick();
+    }
+  };
+
+  return (
+    <div className={`w-full max-w-[383px] h-[520px] rounded-[20px] shadow-[rgba(100,100,111,0.2)_0px_7px_29px_0px] flex flex-col transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:shadow-[rgba(100,100,111,0.3)_0px_10px_35px_0px] mx-0.5 sm:max-w-[400px] md:max-w-[450px] lg:max-w-[383px] ${className}`}>
+      {/* Header Section - Light Green Background */}
+      <div className="bg-gradient-to-br from-green-100/30 via-green-200/40 to-green-100/20 border border-green-200/50 rounded-t-[20px] p-[15px]">
+        <div className="flex items-center gap-[10px]">
+          <Image src={ITNIcon} alt="Service Icon" width={24} height={24} className="w-6 h-6" />
+          <p onClick={handleClick} onKeyDown={handleKeyDown} tabIndex={0} role="button" aria-label={`View ${title} service`} className="text-[14px] font-semibold cursor-pointer transition-colors duration-300 outline-none hover:text-[#fe8903] focus:text-[#fe8903] focus:outline-2 focus:outline-[#fe8903] focus:outline-offset-2 sm:text-[16px] md:text-[18px]">
+            {title}
+          </p>
+        </div>
+      </div>
+      
+      {/* Middle Section - White Background */}
+      <div className="bg-white p-[15px] flex flex-col flex-1">
+        <div className="w-full border-t border-gray-300/30 my-[10px]"></div>
+        <p className="text-[12px] text-gray-600 leading-[18px] mb-[15px] flex-1 sm:text-[14px] sm:leading-[22px] md:text-[16px] md:leading-[24px]">{parse(typeof truncatedHTML === 'string' ? truncatedHTML : '')}</p>
+        <AppHoloBtn onClick={handleClick} btnText="Red More" height="30px" width="110px" className="sm:h-[35px] sm:w-[120px] md:h-[40px] md:w-[130px]" />
+      </div>
+      
+      {/* Bottom Image Section */}
+      <div className="w-full h-[200px] rounded-b-[20px] overflow-hidden relative cursor-pointer outline-none focus:outline-2 focus:outline-[#fe8903] focus:outline-offset-2 sm:h-[220px] md:h-[250px]" onClick={handleClick} onKeyDown={handleKeyDown} tabIndex={0} role="button" aria-label={`View ${title} details`}>
+        <Image src={imageUrl || "/placeholder.jpg"} alt={title} fill priority={false} className="object-cover transition-transform duration-300 ease-in-out hover:scale-105" />
+      </div>
+
+    </div>
+  );
+};
+
+// Price Card Component
+export const PriceCard = ({
+  title, 
+  basicPrice, 
+  price, 
+  plan, 
+  summary, 
+  fetures, 
+  MostPopular,
+  priceTabe, 
+  index, 
+  isMobile, 
+  productName, 
+  id, 
+  priceId,
+  className = ""
+}: PriceCardComponentProps) => {
+  const router = useRouter();
+
+  const handleBuyClick = () => {
+    router.push("/services/product-details/payment-checkout");
+    scrollToTop();
+    localStorage.setItem("planServiceId", id);
+    localStorage.setItem("planServiceName", productName);
+    localStorage.setItem("planPriceId", priceId);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleBuyClick();
+    }
+  };
+
+  return (
+    <div
+      style={{ display: isMobile ? (priceTabe === index ? "block" : "none") : "block" }}
+      className={`min-w-full bg-white p-2.5 rounded-5xl shadow-[rgba(100,100,111,0.2)_0px_7px_29px_0px] relative transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:shadow-[rgba(100,100,111,0.3)_0px_10px_35px_0px] ${MostPopular ? 'border border-[#fa8a05] shadow-[#fa8a0524_0px_7px_29px_0px]' : ''} ${className} md:min-w-89.75 md:p-5`}
+    >
+      {MostPopular && (
+        <div className="absolute -top-3.25 right-5 w-27.5 h-6.5 bg-[#ff9361] rounded-1 flex justify-center items-center">
+          <p className="text-3.5xl text-white font-semibold">Most Popular</p>
+        </div>
+      )}
+      <div className={`w-full min-h-60 bg-green-100/10 flex flex-col items-center justify-between p-2.5 rounded-5xl ${MostPopular ? 'bg-green-100/41 border border-[#fa8c05]' : ''} md:p-5 md:min-h-75`}>
+        <p className="text-center text-6xl font-semibold text-gray-800 md:text-7.5xl">{title}</p>
+        <p className="text-3.5xl font-medium text-gray-400 my-1 relative md:text-4.5xl md:my-4">
+          Market Price : ₹{basicPrice}
+          <span className="w-7.25 block border-t border-gray-500 absolute right-0 top-2.5 md:w-12.5 md:top-3.5"></span>
+        </p>
+        <p className="text-7.5xl font-semibold text-[#fa8a05] md:text-9.5xl">
+          ₹ {price} <span className="text-3.75 text-gray-500 md:text-6xl">/{plan}</span>
+        </p>
+        <p className="text-4xl text-gray-600 text-center my-2.5 md:text-4xl md:my-5">{summary}</p>
+        {MostPopular ? (
+          <AppHoloBtn btnText="Get started Now" width="100%" onClick={handleBuyClick} />
+        ) : (
+          <AppOrangeBtn btnText="Get started Now" width="100%" onClick={handleBuyClick} />
+        )}
+      </div>
+      <div className="flex flex-col gap-2.5 mt-5 md:gap-5">
+        {fetures.map((el, i) => (
+          <div key={i} className="flex items-center gap-5">
+            <Image src={GreenTik} alt="Feature included" width={20} height={20} />
+            <p className="text-4xl text-gray-600 md:text-4xl">{el}</p>
+          </div>
+        ))}
+      </div>
+
+    </div>
+  );
+};
+
+// Member Card Component
+interface MemberCardProps extends TeamDataType {
+  className?: string;
+}
+
+export const MemberCard = ({ 
+  name, 
+  role, 
+  summary, 
+  imgUrl, 
+  media, 
+  className = "" 
+}: MemberCardProps) => {
+  return (
+    <div className={`min-w-70 w-full bg-white rounded-5xl shadow-[rgba(100,100,111,0.2)_0px_7px_29px_0px] p-5 flex flex-col items-center text-center transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:shadow-[rgba(100,100,111,0.3)_0px_10px_35px_0px] md:min-w-80 md:p-7.5 ${className}`}>
+      <div className="w-30 h-30 rounded-full overflow-hidden mb-5 relative md:w-37.5 md:h-37.5 md:mb-6.25">
+        <Image src={imgUrl || avatarIcom} alt={name} width={200} height={200} className="w-full h-full object-cover" />
+      </div>
+      <div className="w-full">
+        <h3 className="text-5xl font-semibold text-gray-800 mb-2 m-0 md:text-6xl md:mb-2.5">{name}</h3>
+        <p className="text-4xl text-[#fe8903] font-medium mb-3 m-0 md:text-4.5xl md:mb-3.75">{role}</p>
+        <p className="text-3.5xl text-gray-600 leading-relaxed mb-5 m-0 md:text-4xl md:leading-6 md:mb-6.25">{summary}</p>
+        <div className="flex justify-center gap-3.75">
+          {media?.facebook && (
+            <a href={media.facebook} target="_blank" rel="noopener noreferrer" aria-label={`${name}'s Facebook`} className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center transition-all duration-300 ease-in-out hover:bg-[#fe8903] hover:-translate-y-0.5">
+              <Image src={facebookIcon} alt="Facebook" width={20} height={20} className="transition-filter duration-300 ease-in-out hover:brightness-0 hover:invert" />
+            </a>
+          )}
+          {media?.twitter && (
+            <a href={media.twitter} target="_blank" rel="noopener noreferrer" aria-label={`${name}'s Twitter`} className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center transition-all duration-300 ease-in-out hover:bg-[#fe8903] hover:-translate-y-0.5">
+              <Image src={twittercon} alt="Twitter" width={20} height={20} className="transition-filter duration-300 ease-in-out hover:brightness-0 hover:invert" />
+            </a>
+          )}
+          {media?.linkedin && (
+            <a href={media.linkedin} target="_blank" rel="noopener noreferrer" aria-label={`${name}'s LinkedIn`} className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center transition-all duration-300 ease-in-out hover:bg-[#fe8903] hover:-translate-y-0.5">
+              <Image src={linkedinIcon} alt="LinkedIn" width={20} height={20} className="transition-filter duration-300 ease-in-out hover:brightness-0 hover:invert" />
+            </a>
+          )}
+        </div>
+      </div>
+
+    </div>
+  );
+};
+
+// Blog Card Component
+export const BlogCard = ({ 
+  title, 
+  date, 
+  blogText, 
+  imageUrl, 
+  Slug, 
+  className = "" 
+}: BlogCardProps) => {
+  const router = useRouter();
+
+  const handleClick = () => {
+    router.push(`/learn/${Slug}`);
+    scrollToTop();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleClick();
+    }
+  };
+
+  return (
+    <div className={`min-w-60 w-full rounded-2xl shadow-lg hover:shadow-xl relative transition-transform duration-300 ease-in-out hover:-translate-y-1 bg-white ${className}`}>
+      <Image 
+        src={imageUrl || "/assests/images/NOData.jpg"} 
+        alt={title} 
+        className="w-full h-auto rounded-t-2xl max-h-32 object-cover" 
+        width={240} 
+        height={128} 
+        priority={false}
+        onError={(e) => {
+          e.currentTarget.src = "/assests/images/NOData.jpg";
+        }}
+      />
+      <div className="p-3 relative">
+        <div className="w-full absolute -top-4 left-0 flex justify-center">
+          <div className="w-16 h-7 flex justify-between px-2 bg-yellow-50 items-center rounded-xl border border-gray-300/24">
+            <div className="flex gap-1 items-center">
+              <Image src={avatarIcom} alt="Author" width={16} height={16} />
+              <p className="text-xs">Amit</p>
+            </div>
+            <div className="flex gap-1 items-center">
+              <Image src={watchIcom} alt="Date" width={12} height={12} />
+              <p className="text-xs">{date}</p>
+            </div>
+          </div>
+        </div>
+        <p className="text-lg font-semibold my-3 mb-2 cursor-pointer transition-colors duration-300 hover:text-[#fe8903]">{title}</p>
+        <p className="text-sm text-gray-600">
+          {blogText?.[0]?.summarys?.[0]?.summary?.slice(0, 70) || "No description available"}
+          {blogText?.[0]?.summarys?.[0]?.summary?.length > 70 ? "..." : "."}
+        </p>
+      </div>
+      <Image 
+        src={UPRightArrow} 
+        alt="Read more" 
+        className="absolute -bottom-2 right-3 cursor-pointer opacity-50 transition-opacity duration-300 hover:opacity-100 focus:opacity-100 outline-none focus:outline-2 focus:outline-[#fe8903] focus:outline-offset-2" 
+        width={24} 
+        height={24} 
+        onClick={handleClick}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        role="button"
+        aria-label={`Read more about ${title}`}
+      />
+
+    </div>
+  );
+};
+
+// Drop Box Component
+export const DropBox = ({ 
+  setDropVal, 
+  list, 
+  defaultVal, 
+  width, 
+  className = "" 
+}: DropProps) => (
+  <select
+    style={{ width: width || "100%" }}
+    className={`min-h-11 border border-gray-500 rounded-1.25 px-5 pr-10 cursor-pointer bg-white/10 appearance-none bg-no-repeat bg-right-3.75 bg-center bg-6.25 text-base text-gray-600 transition-colors duration-300 ease-in-out focus:outline-2 focus:outline-[#fe8903] focus:outline-offset-2 focus:border-[#fe8903] hover:border-[#fe8903] ${className}`}
+    onChange={(e) => setDropVal(e.target.value)}
+    aria-label={defaultVal}
+  >
+    <option>{defaultVal}</option>
+    {list?.map((el, i) => (
+      <option key={i}>{String(el)}</option>
+    ))}
+  </select>
+);
+
+// Reloader utility function
+export const Reloader = (delay: number = 1000) => {
+  setTimeout(() => {
+    window.location.reload();
+  }, delay);
+};
+
+// Job Card Component
+interface JobCardProps {
+  _id?: string;
+  title: string;
+  description: string;
+  location: string;
+  experience: string;
+  salary: string;
+  type: string;
+  className?: string;
+}
+
+export const JobCard = ({ 
+  _id,
+  title, 
+  description, 
+  location,
+  experience,
+  salary,
+  type,
+  className = "" 
+}: JobCardProps) => {
+  const router = useRouter();
+
+  const handleClick = () => {
+    if (_id) {
+      router.push(`/careers/${_id}`);
+    }
+  };
+
+  return (
+    <div className={`w-full bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer ${className}`} onClick={handleClick}>
+      <div className="p-6">
+        <h3 className="text-xl font-semibold text-gray-900 mb-3">{title}</h3>
+        <p className="text-gray-600 mb-4 line-clamp-3">{description}</p>
+        
+        <div className="space-y-2 mb-4">
+          <div className="flex items-center gap-2">
+            <Image src={locationIcon} alt="Location" width={16} height={16} />
+            <span className="text-sm text-gray-600">{location}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Image src={watchYIcom} alt="Experience" width={16} height={16} />
+            <span className="text-sm text-gray-600">{experience}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-green-600">{salary}</span>
+            <span className="text-sm text-gray-500">•</span>
+            <span className="text-sm text-gray-600">{type}</span>
+          </div>
+        </div>
+        
+        <div className="flex justify-end">
+          <AppBtn
+            btnText="Apply Now"
+            icon={blackArrowIcon}
+            width="120px"
+            height="40px"
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// GoTop component
+interface GoTopProps {
+  className?: string;
+}
+
+export const GoTop: React.FC<GoTopProps> = ({ className = "" }) => {
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  return (
+    <button
+      className={`fixed bottom-5 right-5 w-12.5 h-12.5 bg-[#fe8903] text-white border-none rounded-full cursor-pointer flex items-center justify-center shadow-[0_4px_12px_rgba(254,137,3,0.3)] transition-all duration-300 ease-in-out z-1000 hover:bg-[#e67e00] hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(254,137,3,0.4)] focus:outline-2 focus:outline-[#fe8903] focus:outline-offset-2 ${className}`}
+      onClick={scrollToTop}
+      type="button"
+      aria-label="Go to top"
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M12 2L2 12H8V22H16V12H22L12 2Z"
+          fill="currentColor"
+        />
+      </svg>
+    </button>
+  );
+};

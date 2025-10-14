@@ -1,0 +1,323 @@
+@import "tailwindcss";
+
+/* Custom Fonts */
+@font-face {
+  font-family: "poppins";
+  src: url("/assests/fonts/Poppins/Poppins-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "poppinsBold";
+  src: url("/assests/fonts/Poppins/Poppins-Bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Josefin_Sans";
+  src: url("/assests/fonts/Josefin_Sans/JosefinSans-Italic-VariableFont_wght.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Chonburi";
+  src: url("/assests/fonts/Chonburi/Chonburi-Regular.ttf") format("truetype");
+}
+
+/* CSS Variables for Theme */
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+/* Global Styles */
+* {
+  box-sizing: border-box;
+  font-family: "poppins";
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "poppins";
+}
+
+/* Custom Scrollbar Styles */
+/* WebKit Browsers (Chrome, Edge, Safari) */
+::-webkit-scrollbar {
+  width: 2px;
+  height: 2px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: gray;
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: darkgray;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: gray #f1f1f1;
+}
+
+/* Navigation Text Styles */
+.navigateText {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+}
+
+.navigateText .navHomeT {
+  font-size: 12px;
+  color: #fe8903;
+  cursor: pointer;
+}
+
+.navigateText .navPageT {
+  font-size: 12px;
+  color: #000000;
+  cursor: pointer;
+}
+
+.navigateText .navSubPageT {
+  font-size: 12px;
+  color: #fe8903;
+  cursor: pointer;
+}
+
+.navSeparator {
+  color: #999;
+  user-select: none;
+}
+
+/* Responsive Navigation Text */
+@media only screen and (min-width: 768px) {
+  .navigateText {
+    font-size: 20px;
+  }
+  .navigateText .navHomeT {
+    font-size: 16px;
+  }
+  .navigateText .navPageT {
+    font-size: 16px;
+  }
+  .navigateText .navSubPageT {
+    font-size: 16px;
+  }
+}
+
+@media only screen and (min-width: 1000px) {
+  .navigateText .navHomeT {
+    font-size: 20px;
+  }
+  .navigateText .navPageT {
+    font-size: 20px;
+  }
+  .navigateText .navSubPageT {
+    font-size: 20px;
+  }
+}
+
+/* Animation Classes */
+.section {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: white;
+  opacity: 0;
+  transform: translateY(50px);
+  transition: all 1s ease;
+}
+
+/* Background colors for animations */
+.fade-slide {
+  background: #22c55e;
+}
+
+.rotate {
+  background: #a855f7;
+}
+
+.scale-bounce {
+  background: #facc15;
+  color: #111;
+}
+
+.flip {
+  background: #06b6d4;
+}
+
+.zoom {
+  background: #ef4444;
+}
+
+.slide-left {
+  background: #3b82f6;
+}
+
+.skew {
+  background: #f97316;
+}
+
+/* Animation trigger */
+.animate {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Specific Animations */
+.fade-slide.animate {
+  animation: fadeSlide 1s ease forwards;
+}
+
+.rotate.animate {
+  animation: rotateIn 1s ease forwards;
+}
+
+.scale-bounce.animate {
+  animation: scaleBounce 1.2s ease forwards;
+}
+
+.flip.animate {
+  animation: flipIn 1s ease forwards;
+}
+
+.zoom.animate {
+  animation: zoomInOut 1.2s ease forwards;
+}
+
+.slide-left.animate {
+  animation: slideLeft 1s ease forwards;
+}
+
+.skew.animate {
+  animation: skewIn 1s ease forwards;
+}
+
+/* Keyframes */
+@keyframes fadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rotateIn {
+  from {
+    opacity: 0;
+    transform: rotate(-180deg) scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+
+@keyframes scaleBounce {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes flipIn {
+  from {
+    opacity: 0;
+    transform: rotateY(90deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotateY(0);
+  }
+}
+
+@keyframes zoomInOut {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes slideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes skewIn {
+  from {
+    opacity: 0;
+    transform: skewX(30deg);
+  }
+  to {
+    opacity: 1;
+    transform: skewX(0);
+  }
+}
+
+/* Container Styles */
+.container {
+  width: 100%;
+}
+
+/* Additional Section Styles */
+.fade {
+  background: #1abc9c;
+}
+
+.scale {
+  background: #f1c40f;
+  color: #333;
+}
+
+.slide {
+  background: #e67e22;
+}
