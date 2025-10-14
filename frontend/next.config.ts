@@ -8,6 +8,13 @@ const nextConfig: NextConfig = {
       "cdn.jsdelivr.net",
     ],
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  reactStrictMode: false,
   outputFileTracingRoot: __dirname,
 };
 

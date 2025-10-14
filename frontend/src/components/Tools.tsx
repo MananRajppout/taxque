@@ -201,7 +201,7 @@ export const PriceCard = ({
         )}
       </div>
       <div className="flex flex-col gap-2.5 mt-5 md:gap-5">
-        {fetures.map((el, i) => (
+        {fetures?.map((el, i) => (
           <div key={i} className="flex items-center gap-5">
             <Image src={GreenTik} alt="Feature included" width={20} height={20} />
             <p className="text-4xl text-gray-600 md:text-4xl">{el}</p>

@@ -75,10 +75,17 @@ export default function PaymentCheckoutPage() {
   };
 
   const planArray = Product?.priceData?.map((val: any) => val.title) || [];
-  const userId = localStorage.getItem("userId");
-  const serviceId = localStorage.getItem("planServiceId");
+  const [userId, setUserId] = useState<string>("");
+  const [serviceId, setServiceId] = useState<string>("");
   const amount = currentPriceData?.price?.replace(/,/g, "") ?? "0";
-  const serviceName = localStorage.getItem("planServiceName") || "Tax Service";
+  const [serviceName, setServiceName] = useState<string>("");
+
+
+  useEffect(() => {
+    setUserId(window.localStorage.getItem("userId") || "");
+    setServiceId(window.localStorage.getItem("planServiceId") || "");
+    setServiceName(window.localStorage.getItem("planServiceName") || "Tax Service");
+  }, []);
 
   const handleBuy = async () => {
     try {

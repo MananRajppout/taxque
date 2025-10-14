@@ -106,7 +106,7 @@ export default function ServiceDetailsPage() {
 
         return false;
       })
-      .map(({ label }) => label);
+      ?.map(({ label }) => label);
 
     setNavItems(newNavItems);
   }, [Service]);
@@ -227,7 +227,7 @@ export default function ServiceDetailsPage() {
                     
                    
                     <div className="space-y-4 mb-8">
-                      {serviceData?.feturePoints?.map((fe: any, i: number) => (
+                      {(serviceData?.feturePoints || [])?.map((fe: any, i: number) => (
                         <div key={i} className="flex items-start gap-3">
                           <Image src={greenTik2} alt="Check" width={20} height={20} className="mt-1" />
                           <p className="text-gray-700">
@@ -294,7 +294,7 @@ export default function ServiceDetailsPage() {
           <div className="w-full mb-8">
             <div className="w-full bg-gradient-to-r from-green-200 to-yellow-200 border border-gray-300 rounded-xl p-4 shadow-lg">
               <div className="flex flex-wrap justify-center gap-2">
-                {navItems?.map((el, i) => (
+                {(navItems || [])?.map((el, i) => (
                   <button
                     key={i}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300 ${
@@ -321,7 +321,7 @@ export default function ServiceDetailsPage() {
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
                 {serviceData?.overView?.title}
               </h2>
-              {serviceData?.overView?.summarys?.map((el: string, i: number) => (
+              {(serviceData?.overView?.summarys || [])?.map((el: string, i: number) => (
                 <p key={i} className="text-gray-600 leading-relaxed mb-4">
                   {el}
                 </p>
@@ -336,7 +336,7 @@ export default function ServiceDetailsPage() {
                 What Is a <span className="text-orange-500">{serviceData?.title}</span>
               </h2>
 
-              {serviceData?.whatIs?.summarys?.map((sm: string, i: number) => (
+              {(serviceData?.whatIs?.summarys || [])?.map((sm: string, i: number) => (
                 <p key={i} className="text-gray-600 leading-relaxed mb-4">
                   {sm}
                 </p>
@@ -353,7 +353,7 @@ export default function ServiceDetailsPage() {
                     Private Limited Company as an entity that:
                   </p>
                   <ul className="list-disc list-inside space-y-2 text-gray-600">
-                    {serviceData?.whatIs?.liList?.map((liVal: any, i: number) => (
+                    {(serviceData?.whatIs?.liList || [])?.map((liVal: any, i: number) => (
                       <li key={i}>
                         <strong>{liVal.title}:</strong> {liVal.summary}
                       </li>
@@ -384,7 +384,7 @@ export default function ServiceDetailsPage() {
               </p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {serviceData?.keyFeature?.keyFeatureItems?.map((el: any, i: number) => (
+                {(serviceData?.keyFeature?.keyFeatureItems || [])?.map((el: any, i: number) => (
                   <div key={i} className="bg-white border border-gray-200 rounded-xl p-6 shadow-lg">
                     <h3 className="text-lg font-semibold text-gray-900 mb-3">{el.title}</h3>
                     <p className="text-gray-600">{el.summary}</p>
@@ -400,14 +400,14 @@ export default function ServiceDetailsPage() {
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
                 <span className="text-orange-500">Benefits</span> of a {serviceData?.title}
               </h2>
-              {serviceData?.benefits?.summarys?.map((sm: string, i: number) => (
+              {(serviceData?.benefits?.summarys || [])?.map((sm: string, i: number) => (
                 <p key={i} className="text-gray-600 leading-relaxed mb-6">
                   {sm}
                 </p>
               ))}
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {serviceData?.benefits?.benefitsItems?.map((el: any, i: number) => (
+                {(serviceData?.benefits?.benefitsItems || [])?.map((el: any, i: number) => (
                   <div key={i} className="bg-gradient-to-br from-blue-50 to-purple-50 border border-gray-200 rounded-xl p-6 shadow-lg">
                     <div className="text-3xl mb-4">{el.icon}</div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-3">{el.title}</h3>
@@ -425,7 +425,7 @@ export default function ServiceDetailsPage() {
                 Frequently Asked Questions
               </h2>
               <div className="space-y-4">
-                {serviceData?.FAQ?.map((el: any, i: number) => (
+                {(serviceData?.FAQ || [])?.map((el: any, i: number) => (
                   <div
                     key={i}
                     className={`bg-white border border-gray-200 rounded-xl p-6 shadow-lg transition-all duration-300 ${
@@ -469,6 +469,7 @@ export default function ServiceDetailsPage() {
 
       <Footer />
     </div>
+    
   );
 }
 

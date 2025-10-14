@@ -38,7 +38,7 @@ interface HomePageProps {
   className?: string;
 }
 
-export default function Home({ className }: HomePageProps) {
+const Home = ({ className }: HomePageProps) => {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const { data } = useSelector((state: RootState) => state.category);
@@ -340,3 +340,6 @@ export default function Home({ className }: HomePageProps) {
     </div>
   );
 }
+
+
+export default Home;

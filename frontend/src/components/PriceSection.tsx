@@ -40,7 +40,7 @@ export default function PriceSection({
         <h2 className="text-4xl sm:text-5xl md:text-7xl lg:text-9xl xl:text-10.5xl font-bold text-[#0d203b] text-center mb-5 sm:mb-6 md:mb-7.5 lg:mb-10 xl:mb-12.5 leading-tight">Right Plan For Your</h2>
 
         <div className="flex gap-2 sm:gap-3 md:gap-3.75 lg:gap-5 mb-6 sm:mb-8 md:mb-10 lg:mb-12.5 flex-wrap justify-center">
-          {product?.priceData?.map((val: priceDataProps, i: number) => (
+          {(product?.priceData || [])?.map((val: priceDataProps, i: number) => (
             <div
               key={i}
               onClick={() => setPriceTab(i)}
@@ -68,7 +68,7 @@ export default function PriceSection({
             quality={90}
             priority={false}
           />
-          {product?.priceData?.map((el: any, i: number) => (
+          {(product?.priceData || [])?.map((el: any, i: number) => (
             <PriceCard
               {...el}
               priceTabe={priceTab}
