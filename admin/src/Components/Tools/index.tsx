@@ -12,8 +12,8 @@ import BRIcon from "../../../public/BRIcon.svg";
 // import ITNIcon from "../../assets/images/ITNIcon.svg";
 // import PTFIcon from "../../assets/images/PTFIcon.svg";
 // import ITRFIcom from "../../assets/images/ITRFIcon.svg";
-import TPSIcon from "../../assets/images/TPSIcon.svg";
-import HPTIcon from "../../assets/images/HPTIcon.svg";
+// import TPSIcon from "../../assets/images/TPSIcon.svg";
+// import HPTIcon from "../../assets/images/HPTIcon.svg";
 
 interface categoryListProps {
   title: string;
@@ -30,15 +30,15 @@ export const CategoryTypeList: categoryListProps[] = [
   },
   {
     title: "Startup Services",
-    icon: TPSIcon,
+    icon: BRIcon,
   },
   {
     title: "Compliance Services",
-    icon: HPTIcon,
+    icon: BRIcon,
   },
   {
     title: "MCA Services",
-    icon: HPTIcon,
+    icon: BRIcon,
   },
   {
     title: "Registrations",
