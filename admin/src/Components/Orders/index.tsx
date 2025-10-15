@@ -16,11 +16,16 @@ import { FetchService } from "../../store/serciveSlice";
 import type { requireDocType } from "../../store/userSlice";
 
 export default function Order() {
-  const ActivePage = localStorage.getItem("ActivePage");
+  const [ActivePage, setActivePage] = useState<string>("");
   const dispatch = useDispatch<AppDispatch>();
   const { data, status } = useSelector((state: RootState) => state.user);
   const Product = useSelector((state: RootState) => state.service);
   // const [loding, setLoading] = useState(false);
+
+
+  useEffect(() => {
+    setActivePage(window.localStorage.getItem("ActivePage") || "");
+  }, []);
 
   ///States
   const [selectedUserIndex, setSelectedUserIndex] = useState<number>();

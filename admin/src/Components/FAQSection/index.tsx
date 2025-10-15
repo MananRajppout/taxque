@@ -34,7 +34,7 @@ import type {
 } from "../../store/serciveSlice";
 
 export default function FAQSection() {
-  const ActivePage = localStorage.getItem("ActivePage");
+  const [ActivePage, setActivePage] = useState<string>("");
   const summaryUpdateRef = useRef<Quill | null>(null);
   const dispatch = useDispatch<AppDispatch>();
   const { data, status } = useSelector((state: RootState) => state.service);
@@ -54,6 +54,10 @@ export default function FAQSection() {
   const [updateIndex, setUpdateIndex] = useState<number>(1111111111111);
 
   // Create FAQ-----------------------------------------------------------------
+
+  useEffect(() => {
+    setActivePage(window.localStorage.getItem("ActivePage") || "");
+  }, []);
 
   const handleFAQChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>

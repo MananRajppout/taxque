@@ -40,7 +40,8 @@ import {
 } from "../../store/blogSlice";
 
 export default function BlogSection() {
-  const ActivePage = localStorage.getItem("ActivePage");
+  const [ActivePage, setActivePage] = useState<string>("");
+  
   const dispatch = useDispatch<AppDispatch>();
   const { data, status } = useSelector((state: RootState) => state.blog);
   const [loding, setLoading] = useState(false);
@@ -52,6 +53,10 @@ export default function BlogSection() {
   const [updateIndex, setUpdateIndex] = useState<number>(1111111111111);
   const [deletePop, setDeletePop] = useState(false);
   const [deleteBlogId, setDeleteBlogId] = useState<string>();
+
+  useEffect(() => {
+    setActivePage(window.localStorage.getItem("ActivePage") || "");
+  }, []);
 
   // Create state -=-----------------
   const [bloglocVal, setBloglocVal] = useState({

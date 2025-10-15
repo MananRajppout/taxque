@@ -16,7 +16,7 @@ import { FetchApplication, UpdateApplicant } from "../../store/Application";
 import { Images } from "../../assets/Images";
 
 export default function ApplicationSection() {
-  const ActivePage = localStorage.getItem("ActivePage");
+  const [ActivePage, setActivePage] = useState<string>("");
   const dispatch = useDispatch<AppDispatch>();
   const { data, status } = useSelector((state: RootState) => state.application);
   // const [loding, setLoading] = useState(false);
@@ -24,6 +24,11 @@ export default function ApplicationSection() {
   const [currentApplicant, setCurrentApplicant] = useState<string>();
   const [statDrop, setStatDrop] = useState<boolean>(false);
   const [statDropVal, setStatDropVal] = useState<string>();
+
+
+  useEffect(() => {
+    setActivePage(window.localStorage.getItem("ActivePage") || "");
+  }, []);
 
   const selectedApplicant = data.find((val) => val?._id === currentApplicant);
   const statusList = [

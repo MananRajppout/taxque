@@ -38,7 +38,8 @@ import {
 import { toast } from "react-toastify";
 
 export default function PriceSection() {
-  const ActivePage = localStorage.getItem("ActivePage");
+  const [ActivePage, setActivePage] = useState<string>("");
+
   const dispatch = useDispatch<AppDispatch>();
   const { data, status } = useSelector((state: RootState) => state.service);
   const [loding, setLoading] = useState(false);
@@ -57,6 +58,9 @@ export default function PriceSection() {
     },
   ]);
   const [isChecked, setIsChecked] = useState(false);
+  useEffect(() => {
+    setActivePage(window.localStorage.getItem("ActivePage") || "");
+  }, []);
 
   const [planId, setPlanId] = useState<string>();
   const [deletePop, setDeletePop] = useState(false);

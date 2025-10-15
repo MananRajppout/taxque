@@ -28,7 +28,8 @@ export interface activePageProps {
 }
 
 export default function Home() {
-  const logInDate = localStorage.getItem("localTime") || 0;
+  const [logInDate, setLogInDate] = useState<string>("");
+  
   const [activePage, setActivePage] = useState<string>("Product");
   console.log(activePage);
   const [authPop, setAuthPop] = useState<boolean>(true);
@@ -56,6 +57,10 @@ export default function Home() {
     }));
   };
 
+  useEffect(() => {
+    setLogInDate(window.localStorage.getItem("localTime") || "0");
+  }, []);
+
   const handleAuthClick = () => {
     if (
       logInputVal.email !== DBUserAuth.email ||
@@ -66,7 +71,7 @@ export default function Home() {
     } else {
       toast.success("LogIn successfully !");
       const date = new Date().toLocaleDateString();
-      localStorage.setItem("localTime", date);
+      window.localStorage.setItem("localTime", date);
       Reloader(100);
     }
   };
@@ -132,7 +137,7 @@ export default function Home() {
         </div>
       ) : (
         <div className="dashboardMainSection">
-          <SideMenu setActivePage={setActivePage} />
+          <SideMenu setActivePage={setActivePage} ActivePage={activePage}/>
           <div className="mainSection">
             {/* category */}
             <CategorySection />

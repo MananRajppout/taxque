@@ -18,7 +18,6 @@ import { Loader, GoTop, DropBox, CategoryTypeList } from "../Tools";
 import { toast } from "react-toastify";
 import RichTextEditor from "../TextEditor";
 import Quill from "quill";
-import parse from "html-react-parser";
 
 import {
   FetchCategory,
@@ -36,7 +35,8 @@ import {
 } from "../../store/categorySlice";
 export default function CategorySection() {
   const summaryRef = useRef<Quill | null>(null);
-  const ActivePage = localStorage.getItem("ActivePage");
+  const [ActivePage, setActivePage] = useState<string>("");
+  
   const dispatch = useDispatch<AppDispatch>();
   const { data, status } = useSelector((state: RootState) => state.category);
   const [createServiceSection, setCreateServiceSection] = useState(false);
@@ -56,6 +56,11 @@ export default function CategorySection() {
   const [deleteServiceId, setDeleteServiceId] = useState<string>();
   const [loding, setLoading] = useState(false);
   const [rawSummary, setRawSymmary] = useState<string>("");
+
+
+  useEffect(() => {
+    setActivePage(window.localStorage.getItem("ActivePage") || "");
+  }, []);
 
   //Update state
   const [localUpdateServiceData, setLocalUpdateServiceData] =

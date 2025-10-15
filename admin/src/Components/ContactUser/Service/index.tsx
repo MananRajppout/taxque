@@ -13,13 +13,19 @@ import { AppBtn } from "../../AppButton";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../../store/store";
 import { FetchContactUser } from "../../../store/contactUser";
+import { useState } from "react";
 
 export default function ServiceLead() {
-  const ActivePage = localStorage.getItem("ActivePage");
+  const [ActivePage, setActivePage] = useState<string>("");
   const dispatch = useDispatch<AppDispatch>();
   const { data, status } = useSelector((state: RootState) => state.contactUser);
   // const [loding, setLoading] = useState(false);
   const filterData = data?.filter((val) => val.section === "Service");
+
+
+  useEffect(() => {
+    setActivePage(window.localStorage.getItem("ActivePage") || "");
+  }, []);
 
   useEffect(() => {
     dispatch(FetchContactUser());

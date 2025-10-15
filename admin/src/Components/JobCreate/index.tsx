@@ -50,9 +50,13 @@ export default function CreateJobSection() {
   const jobDescriptionRef = useRef<Quill | null>(null);
   const experienceRefUpdate = useRef<Quill | null>(null);
   const jobDescriptionRefUpdate = useRef<Quill | null>(null);
-  const ActivePage = localStorage.getItem("ActivePage");
+  const [ActivePage, setActivePage] = useState<string>("");
   const dispatch = useDispatch<AppDispatch>();
   const { data, status } = useSelector((state: RootState) => state.job);
+
+  useEffect(() => {
+    setActivePage(window.localStorage.getItem("ActivePage") || "");
+  }, []);
 
   //Create State-----------------------
   const [jobLocData, setJobLocData] = useState<jobInpoutDataType>({

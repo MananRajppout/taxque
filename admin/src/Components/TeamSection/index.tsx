@@ -31,7 +31,8 @@ import { FetchTeam, CreateTeam, UpdateTeam, DeleteTeam } from "../../store/teamS
 
 export default function TeamSection() {
   const summaryRef = useRef<Quill | null>(null);
-  const ActivePage = localStorage.getItem("ActivePage");
+  const [ActivePage, setActivePage] = useState<string>("");
+
   const dispatch = useDispatch<AppDispatch>();
   const { data, status } = useSelector((state: RootState) => state.team);
   const [loding, setLoading] = useState(false);
@@ -42,6 +43,10 @@ export default function TeamSection() {
   const [updateIndex, setUpdateIndex] = useState<number>(1111111111111);
   const [deletePop, setDeletePop] = useState(false);
   const [deleteTeamId, setDeleteTeamId] = useState<string>();
+
+  useEffect(() => {
+    setActivePage(window.localStorage.getItem("ActivePage") || "");
+  }, []);
 
   //create state
   const [teamLocalVal, setTeamLocalVal] = useState<TeamInputDataType>({

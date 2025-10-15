@@ -7,26 +7,34 @@ import Clogo from "../../assets/Images/logo.svg";
 
 type SidebarProps = {
   setActivePage: any;
+  ActivePage: any
 };
 
-export default function SideMenu({ setActivePage }: SidebarProps) {
-  const ActivePage = localStorage.getItem("ActivePage");
+export default function SideMenu({ setActivePage,ActivePage }: SidebarProps) {
+  // const [ActivePage, setActivePage] = useState<string>("");
+
   const [activeMenu, setActiveMenu] = useState<string>();
   const subMenuRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  if (!ActivePage) {
-    localStorage.setItem("ActivePage", "Category");
-    setActivePage("Category");
-  }
+  useEffect(() => {
+    const savedPage = window.localStorage.getItem("ActivePage");
+    setActivePage(savedPage || "");
+    if (!savedPage) {
+      window.localStorage.setItem("ActivePage", "Category");
+      setActivePage("Category");
+    } 
+  }, []);
+
+ 
 
   const handleMenuClick = (title: string) => {
     const newActive = activeMenu === title ? "" : title;
     setActiveMenu(newActive);
-    localStorage.setItem("activeMenu", newActive);
+    window.localStorage.setItem("activeMenu", newActive);
   };
 
   const HandleActivePage = (page: string) => {
-    localStorage.setItem("ActivePage", page);
+    window.localStorage.setItem("ActivePage", page);
     setActivePage(page);
   };
 
@@ -207,7 +215,7 @@ export default function SideMenu({ setActivePage }: SidebarProps) {
   }, [activeMenu]);
 
   useEffect(() => {
-    const savedMenu = localStorage.getItem("activeMenu");
+    const savedMenu = window.localStorage.getItem("activeMenu");
     if (savedMenu) {
       setActiveMenu(savedMenu);
     }

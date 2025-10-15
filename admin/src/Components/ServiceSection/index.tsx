@@ -55,9 +55,13 @@ import {
 import { Images } from "../../assets/Images";
 
 export default function ServiceSection() {
-  const ActivePage = localStorage.getItem("ActivePage");
+  const [ActivePage, setActivePage] = useState<string>("");
 
   const dispatch = useDispatch<AppDispatch>();
+  useEffect(() => {
+    setActivePage(window.localStorage.getItem("ActivePage") || "");
+  }, []);
+
   const { data, status } = useSelector((state: RootState) => state.service);
   const serviceData = useSelector((state: RootState) => state.category);
   const [loding, setLoading] = useState(false);
