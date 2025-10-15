@@ -11,7 +11,7 @@ import ROCIcon from "../../../public/ROCicon.svg";
 import BRIcon from "../../../public/BRIcon.svg";
 // import ITNIcon from "../../assets/images/ITNIcon.svg";
 // import PTFIcon from "../../assets/images/PTFIcon.svg";
-import ITRFIcom from "../../assets/images/ITRFIcon.svg";
+// import ITRFIcom from "../../assets/images/ITRFIcon.svg";
 import TPSIcon from "../../assets/images/TPSIcon.svg";
 import HPTIcon from "../../assets/images/HPTIcon.svg";
 
@@ -47,7 +47,7 @@ export const CategoryTypeList: categoryListProps[] = [
 
   {
     title: "Intellectual Property Rights (IPR)",
-    icon: ITRFIcom,
+    icon: TPSIcon,
   },
   {
     title: "Accounting",
