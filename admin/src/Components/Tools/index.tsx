@@ -47,7 +47,7 @@ export const CategoryTypeList: categoryListProps[] = [
 
   {
     title: "Intellectual Property Rights (IPR)",
-    icon: TPSIcon,
+    icon: ROCIcon,
   },
   {
     title: "Accounting",
