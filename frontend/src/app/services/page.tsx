@@ -12,7 +12,70 @@ const rightArrow = "/assests/images/rightArrow.svg";
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import { AppBtn } from "@/components/Button";
-import { ServiceCard } from "@/components/Tools";
+const ServiceCard = ({ title, description, price, imageUrl }: { title: string; description: string; price: string; imageUrl?: string }) => {
+  const router = useRouter();
+  
+  const handleClick = () => {
+    if (title === "Income Tax Filing") {
+      router.push('/services/itr-filing');
+    } else {
+      router.push('/contact-us');
+    }
+  };
+
+  return (
+    <div 
+      className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-green-200 hover:-translate-y-1 cursor-pointer"
+      onClick={handleClick}
+    >
+    
+      <div className="p-4 md:p-6">
+        <div className="flex items-start gap-3 md:gap-4 mb-4">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-green-200 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Image
+              src="/assests/images/ITNIcon.svg"
+              alt="Service Icon"
+              width={24}
+              height={24}
+              className="w-6 h-6 md:w-7 md:h-7"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2 leading-tight">{title}</h3>
+            <p className="text-xs md:text-sm text-gray-600 leading-relaxed">{description}</p>
+          </div>
+        </div>
+        
+     
+        <div className="mb-4">
+          <span className="text-lg font-bold text-orange-500">{price}</span>
+        </div>
+        
+    
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleClick();
+          }}
+          className="w-24 md:w-28 bg-white border-2 border-orange-500 hover:bg-orange-50 text-orange-500 hover:text-orange-600 font-semibold py-1.5 md:py-2 px-2 md:px-3 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 text-xs md:text-sm"
+        >
+          Read More
+        </button>
+      </div>
+      
+    
+      <div className="h-24 md:h-32 bg-gradient-to-r from-blue-900 to-blue-800 flex items-center justify-center">
+        <Image
+          src="/piv.jpg"
+          alt="ELARA SPARES and Engineering"
+          width={200}
+          height={80}
+          className="object-contain max-h-full max-w-full"
+        />
+      </div>
+    </div>
+  );
+};
 
 
 import { useSelector } from "react-redux";

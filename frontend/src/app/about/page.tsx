@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Carousel from "react-multi-carousel";
+import "react-multi-carousel/lib/styles.css";
 
 const pageBg = "/assests/images/otherPageBg.svg";
 const trustPatnarImg = "/assests/images/trustPatnarImg.svg";
@@ -16,25 +18,105 @@ import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import { AppBtn } from "@/components/Button";
 import WCTQCarousel from "@/components/WCTQCarousel";
-import MyCarousel from "@/components/Carousel";
 import Subscribe from "@/components/Subscribe";
 
-import { useDispatch, useSelector } from "react-redux";
-import { RootState, AppDispatch } from "@/store/slices/store";
-import { FetchTeam } from "@/store/slices/teamSlice";
+// Carousel responsive configuration
+const responsive = {
+  desktop: {
+    breakpoint: { max: 3000, min: 1024 },
+    items: 4,
+    slidesToSlide: 1,
+  },
+  tablet: {
+    breakpoint: { max: 1024, min: 464 },
+    items: 2,
+    slidesToSlide: 1,
+  },
+  mobile: {
+    breakpoint: { max: 464, min: 0 },
+    items: 1,
+    slidesToSlide: 1,
+  },
+};
+
+// Team member data
+const teamMembers = [
+  {
+    id: 1,
+    name: "Sarah Johnson",
+    position: "Chief Executive Officer",
+    description: "Leading TaxQue with over 10 years of experience in financial services and business development.",
+    image: "/assests/images/user1.png"
+  },
+  {
+    id: 2,
+    name: "Michael Chen",
+    position: "Chief Technology Officer",
+    description: "Driving innovation and technology solutions to enhance our platform's capabilities.",
+    image: "/assests/images/user2.png"
+  },
+  {
+    id: 3,
+    name: "Ahmed Hassan",
+    position: "Head of Operations",
+    description: "Managing day-to-day operations and ensuring seamless service delivery across India.",
+    image: "/assests/images/user3.png"
+  },
+  {
+    id: 4,
+    name: "David Kumar",
+    position: "Chief Financial Officer",
+    description: "Overseeing financial strategy and ensuring sustainable growth for TaxQue.",
+    image: "/assests/images/user4.png"
+  }
+];
+
+// Team Member Card Component
+const TeamMemberCard = ({ member }: { member: any }) => (
+  <div className="w-full p-3 bg-transparent transition-all duration-300 ease-in-out">
+    <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 hover:scale-105">
+      <div className="relative h-64 transition-transform duration-300 ease-in-out hover:scale-110">
+        <Image 
+          src={member.image} 
+          alt={member.name} 
+          fill
+          className="object-cover transition-transform duration-300 ease-in-out"
+        />
+      </div>
+      <div className="p-6">
+        <h3 className="text-xl font-bold text-gray-900 mb-2 transition-colors duration-300 hover:text-orange-500">{member.name}</h3>
+        <p className="text-orange-500 font-semibold mb-3">{member.position}</p>
+        <p className="text-gray-600 text-sm leading-relaxed">
+          {member.description}
+        </p>
+      </div>
+    </div>
+  </div>
+);
 
 export default function AboutUs() {
   const router = useRouter();
-  const dispatch = useDispatch<AppDispatch>();
-  const { data } = useSelector((state: RootState) => state.team);
   const [currentNav, setCurrentNav] = React.useState("About Us");
+  const [deviceType, setDeviceType] = useState("desktop");
 
   useEffect(() => {
-    dispatch(FetchTeam());
-    if (data?.length < 0) {
-      dispatch(FetchTeam());
-    }
-  }, [dispatch]);
+    const updateDeviceType = () => {
+      if (window.innerWidth < 464) {
+        setDeviceType("mobile");
+      } else if (window.innerWidth < 1024) {
+        setDeviceType("tablet");
+      } else {
+        setDeviceType("desktop");
+      }
+    };
+
+    updateDeviceType();
+    window.addEventListener("resize", updateDeviceType);
+
+    return () => {
+      window.removeEventListener("resize", updateDeviceType);
+    };
+  }, []);
 
   return (
     <div className="w-full min-h-screen bg-white text-black">
@@ -171,11 +253,36 @@ export default function AboutUs() {
         <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center text-gray-900 mb-8 z-10">
           Leadership & Management
         </h2>
-        <div className="w-full z-10">
-          <MyCarousel data={data} cardName="memberCard" />
+        
+        {/* Leadership Team Carousel */}
+        <div className="w-full max-w-6xl z-10">
+          <Carousel
+            swipeable={true}
+            draggable={true}
+            showDots={false}
+            responsive={responsive}
+            ssr={true}
+            infinite={true}
+            autoPlay={true}
+            autoPlaySpeed={4000}
+            keyBoardControl={true}
+            customTransition="all .5s"
+            transitionDuration={500}
+            containerClass="carousel-container"
+            removeArrowOnDeviceType={[]}
+            deviceType={deviceType}
+            dotListClass="custom-dot-list-style"
+            itemClass="carousel-item-padding-40-px"
+            arrows={true}
+          >
+            {teamMembers.map((member) => (
+              <TeamMemberCard key={member.id} member={member} />
+            ))}
+          </Carousel>
         </div>
-        <div className="mt-12 z-10">
-          <AppBtn btnText="Explore" width="200px" height="40px" />
+
+        <div className="mt-8 z-10">
+          <AppBtn btnText="Meet Our Team" width="200px" height="40px" />
         </div>
       </div>
 

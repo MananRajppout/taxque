@@ -166,8 +166,8 @@ export default function Subscribe() {
         draggable={true}
         showDots={false}
         responsive={responsive}
-        ssr={true}
-        infinite={true}
+  ssr={true}
+  infinite={false}
         autoPlay={false}
         keyBoardControl={true}
         customTransition="transform 500ms ease-in-out"

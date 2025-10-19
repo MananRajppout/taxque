@@ -282,50 +282,62 @@ export const BlogCard = ({
   };
 
   return (
-    <div className={`min-w-60 w-full rounded-2xl shadow-lg hover:shadow-xl relative transition-transform duration-300 ease-in-out hover:-translate-y-1 bg-white ${className}`}>
-      <Image 
-        src={imageUrl || "/assests/images/NOData.jpg"} 
-        alt={title} 
-        className="w-full h-auto rounded-t-2xl max-h-32 object-cover" 
-        width={240} 
-        height={128} 
-        priority={false}
-        onError={(e) => {
-          e.currentTarget.src = "/assests/images/NOData.jpg";
-        }}
-      />
-      <div className="p-3 relative">
-        <div className="w-full absolute -top-4 left-0 flex justify-center">
-          <div className="w-16 h-7 flex justify-between px-2 bg-yellow-50 items-center rounded-xl border border-gray-300/24">
-            <div className="flex gap-1 items-center">
-              <Image src={avatarIcom} alt="Author" width={16} height={16} />
-              <p className="text-xs">Amit</p>
-            </div>
-            <div className="flex gap-1 items-center">
-              <Image src={watchIcom} alt="Date" width={12} height={12} />
-              <p className="text-xs">{date}</p>
-            </div>
+    <div
+      className={`w-full rounded-2xl shadow-lg hover:shadow-xl transition-transform duration-300 ease-in-out hover:-translate-y-1 bg-white ${className}`}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-label={`Open blog ${title}`}
+    >
+      <div className="flex flex-col md:flex-row items-stretch gap-4 p-4 md:p-6">
+        {/* Left image */}
+        <div className="w-full md:w-5/12 lg:w-4/12 rounded-lg overflow-hidden flex-shrink-0">
+          <div className="relative h-44 md:h-40 lg:h-48 w-full">
+            <Image
+              src={imageUrl || "/assests/images/NOData.jpg"}
+              alt={title}
+              fill
+              className="object-cover"
+              onError={(e: any) => { e.currentTarget.src = "/assests/images/NOData.jpg"; }}
+            />
           </div>
         </div>
-        <p className="text-lg font-semibold my-3 mb-2 cursor-pointer transition-colors duration-300 hover:text-[#fe8903]">{title}</p>
-        <p className="text-sm text-gray-600">
-          {blogText?.[0]?.summarys?.[0]?.summary?.slice(0, 70) || "No description available"}
-          {blogText?.[0]?.summarys?.[0]?.summary?.length > 70 ? "..." : "."}
-        </p>
-      </div>
-      <Image 
-        src={UPRightArrow} 
-        alt="Read more" 
-        className="absolute -bottom-2 right-3 cursor-pointer opacity-50 transition-opacity duration-300 hover:opacity-100 focus:opacity-100 outline-none focus:outline-2 focus:outline-[#fe8903] focus:outline-offset-2" 
-        width={24} 
-        height={24} 
-        onClick={handleClick}
-        onKeyDown={handleKeyDown}
-        tabIndex={0}
-        role="button"
-        aria-label={`Read more about ${title}`}
-      />
 
+        {/* Right content */}
+        <div className="flex-1 relative py-1">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 bg-yellow-50 px-3 py-2 rounded-xl border border-gray-200/30">
+                <Image src={avatarIcom} alt="Author" width={18} height={18} />
+                <p className="text-sm">Amit</p>
+              </div>
+            </div>
+
+            <div className="text-sm text-orange-500 flex items-center gap-2">
+              <Image src={watchIcom} alt="Date" width={14} height={14} />
+              <span>{date}</span>
+            </div>
+          </div>
+
+          <h3 className="text-lg md:text-xl font-semibold mt-3 mb-2 text-gray-900 hover:text-[#fe8903] transition-colors duration-200">{title}</h3>
+
+          <p className="text-sm text-gray-600 line-clamp-4">
+            {blogText?.[0]?.summarys?.[0]?.summary?.slice(0, 200) || "No description available"}
+            {blogText?.[0]?.summarys?.[0]?.summary?.length > 200 ? "..." : "."}
+          </p>
+
+          {/* Circular arrow button */}
+          <button
+            onClick={(e) => { e.stopPropagation(); handleClick(); }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(); } }}
+            aria-label={`Read more about ${title}`}
+            className="absolute right-4 bottom-4 w-10 h-10 bg-slate-300/60 rounded-full flex items-center justify-center hover:bg-slate-300 transition-colors duration-200 outline-none focus:outline-2 focus:outline-[#fe8903] focus:outline-offset-2"
+          >
+            <Image src={UPRightArrow} alt="Read more" width={18} height={18} />
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

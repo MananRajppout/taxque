@@ -16,7 +16,7 @@ import { AuthContext } from "@/Util/context/AuthContext";
 import { MainCategoryList, BlogCategoryList } from "@/assests/Data/page";
 import type { RootState, AppDispatch } from "@/store/slices/store";
 
-// Use public paths for images (assets under public/assests/images)
+
 const ClogoImg = "/assests/images/logo.svg";
 const homeIcon = "/assests/images/homeIcon.svg";
 const serviceIcon = "/assests/images/serviceIcon.png";
@@ -29,6 +29,7 @@ const searchIcon = "/assests/images/SearchIcon.svg";
 const avatarIcon = "/assests/images/avatarIcon.png";
 const menuIcon = "/assests/images/menuIcon.png";
 const backRoundArrow = "/assests/images/backRoundArrow.png";
+const homeBg = "/assests/images/homeBg.svg";
 
 interface NavProps {
   currentNav: string;
@@ -45,6 +46,7 @@ export default function NavBar({ currentNav }: NavProps) {
   const Blog = useSelector((state: RootState) => state.blog);
 
   const [nav, setNav] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const divRef = useRef<HTMLDivElement | null>(null);
   const { user } = useContext(AuthContext)!;
@@ -160,6 +162,21 @@ export default function NavBar({ currentNav }: NavProps) {
     };
   }, []);
 
+  // Scroll-aware navbar: toggle solid background & shadow after scrolling down
+  useEffect(() => {
+    const handleScroll = () => {
+      const y = window.scrollY || 0;
+      // threshold can be adjusted
+      setScrolled(y > 20);
+    };
+
+    // init
+    handleScroll();
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const renderCategorylist = ({
     category,
     index,
@@ -170,22 +187,88 @@ export default function NavBar({ currentNav }: NavProps) {
     const filterData = Category.data?.filter(
       (val) => val.category === category
     );
-    if (filterData.length > 0) {
+    
+    // Define service links for each category
+    const getServiceLinks = (categoryTitle: string) => {
+      switch (categoryTitle) {
+        case "Income Tax Services":
+          return [
+            { title: "ITR Filing", url: "/services/itr-filing" },
+            { title: "Notice", url: "/our-services/notice" },
+            { title: "TDS Return Filing", url: "/services/tds-return-filing" }
+          ];
+        case "Goods and Services Tax (GST)":
+          return [
+            { title: "GST Annual Return", url: "/services/gst-annual-return" },
+            { title: "GST Registration", url: "/services/gst-registration" },
+            { title: "GST Return", url: "/services/gst-return" },
+            { title: "LUT Filing", url: "/services/lut-filing" },
+            { title: "GST Notice", url: "/services/gst-notice" }
+          ];
+        case "Startup Services":
+          return [
+            { title: "Individual Startup", url: "/services/individual-startup" },
+            { title: "Non-Individual Startup", url: "/services/non-individual-startup" }
+          ];
+        case "Compliance Services":
+          return [
+            { title: "HR Compliance", url: "/services/hr-compliance" },
+            { title: "Individual Small Business", url: "/services/individual-small-business" },
+            { title: "Non-Individual Small Business", url: "/services/non-individual-small-business" },
+            { title: "Other Compliance", url: "/services/other-compliance" }
+          ];
+        case "Intellectual Property Rights (IPR)":
+          return [
+            { title: "Trademarks", url: "/services/trademarks" },
+            { title: "Copyright", url: "/services/copyright" },
+            { title: "Patent", url: "/services/patent" }
+          ];
+        case "Accounting":
+          return [
+            { title: "Bookkeeping", url: "/services/bookkeeping" },
+            { title: "Report", url: "/services/report" }
+          ];
+        default:
+          return [];
+      }
+    };
+
+    const serviceLinks = getServiceLinks(category);
+    
+    if (filterData.length > 0 || serviceLinks.length > 0) {
       return (
         <>
           <div
             style={{ display: categoryIndex === index ? "flex" : "none" }}
             className="absolute left-full top-0 w-60 flex-col rounded-lg overflow-hidden border border-gray-300/22 z-[99999] bg-white"
           >
+            {/* Dynamic services from Redux */}
             {filterData?.map((el: any, i: number) => (
               <div
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   router.push(`/category/${el?.Slug}`);
+                  setCategoryPop(false); // Close dropdown after navigation
                 }}
                 key={i}
                 className="w-full h-7 px-2.5 border-b border-gray-300 bg-white transition-all duration-600 cursor-pointer hover:bg-gray-50"
               >
-                <span className="text-sm">{el?.title}</span>
+                <span className="text-sm text-orange-500">{el?.title}</span>
+              </div>
+            ))}
+            
+            {/* Static service links */}
+            {serviceLinks.map((service, i) => (
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(service.url);
+                  setCategoryPop(false); // Close dropdown after navigation
+                }}
+                key={`static-${i}`}
+                className="w-full h-7 px-2.5 border-b border-gray-300 bg-white transition-all duration-600 cursor-pointer hover:bg-gray-50"
+              >
+                <span className="text-sm text-orange-500">{service.title}</span>
               </div>
             ))}
           </div>
@@ -202,23 +285,123 @@ export default function NavBar({ currentNav }: NavProps) {
     index: number;
   }) => {
     const filterData = Blog?.data?.filter((val) => val.category === category);
-    if (filterData.length > 0) {
+    
+    // Define guide links for each category based on the images
+    const getGuideLinks = (categoryTitle: string) => {
+      switch (categoryTitle) {
+        case "Income Tax":
+          return [
+            { title: "Blog title tow", url: "/blog/blog-title-tow" },
+            { title: "Blog title tow", url: "/blog/blog-title-tow" },
+            { title: "Test blog titlev", url: "/blog/test-blog-titlev" }
+          ];
+        case "Updates":
+          return [
+            { title: "Urban Oasis in South Delhi", url: "/blog/urban-oasis-south-delhi" },
+            { title: "TexQue new blog title", url: "/blog/texque-new-blog-title" },
+            { title: "Cepeelispee", url: "/blog/cepeelispee" }
+          ];
+        case "Private Company":
+          return [
+            { title: "Private Company Guide", url: "/blog/private-company-guide" },
+            { title: "Company Formation", url: "/blog/company-formation" },
+            { title: "Corporate Compliance", url: "/blog/corporate-compliance" }
+          ];
+        case "ROC Filings":
+          return [
+            { title: "ROC Filing Process", url: "/blog/roc-filing-process" },
+            { title: "Annual Returns", url: "/blog/annual-returns" },
+            { title: "Compliance Calendar", url: "/blog/compliance-calendar" }
+          ];
+        case "Compliance":
+          return [
+            { title: "Statutory Compliance", url: "/blog/statutory-compliance" },
+            { title: "Regulatory Updates", url: "/blog/regulatory-updates" },
+            { title: "Legal Requirements", url: "/blog/legal-requirements" }
+          ];
+        case "Business":
+          return [
+            { title: "Business Setup Guide", url: "/blog/business-setup-guide" },
+            { title: "Startup Registration", url: "/blog/startup-registration" },
+            { title: "Business Growth", url: "/blog/business-growth" }
+          ];
+        case "Registration":
+          return [
+            { title: "Company Registration", url: "/blog/company-registration" },
+            { title: "LLP Registration", url: "/blog/llp-registration" },
+            { title: "Partnership Registration", url: "/blog/partnership-registration" }
+          ];
+        case "Accounting & Bookkeeping":
+          return [
+            { title: "Bookkeeping Basics", url: "/blog/bookkeeping-basics" },
+            { title: "Accounting Standards", url: "/blog/accounting-standards" },
+            { title: "Financial Reporting", url: "/blog/financial-reporting" }
+          ];
+        case "Trademark":
+          return [
+            { title: "Trademark Registration", url: "/blog/trademark-registration" },
+            { title: "Trademark Search", url: "/blog/trademark-search" },
+            { title: "Trademark Renewal", url: "/blog/trademark-renewal" }
+          ];
+        case "Copyright":
+          return [
+            { title: "Copyright Registration", url: "/blog/copyright-registration" },
+            { title: "Copyright Protection", url: "/blog/copyright-protection" },
+            { title: "Copyright Infringement", url: "/blog/copyright-infringement" }
+          ];
+        case "Import & Export":
+          return [
+            { title: "Import Documentation", url: "/blog/import-documentation" },
+            { title: "Export Procedures", url: "/blog/export-procedures" },
+            { title: "Customs Compliance", url: "/blog/customs-compliance" }
+          ];
+        case "Tools":
+          return [
+            { title: "Tax Calculator", url: "/blog/tax-calculator" },
+            { title: "GST Calculator", url: "/blog/gst-calculator" },
+            { title: "Business Tools", url: "/blog/business-tools" }
+          ];
+        default:
+          return [];
+      }
+    };
+
+    const guideLinks = getGuideLinks(category);
+    
+    if (filterData.length > 0 || guideLinks.length > 0) {
       return (
         <>
           <div
             style={{ display: blogPopIndex === index ? "flex" : "none" }}
             className="absolute left-full top-0 w-60 flex-col rounded-lg overflow-hidden border border-gray-300/22 z-[99999] bg-white"
           >
+            {/* Dynamic blog posts from Redux */}
             {filterData?.map((el: any, i: number) => (
               <div
-                key={i}
-                onClick={() => {
-                  console.log("Navigating to:", el?.Slug);
+                onClick={(e) => {
+                  e.stopPropagation();
                   router.push(`/learn/${el?.Slug}`);
+                  setBlogPop(false); // Close dropdown after navigation
                 }}
+                key={i}
                 className="w-full h-7 px-2.5 border-b border-gray-300 bg-white transition-all duration-600 cursor-pointer hover:bg-gray-50"
               >
-                <span className="text-sm">{el?.title}</span>
+                <span className="text-sm text-orange-500">{el?.title}</span>
+              </div>
+            ))}
+            
+            {/* Static guide links */}
+            {guideLinks.map((guide, i) => (
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(guide.url);
+                  setBlogPop(false); // Close dropdown after navigation
+                }}
+                key={`guide-${i}`}
+                className="w-full h-7 px-2.5 border-b border-gray-300 bg-white transition-all duration-600 cursor-pointer hover:bg-gray-50"
+              >
+                <span className="text-sm text-orange-500">{guide.title}</span>
               </div>
             ))}
           </div>
@@ -248,7 +431,25 @@ export default function NavBar({ currentNav }: NavProps) {
 
   return (
     <>
-      <div ref={divRef} className="w-full h-[80px] sm:h-[90px] md:h-[100px] flex flex-row items-center justify-between px-[3%] sm:px-[2%] absolute top-0 z-[2] md:px-[9%] lg:px-[9%] bg-transparent">
+      <div
+        ref={divRef}
+        className={`w-full h-[80px] sm:h-[90px] md:h-[100px] flex flex-row items-center justify-between px-[3%] sm:px-[2%] fixed top-0 left-0 z-[9999] md:px-[9%] lg:px-[9%] transition-colors duration-300 ${scrolled ? 'bg-white shadow-md' : 'bg-transparent shadow-none'}`}
+      >
+        {/* Background Image */}
+  <div className={`absolute inset-0 w-full h-full opacity-40 ${scrolled ? 'hidden' : 'block'}`}>
+          <Image
+            src={homeBg}
+            alt="Background"
+            fill
+            className="object-cover w-full h-full"
+            priority={false}
+            style={{
+              objectPosition: 'center top',
+              width: '100%',
+              height: '100%'
+            }}
+          />
+        </div>
         {/*Search pop */}
         <div
           id="searchGrayBox"
@@ -297,7 +498,7 @@ export default function NavBar({ currentNav }: NavProps) {
           </div>
         </div>
 
-        <div className="w-[80px] sm:w-[100px] md:w-[150px] lg:w-[200px] flex items-center" onClick={() => router.push("/")}>
+        <div className="w-[80px] sm:w-[100px] md:w-[150px] lg:w-[200px] flex items-center relative z-10" onClick={() => router.push("/")}>
           <Image src={ClogoImg} alt="TaxQue Logo" width={200} height={60} className="w-full cursor-pointer" />
         </div>
         <ToastContainer />
@@ -354,7 +555,7 @@ export default function NavBar({ currentNav }: NavProps) {
           </div>
         </div>
 
-        <div className="flex-1 flex justify-end items-center gap-[30px] relative">
+        <div className="flex-1 flex justify-end items-center gap-[30px] relative z-10">
           <div className="flex flex-row gap-[30px] items-center">
          
 
@@ -410,7 +611,13 @@ export default function NavBar({ currentNav }: NavProps) {
                     setCategoryIndex(i);
                   }}
                   onMouseOut={() => {
-                    setCategoryIndex(NaN);
+                    // Don't immediately close when mouse leaves category
+                    // Let the main dropdown handle closing
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Keep dropdown open when clicking on category
+                    setCategoryIndex(i);
                   }}
                 >
                   <span className="text-[14px] text-black">{subM?.title}</span>
@@ -472,7 +679,13 @@ export default function NavBar({ currentNav }: NavProps) {
                     setBlogPopIndex(i);
                   }}
                   onMouseOut={() => {
-                    setBlogPopIndex(NaN);
+                    // Don't immediately close when mouse leaves category
+                    // Let the main dropdown handle closing
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Keep dropdown open when clicking on category
+                    setBlogPopIndex(i);
                   }}
                 >
                   <span className="text-[14px] text-black">{bol}</span>

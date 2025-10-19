@@ -219,7 +219,7 @@
 }
 
 .subscribe-carousel .react-multi-carousel-list {
-  overflow: visible;
+  overflow: hidden; /* hide cloned slides that can appear when carousel is infinite */
 }
 
 .subscribe-carousel .react-multi-carousel-item > div {
