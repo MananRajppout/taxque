@@ -1,10 +1,9 @@
 import Axios from "axios";
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
-import { Reloader } from "../Components/Tools";
 import { STATUSES } from "./statusTypes";
 
-export const baseURL = import.meta.env.VITE_BASE_URL;
+export const baseURL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000/taxque/api";
 
 //Category Type
 export interface CategoryDataType {
@@ -32,6 +31,7 @@ export interface UpdatedCategoryValType {
   metaDescription?: string;
   category?: string;
 }
+
 interface UpdateCategoryArgs {
   id: string;
   data: UpdatedCategoryValType;
@@ -49,7 +49,7 @@ const initialState: CategoryState = {
   status: STATUSES.LOADING,
 };
 
-// **Fetch Services - Async Thunk**
+// **Fetch Categories - Async Thunk**
 export const FetchCategory = createAsyncThunk<CategoryDataType[]>(
   "Category/fetch",
   async () => {
@@ -66,12 +66,12 @@ export const CreateCategory = createAsyncThunk<CategoryDataType, CategoryDataTyp
       const response = await Axios.post(`${baseURL}/category/create`, {
         ...data,
       });
-      toast.success("category created successfully.");
-      Reloader(600);
+      toast.success("Category created successfully.");
+      setTimeout(() => window.location.reload(), 600);
       return response.data;
     } catch (error: any) {
       toast.error("Something went wrong", error.response?.data);
-      Reloader(900);
+      setTimeout(() => window.location.reload(), 900);
       return rejectWithValue(error.response?.data || "Something went wrong");
     }
   }
@@ -83,18 +83,17 @@ export const DeleteCategory = createAsyncThunk<void, string>(
   async (id) => {
     try {
       await Axios.post(`${baseURL}/category/delete/${id}`).then(() => {
-        toast.info("category deleted successfully !");
-        Reloader(1000);
+        toast.info("Category deleted successfully !");
+        setTimeout(() => window.location.reload(), 1000);
       });
     } catch (error) {
-      console.error("Error deleting service:", error);
+      console.error("Error deleting category:", error);
       toast.error("Internal server error!");
     }
   }
 );
 
-//Update service
-
+//Update category
 export const UpdateCategory = createAsyncThunk<
   UpdatedCategoryValType,
   UpdateCategoryArgs
@@ -102,7 +101,7 @@ export const UpdateCategory = createAsyncThunk<
   try {
     const response = await Axios.post(`${baseURL}/category/update/${id}`, data);
     toast.success("Category updated successfully !");
-    Reloader(1000);
+    setTimeout(() => window.location.reload(), 1000);
     return response.data;
   } catch (error: any) {
     toast.error("Failed to update category");

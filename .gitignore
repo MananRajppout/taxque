@@ -1,6 +1,6 @@
 admin/node_modules
 admin/dist
-admin/.env
+admin/.env.*
 
 
 backend/node_modules

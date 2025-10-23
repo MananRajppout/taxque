@@ -1,15 +1,15 @@
 import Axios from "axios";
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
-import { Reloader } from "../Components/Tools";
 import { STATUSES } from "./statusTypes";
 
-export const baseURL = import.meta.env.VITE_BASE_URL;
+export const baseURL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000/taxque/api";
 
 export interface blogTextType {
   title: string;
   summarys: { summary: string }[];
 }
+
 export interface BlogDataType {
   title: string;
   Slug: string;
@@ -21,6 +21,7 @@ export interface BlogDataType {
   category?: string;
   _id?: string;
 }
+
 interface BlogUpdateDataType {
   title?: string;
   Slug?: string;
@@ -32,21 +33,22 @@ interface BlogUpdateDataType {
   category?: string;
   _id?: string;
 }
+
 interface UpdateBlogArgs {
   id: string;
   data: BlogUpdateDataType;
 }
+
 interface blogState {
   data: BlogDataType[];
   status: STATUSES;
 }
-// Initial state
+
 const initialState: blogState = {
   data: [],
   status: STATUSES.LOADING,
 };
 
-//Fetch user
 export const FetchBlog = createAsyncThunk<BlogDataType[]>(
   "blog/fetch",
   async () => {
@@ -56,7 +58,6 @@ export const FetchBlog = createAsyncThunk<BlogDataType[]>(
   }
 );
 
-// create User
 export const CreateBlog = createAsyncThunk<BlogDataType, BlogDataType>(
   "blog/create",
   async (data, { rejectWithValue }) => {
@@ -65,27 +66,26 @@ export const CreateBlog = createAsyncThunk<BlogDataType, BlogDataType>(
         ...data,
       });
       toast.success("Blog created successfully.");
-      Reloader(600);
+      setTimeout(() => window.location.reload(), 600);
       return response.data;
     } catch (error: any) {
       toast.error("Something went wrong", error.response?.data);
-      Reloader(900);
+      setTimeout(() => window.location.reload(), 900);
       return rejectWithValue(error.response?.data || "Something went wrong");
     }
   }
 );
 
-//Delete blog
 export const DeleteBlog = createAsyncThunk<void, string>(
   "blog/delete",
   async (id) => {
     try {
       await Axios.post(`${baseURL}/blog/delete/${id}`).then(() => {
         toast.info("Blog deleted successfully !");
-        Reloader(1000);
+        setTimeout(() => window.location.reload(), 1000);
       });
     } catch (error) {
-      console.error("Error deleting service:", error);
+      console.error("Error deleting blog:", error);
       toast.error("Internal server error!");
     }
   }
@@ -98,10 +98,10 @@ export const UpdateBlog = createAsyncThunk<
   try {
     const response = await Axios.post(`${baseURL}/blog/update/${id}`, data);
     toast.success("Blog updated successfully !");
-    Reloader(1000);
+    setTimeout(() => window.location.reload(), 1000);
     return response.data;
   } catch (error: any) {
-    toast.error("Failed to update service");
+    toast.error("Failed to update blog");
     return rejectWithValue(error.response?.data || "An error occurred");
   }
 });

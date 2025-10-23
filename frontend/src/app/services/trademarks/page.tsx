@@ -4,12 +4,10 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-// Components
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import Subscribe from "@/components/Subscribe";
 
-// Service data for Trademarks
 const trademarkServices = [
   {
     title: "Trademark Registration",

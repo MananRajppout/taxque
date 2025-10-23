@@ -1,12 +1,11 @@
 import Axios from "axios";
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
-import { Reloader } from "../Components/Tools";
 import { STATUSES } from "./statusTypes";
 
-export const baseURL = import.meta.env.VITE_BASE_URL;
+export const baseURL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000/taxque/api";
 
-//job Type
+
 export interface jobInpoutDataType {
   title: string;
   location: string;
@@ -44,24 +43,23 @@ export interface JobUpdateDataType {
   jobLocation?: string;
   _id?: string;
 }
+
 interface UpdateJobArgs {
   id: string;
   data: JobUpdateDataType;
 }
 
-// Define the initial state type
+
 interface JobState {
   data: JobDataType[];
   status: STATUSES;
 }
 
-// Initial state
 const initialState: JobState = {
   data: [],
   status: STATUSES.LOADING,
 };
 
-// **Fetch Services - Async Thunk**
 export const FetchJob = createAsyncThunk<JobDataType[]>(
   "job/fetch",
   async () => {
@@ -79,38 +77,37 @@ export const CreateJob = createAsyncThunk<JobDataType, JobDataType>(
         ...data,
       });
       toast.success("Job created successfully.");
-      Reloader(600);
+      setTimeout(() => window.location.reload(), 600);
       return response.data;
     } catch (error: any) {
       toast.error("Something went wrong", error.response?.data);
-      Reloader(900);
+      setTimeout(() => window.location.reload(), 900);
       return rejectWithValue(error.response?.data || "Something went wrong");
     }
   }
 );
 
-// **Delete job - Async Thunk**
+
 export const DeleteJob = createAsyncThunk<void, string>(
   "job/delete",
   async (id) => {
     try {
       await Axios.post(`${baseURL}/job/delete/${id}`).then(() => {
         toast.info("Job deleted successfully !");
-        Reloader(1000);
+        setTimeout(() => window.location.reload(), 1000);
       });
     } catch (error) {
-      console.error("Error deleting JOb:", error);
+      console.error("Error deleting Job:", error);
       toast.error("Internal server error!");
     }
   }
 );
 
-//Update Job------------------
 export const UpdateJob = createAsyncThunk<JobUpdateDataType, UpdateJobArgs>("job/update", async ({ data, id }, { rejectWithValue }) => {
   try {
     const response = await Axios.post(`${baseURL}/job/update/${id}`, data);
     toast.success("Job updated successfully !");
-    Reloader(1000);
+    setTimeout(() => window.location.reload(), 1000);
     return response.data;
   } catch (error: any) {
     toast.error("Failed to update Job");
@@ -118,8 +115,8 @@ export const UpdateJob = createAsyncThunk<JobUpdateDataType, UpdateJobArgs>("job
   }
 });
 
-// **Service Slice**
-const serviceSlice = createSlice({
+
+const jobSlice = createSlice({
   name: "job",
   initialState,
   reducers: {
@@ -142,5 +139,5 @@ const serviceSlice = createSlice({
   },
 });
 
-export const { get } = serviceSlice.actions;
-export default serviceSlice.reducer;
+export const { get } = jobSlice.actions;
+export default jobSlice.reducer;

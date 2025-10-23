@@ -9,7 +9,6 @@ import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import Subscribe from "@/components/Subscribe";
 
-// Service data for ITR Filing
 const itrServices = [
   {
     title: "ITR-1 Filing Online in India",
@@ -69,7 +68,6 @@ const itrServices = [
   }
 ];
 
-// Service Card Component (notice-style)
 const ServiceCard = ({ service }: { service: any }) => {
   const router = useRouter();
 
@@ -90,7 +88,6 @@ const ServiceCard = ({ service }: { service: any }) => {
           </div>
         </div>
 
-        {/* Rating block */}
         <div className="flex flex-col items-end">
           <span className="text-orange-500 font-semibold text-sm">{service.rating}</span>
           <div className="text-yellow-400 mt-1">★★★★★</div>
@@ -121,12 +118,10 @@ export default function ITRFilingPage() {
 
   return (
     <div className="w-full min-h-screen bg-white">
-      {/* Header */}
       <div className="bg-white shadow-sm">
         <NavBar currentNav={currentNav} setCurrentNav={setCurrentNav} />
       </div>
 
-      {/* Breadcrumb */}
       <div className="px-4 md:px-8 lg:px-16 pt-20 pb-4">
         <div className="max-w-7xl mx-auto">
           <nav className="text-sm text-orange-500 mb-6">
@@ -137,24 +132,23 @@ export default function ITRFilingPage() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="px-4 md:px-8 lg:px-16 pb-16">
         <div className="max-w-7xl mx-auto">
-          {/* Main Heading */}
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-center text-gray-900 mb-12">
             Category Related Service
           </h1>
 
-          {/* Service Cards Grid */}
+       
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
             {itrServices.map((service, index) => (
               <ServiceCard key={index} service={service} />
             ))}
           </div>
+         
         </div>
       </div>
 
-      {/* Success Stories & Reviews Section */}
+     
       <div className="bg-gray-50 py-16">
         <div className="px-4 md:px-8 lg:px-16">
           <div className="max-w-7xl mx-auto">
@@ -168,10 +162,10 @@ export default function ITRFilingPage() {
         </div>
       </div>
 
-      {/* Subscribe Section */}
+   
       <Subscribe />
 
-      {/* Footer */}
+   
       <Footer />
     </div>
   );

@@ -1,11 +1,9 @@
 import Axios from "axios";
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
-import { Reloader } from "../Components/Tools";
 import { STATUSES } from "./statusTypes";
 
-export const baseURL = import.meta.env.VITE_BASE_URL;
-
+export const baseURL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000/taxque/api";
 
 export interface requireDocType {
   docCategory: string;
@@ -17,7 +15,6 @@ export interface requireDocType {
   }[]
   _id?: string;
 }
-
 
 export interface UserDataType {
   name: string;
@@ -31,12 +28,15 @@ export interface UserDataType {
   }[];
   _id?: string;
 }
+
 export interface findUserArgeType {
   email: string;
 }
+
 export interface FindUserResponseType {
   user: UserDataType;
 }
+
 export interface UserUpdateDataType {
   requireDoc?: {
     docTitle: String;
@@ -47,6 +47,7 @@ export interface UserUpdateDataType {
   }
   _id?: string;
 }
+
 export interface docType {
   docTitle?: String;
   docUrl?: String[];
@@ -54,6 +55,7 @@ export interface docType {
   rejectMessage?: String;
   _id?: string;
 }
+
 interface UpdateUserArgs {
   data: {
     userId: string;
@@ -65,11 +67,11 @@ interface UpdateUserArgs {
   }
 }
 
-
 interface userState {
   data: UserDataType[];
   status: STATUSES;
 }
+
 // Initial state
 const initialState: userState = {
   data: [],
@@ -95,11 +97,11 @@ export const CreateUser = createAsyncThunk<UserDataType, UserDataType>(
         ...data,
       });
       toast.success("User created successfully.");
-      Reloader(600);
+      setTimeout(() => window.location.reload(), 600);
       return response.data;
     } catch (error: any) {
       toast.error("Something went wrong", error.response?.data);
-      Reloader(900);
+      setTimeout(() => window.location.reload(), 900);
       return rejectWithValue(error.response?.data || "Something went wrong");
     }
   }
@@ -114,17 +116,14 @@ export const FindUser = createAsyncThunk<UserDataType, findUserArgeType>(
         ...data,
       });
       toast.success("User found successfully.");
-      // Reloader(600);
       const user = response.data.user;
       return user;
     } catch (error: any) {
       toast.error("Something went wrong", error.response?.data);
-      // Reloader(900);
       return rejectWithValue(error.response?.data || "Something went wrong");
     }
   }
 );
-
 
 export const UpdateDoc = createAsyncThunk<UpdateUserArgs, UpdateUserArgs>(
   "user/updateDOC",
@@ -132,7 +131,6 @@ export const UpdateDoc = createAsyncThunk<UpdateUserArgs, UpdateUserArgs>(
     try {
       const response = await Axios.post(`${baseURL}/user/update_doc_message`, data);
       toast.success("Document updated successfully !");
-      // Reloader(1000);
       return response.data;
     } catch (error: any) {
       toast.error("Failed to update document");
@@ -165,7 +163,6 @@ const userSlice = createSlice({
         state.data.push(action.payload); // Append the new user
         state.status = STATUSES.IDLE;
       })
-
       .addCase(FindUser.pending, (state) => {
         state.status = STATUSES.LOADING;
       })

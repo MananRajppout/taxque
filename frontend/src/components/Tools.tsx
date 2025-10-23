@@ -99,9 +99,127 @@ export const ServiceCard = ({
   const router = useRouter();
   const truncatedHTML = truncate(summary || "", 100, { byWords: false });
 
+  // Function to map service titles to their corresponding page routes
+  const getServiceRoute = (serviceTitle: string): string => {
+    const title = serviceTitle.toLowerCase();
+    
+    // GST Services
+    if (title.includes('gst registration') || title.includes('gst-registration')) {
+      return '/services/gst-registration';
+    }
+    if (title.includes('gst return') || title.includes('gst-return') || title.includes('gst return')) {
+      return '/services/gst-return';
+    }
+    if (title.includes('gst annual') || title.includes('gst-annual')) {
+      return '/services/gst-annual-return';
+    }
+    if (title.includes('lut filing') || title.includes('lut-filing')) {
+      return '/services/lut-filing';
+    }
+    if (title.includes('gst notice') || title.includes('gst-notice')) {
+      return '/services/gst-notice';
+    }
+    
+    // Tax Services
+    if (title.includes('itr filing') || title.includes('itr-filing')) {
+      return '/services/itr-filing';
+    }
+    if (title.includes('tds return') || title.includes('tds-return') || title.includes('tds return filling')) {
+      return '/services/tds-return-filing';
+    }
+    if (title.includes('notice') && !title.includes('gst')) {
+      return '/our-services/notice';
+    }
+    
+    // Handle income tax services - redirect to LUT filing
+    if (title.includes('income tax') || title.includes('income-tax') || title.includes('income tax services')) {
+      return '/services/lut-filing';
+    }
+   
+    if (title.includes('individual startup') || title.includes('individual-startup') || title === 'individual') {
+      return '/services/individual-startup';
+    }
+    if (title.includes('individual small business') || title.includes('individual-small-business') || title.includes('individual and small business')) {
+      return '/services/individual-small-business';
+    }
+    if (title.includes('non-individual startup') || title.includes('non-individual-startup') || title === 'non-individual') {
+      return '/services/individual-startup';
+    }
+    if (title.includes('non-individual small business') || title.includes('non-individual-small-business') || title.includes('non-individual and small business')) {
+      return '/services/individual-small-business';
+    }
+    
+    // Intellectual Property
+    if (title.includes('trademark') || title.includes('trademarks')) {
+      return '/services/trademarks';
+    }
+    if (title.includes('copyright')) {
+      return '/services/copyright';
+    }
+    if (title.includes('patent')) {
+      return '/services/patent';
+    }
+    
+    // Compliance & Other Services
+    if (title.includes('bookkeeping')) {
+      return '/services/bookkeeping';
+    }
+    if (title.includes('hr compliance') || title.includes('hr-compliance')) {
+      return '/services/hr-compliance';
+    }
+    if (title.includes('other compliance') || title.includes('other-compliance')) {
+      return '/services/other-compliance';
+    }
+    if (title.includes('report')) {
+      return '/services/report';
+    }
+    
+    // Additional pages that might be referenced
+    if (title.includes('about') || title.includes('about us')) {
+      return '/about';
+    }
+    if (title.includes('blog') || title.includes('guide')) {
+      return '/blog';
+    }
+    if (title.includes('contact') || title.includes('contact us')) {
+      return '/contact-us';
+    }
+    if (title.includes('career') || title.includes('careers')) {
+      return '/careers';
+    }
+    if (title.includes('team')) {
+      return '/team';
+    }
+    if (title.includes('faq')) {
+      return '/faq';
+    }
+    if (title.includes('payment') || title.includes('pay')) {
+      return '/payment';
+    }
+    if (title.includes('user profile') || title.includes('profile')) {
+      return '/user-profile';
+    }
+    if (title.includes('login')) {
+      return '/login';
+    }
+    if (title.includes('privacy')) {
+      return '/privacy';
+    }
+    if (title.includes('terms')) {
+      return '/terms-of-use';
+    }
+    if (title.includes('refund')) {
+      return '/refund';
+    }
+    
+    // Default fallback - try to use Slug if available, otherwise go to services page
+    return Slug ? `/services/${Slug}` : '/services';
+  };
+
   const handleClick = () => {
     if (_id) localStorage.setItem("selectedCategory", _id);
-    router.push(`/category/${Slug}`);
+    const route = getServiceRoute(title);
+    router.push(route);
     scrollToTop();
   };
 
@@ -128,7 +246,7 @@ export const ServiceCard = ({
       <div className="bg-white p-[15px] flex flex-col flex-1">
         <div className="w-full border-t border-gray-300/30 my-[10px]"></div>
         <p className="text-[12px] text-gray-600 leading-[18px] mb-[15px] flex-1 sm:text-[14px] sm:leading-[22px] md:text-[16px] md:leading-[24px]">{parse(typeof truncatedHTML === 'string' ? truncatedHTML : '')}</p>
-        <AppHoloBtn onClick={handleClick} btnText="Red More" height="30px" width="110px" className="sm:h-[35px] sm:w-[120px] md:h-[40px] md:w-[130px]" />
+        <AppHoloBtn onClick={handleClick} btnText="Read More" height="30px" width="110px" className="sm:h-[35px] sm:w-[120px] md:h-[40px] md:w-[130px]" />
       </div>
       
       {/* Bottom Image Section */}

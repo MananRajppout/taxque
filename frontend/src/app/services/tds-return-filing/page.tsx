@@ -4,12 +4,10 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-// Components
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import Subscribe from "@/components/Subscribe";
 
-// Service data for TDS Return Filing
 const tdsServices = [
   {
     title: "TDS Return Filing - Form 24Q",
@@ -110,7 +108,6 @@ const ServiceCard = ({ service }: { service: any }) => {
 
   return (
     <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-green-200 hover:-translate-y-1">
-      {/* Top Section */}
       <div className="p-6">
         <div className="flex items-start gap-4 mb-4">
           <div className="w-12 h-12 bg-green-200 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -127,21 +124,22 @@ const ServiceCard = ({ service }: { service: any }) => {
             <p className="text-sm text-gray-600 leading-relaxed">{service.description}</p>
           </div>
         </div>
-        
       
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">Basic Price:</span>
-              <span className="text-sm text-gray-400 line-through">₹{service.basicPrice}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-sm font-semibold text-gray-700">{service.rating}</span>
-              <div className="flex items-center gap-0.5">
-                {renderStars(service.rating)}
-              </div>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500">Basic Price:</span>
+            <span className="text-sm text-gray-400 line-through">₹{service.basicPrice}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-sm font-semibold text-gray-700">{service.rating}</span>
+            <div className="flex items-center gap-0.5">
+              {renderStars(service.rating)}
             </div>
           </div>
+        </div>
+        
+        <div className="mb-4">
+         
           <div className="text-right">
             <span className="text-sm text-gray-600">Price: </span>
             <span className="text-xl font-bold text-orange-500">₹{service.price}</span>

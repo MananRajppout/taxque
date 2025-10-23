@@ -1,9 +1,9 @@
 import Axios from "axios";
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
-import { Reloader } from "../Components/Tools";
 import { STATUSES } from "./statusTypes";
-export const baseURL = import.meta.env.VITE_BASE_URL;
+
+export const baseURL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000/taxque/api";
 
 export interface TeamInputDataType {
   name: string;
@@ -13,6 +13,7 @@ export interface TeamInputDataType {
   twitter: string
   linkedin: string
 }
+
 export interface TeamInputDataUpdateType {
   name?: string;
   email?: string;
@@ -35,6 +36,7 @@ interface TeamDataType {
   }
   _id?: string;
 }
+
 interface TeamDataUpdateType {
   name?: string;
   email?: string;
@@ -48,23 +50,24 @@ interface TeamDataUpdateType {
   }
   _id?: string;
 }
+
 interface TeamUpdateDataArgs {
   id: string,
   data: TeamDataUpdateType
 }
 
-
 interface teamState {
   data: TeamDataType[];
   status: STATUSES;
 }
+
 // Initial state
 const initialState: teamState = {
   data: [],
   status: STATUSES.LOADING,
 };
 
-//Fetch user
+//Fetch team
 export const FetchTeam = createAsyncThunk<TeamDataType[]>(
   "team/fetch",
   async () => {
@@ -74,7 +77,7 @@ export const FetchTeam = createAsyncThunk<TeamDataType[]>(
   }
 );
 
-//create User
+//create Team
 export const CreateTeam = createAsyncThunk<TeamDataType, TeamDataType>(
   "team/create",
   async (data, { rejectWithValue }) => {
@@ -83,16 +86,15 @@ export const CreateTeam = createAsyncThunk<TeamDataType, TeamDataType>(
         ...data,
       });
       toast.success("Team created successfully.");
-      Reloader(600);
+      setTimeout(() => window.location.reload(), 600);
       return response.data;
     } catch (error: any) {
       toast.error("Something went wrong", error.response?.data);
-      Reloader(900);
+      setTimeout(() => window.location.reload(), 900);
       return rejectWithValue(error.response?.data || "Something went wrong");
     }
   }
 );
-
 
 export const UpdateTeam = createAsyncThunk<TeamDataUpdateType, TeamUpdateDataArgs>(
   "team/update",
@@ -100,7 +102,7 @@ export const UpdateTeam = createAsyncThunk<TeamDataUpdateType, TeamUpdateDataArg
     try {
       const response = await Axios.post(`${baseURL}/team/update/${id}`, data);
       toast.success("Team update successfully !");
-      Reloader(1000);
+      setTimeout(() => window.location.reload(), 1000);
       return response.data;
     } catch (error: any) {
       toast.error("Failed to update Team");
@@ -115,7 +117,7 @@ export const DeleteTeam = createAsyncThunk<void, string>(
     try {
       await Axios.post(`${baseURL}/team/delete/${id}`).then(() => {
         toast.info("Team deleted successfully !");
-        Reloader(1000);
+        setTimeout(() => window.location.reload(), 1000);
       });
     } catch (error) {
       console.error("Error deleting team:", error);
@@ -123,7 +125,6 @@ export const DeleteTeam = createAsyncThunk<void, string>(
     }
   }
 )
-
 
 const teamSlice = createSlice({
   name: "team",
@@ -146,7 +147,7 @@ const teamSlice = createSlice({
         state.status = STATUSES.ERROR;
       })
       .addCase(CreateTeam.fulfilled, (state, action) => {
-        state.data.push(action.payload); // Append the new user
+        state.data.push(action.payload); // Append the new team member
         state.status = STATUSES.IDLE;
       })
   },

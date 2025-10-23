@@ -4,15 +4,14 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-// Components
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import Subscribe from "@/components/Subscribe";
 
-// Images
+
 const HPTImg = "/assests/images/HPTImg.png";
 
-// Icons
+
 const personIcon = "/assests/images/UserIcon.png";
 const emailIcon = "/assests/images/emailIcon.svg";
 const phoneIcon = "/assests/images/phoneIcon.svg";
@@ -40,8 +39,7 @@ export default function BlogPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
-    // Handle form submission here
+    console.log("Form submitted:", formData); 
   };
 
   const services = [
@@ -56,12 +54,11 @@ export default function BlogPage() {
 
   return (
     <div className="w-full min-h-screen bg-white">
-      {/* Header */}
       <div className="bg-white shadow-sm">
         <NavBar currentNav={currentNav} setCurrentNav={setCurrentNav} />
       </div>
 
-      {/* Breadcrumb */}
+      
       <div className="px-4 md:px-8 lg:px-16 pt-20 pb-4">
         <div className="max-w-7xl mx-auto">
           <nav className="text-sm text-orange-500 mb-6">
@@ -74,14 +71,11 @@ export default function BlogPage() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="px-4 md:px-8 lg:px-16 pb-16">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
             
-            {/* Left Column - Blog Content */}
             <div className="lg:col-span-2">
-              {/* Author and Date */}
               <div className="flex items-center gap-4 mb-6">
                 <div className="flex items-center gap-2 text-orange-500">
                   <Image src={personIcon} alt="Author" width={16} height={16} />
@@ -95,12 +89,10 @@ export default function BlogPage() {
                 </div>
               </div>
 
-              {/* Blog Title */}
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-8">
                 Blog title tow
               </h1>
 
-              {/* Blog Image */}
               <div className="relative h-64 md:h-80 lg:h-96 rounded-2xl overflow-hidden shadow-lg mb-8">
                 <Image
                   src={HPTImg}
@@ -111,7 +103,6 @@ export default function BlogPage() {
                 />
               </div>
 
-              {/* Blog Content */}
               <div className="prose prose-lg max-w-none">
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">Paragraph title tow</h2>
                 <p className="text-gray-600 leading-relaxed mb-6">
@@ -129,7 +120,6 @@ export default function BlogPage() {
               </div>
             </div>
 
-            {/* Right Column - Contact Form */}
             <div className="lg:col-span-1">
               <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-6 shadow-lg border border-green-200 sticky top-24">
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-6">
@@ -137,7 +127,6 @@ export default function BlogPage() {
                 </h2>
                 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* Full Name */}
                   <div className="relative">
                     <input
                       type="text"
@@ -153,7 +142,6 @@ export default function BlogPage() {
                     </div>
                   </div>
 
-                  {/* Email */}
                   <div className="relative">
                     <input
                       type="email"
@@ -169,7 +157,6 @@ export default function BlogPage() {
                     </div>
                   </div>
 
-                  {/* Phone */}
                   <div className="relative">
                     <input
                       type="tel"
@@ -185,7 +172,6 @@ export default function BlogPage() {
                     </div>
                   </div>
 
-                  {/* Location */}
                   <div className="relative">
                     <input
                       type="text"
@@ -201,7 +187,6 @@ export default function BlogPage() {
                     </div>
                   </div>
 
-                  {/* Service Selection */}
                   <div className="relative">
                     <select
                       name="service"
@@ -222,7 +207,6 @@ export default function BlogPage() {
                     </div>
                   </div>
 
-                  {/* Submit Button */}
                   <button
                     type="submit"
                     className="w-full bg-blue-900 hover:bg-blue-800 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm"
@@ -236,7 +220,6 @@ export default function BlogPage() {
         </div>
       </div>
 
-      {/* Our Services Section */}
       <div className="px-4 md:px-8 lg:px-16 pb-16">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center text-gray-900 mb-8">
@@ -244,7 +227,6 @@ export default function BlogPage() {
           </h2>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {/* Service Card 1 */}
             <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-green-200 hover:-translate-y-1">
               <div className="p-6">
                 <div className="flex items-start gap-4 mb-4">
@@ -277,7 +259,6 @@ export default function BlogPage() {
               </div>
             </div>
 
-            {/* Service Card 2 */}
             <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-green-200 hover:-translate-y-1">
               <div className="p-6">
                 <div className="flex items-start gap-4 mb-4">
@@ -310,17 +291,14 @@ export default function BlogPage() {
               </div>
             </div>
 
-            {/* Add more service cards as needed */}
           </div>
         </div>
       </div>
 
-      {/* Subscribe Section */}
       <div className="bg-gray-50 py-8 md:py-12">
         <Subscribe />
       </div>
 
-      {/* Footer */}
       <Footer />
     </div>
   );

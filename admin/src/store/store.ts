@@ -1,12 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
 import categoryReducer from "./categorySlice";
-import serviceReducer from "./serciveSlice";
+import serviceReducer from "./serviceSlice";
 import userReducer from "./userSlice";
-import contactUserReducer from "./contactUser"
+import contactUserReducer from "./contactUserSlice";
 import blogReducer from "./blogSlice";
 import teamReducer from "./teamSlice";
 import jobReducer from "./jobSlice";
-import applicationReducer from "./Application"
+import applicationReducer from "./applicationSlice";
 
 export const store = configureStore({
   reducer: {

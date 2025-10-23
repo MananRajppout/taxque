@@ -28,11 +28,10 @@ export default function CareersPage() {
   const [currentNav, setCurrentNav] = React.useState("Careers");
 
   useEffect(() => {
-    dispatch(FetchJob());
-    if (data?.length < 0) {
+    if (data?.length <= 0) {
       dispatch(FetchJob());
     }
-  }, [dispatch]);
+  }, [dispatch, data]);
 
   return (
     <div className="w-full min-h-screen bg-white text-black">

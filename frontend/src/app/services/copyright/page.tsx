@@ -4,12 +4,12 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-// Components
+
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import Subscribe from "@/components/Subscribe";
 
-// Service data for Copyright
+
 const copyrightServices = [
   {
     title: "Copyright Registration",
@@ -125,7 +125,7 @@ const ServiceCard = ({ service }: { service: any }) => {
 
   return (
     <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-green-200 hover:-translate-y-1">
-      {/* Top Section */}
+     
       <div className="p-6">
         <div className="flex items-start gap-4 mb-4">
           <div className="w-12 h-12 bg-green-200 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -143,7 +143,7 @@ const ServiceCard = ({ service }: { service: any }) => {
           </div>
         </div>
         
-        {/* Pricing Section */}
+       
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
@@ -164,7 +164,7 @@ const ServiceCard = ({ service }: { service: any }) => {
           </div>
         </div>
         
-        {/* Choose Plan Button */}
+       
         <button
           onClick={handleChoosePlan}
           className="w-full bg-white border-2 border-orange-500 hover:bg-orange-50 text-orange-500 hover:text-orange-600 font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
@@ -181,12 +181,12 @@ export default function CopyrightPage() {
 
   return (
     <div className="w-full min-h-screen bg-white">
-      {/* Header */}
+     
       <div className="bg-white shadow-sm">
         <NavBar currentNav={currentNav} setCurrentNav={setCurrentNav} />
       </div>
 
-      {/* Breadcrumb */}
+     
       <div className="px-4 md:px-8 lg:px-16 pt-20 pb-4">
         <div className="max-w-7xl mx-auto">
           <nav className="text-sm text-orange-500 mb-6">
@@ -197,15 +197,15 @@ export default function CopyrightPage() {
         </div>
       </div>
 
-      {/* Main Content */}
+     
       <div className="px-4 md:px-8 lg:px-16 pb-16">
         <div className="max-w-7xl mx-auto">
-          {/* Main Heading */}
+         
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-center text-gray-900 mb-12">
             Copyright Services
           </h1>
 
-          {/* Service Cards Grid */}
+         
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
             {copyrightServices.map((service, index) => (
               <ServiceCard key={index} service={service} />
@@ -214,7 +214,7 @@ export default function CopyrightPage() {
         </div>
       </div>
 
-      {/* Success Stories & Reviews Section */}
+     
       <div className="bg-gray-50 py-16">
         <div className="px-4 md:px-8 lg:px-16">
           <div className="max-w-7xl mx-auto">
@@ -228,10 +228,10 @@ export default function CopyrightPage() {
         </div>
       </div>
 
-      {/* Subscribe Section */}
+     
       <Subscribe />
 
-      {/* Footer */}
+     
       <Footer />
     </div>
   );
