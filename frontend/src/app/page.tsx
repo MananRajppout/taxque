@@ -157,7 +157,20 @@ const Home = ({ className }: HomePageProps) => {
 
 
   return (
-    <div className="w-full min-h-screen bg-white text-black relative">
+    <>
+      <style jsx>{`
+        @keyframes slideInFromLeft {
+          0% {
+            opacity: 0;
+            transform: translateX(-100px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+      `}</style>
+      <div className="w-full min-h-screen bg-white text-black relative">
       {/* Contact Popup here */}
       <div
         style={{ width: contactPop ? "100%" : "0%" }}
@@ -325,6 +338,232 @@ const Home = ({ className }: HomePageProps) => {
       </div>
       <div className={`w-full flex flex-col items-center py-[5%] px-[5%] sm:py-[6%] md:py-[6%] transition-opacity duration-300 ${isSliderOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
         <p className="text-[18px] font-bold font-[poppinsBold] text-center mb-[25px] sm:text-[20px] sm:mb-[30px] md:text-[26px] md:mb-[30px] lg:text-[46px] lg:text-left">Our Latest News</p>
+        
+        {/* Blog Cards Grid */}
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Blog Card 1 */}
+          <div 
+            className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden border border-green-200 hover:-translate-y-2 cursor-pointer group"
+            onClick={() => router.push('/blog/blog-title-tow')}
+            style={{
+              animation: 'slideInFromLeft 0.8s ease-out',
+              animationDelay: '0.2s',
+              animationFillMode: 'both'
+            }}
+          >
+            {/* Top Section */}
+            <div className="p-4 md:p-6">
+              <div className="flex items-start gap-3 md:gap-4 mb-4">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-green-200 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                  <Image
+                    src="/assests/images/HPTImg.png"
+                    alt="Blog Icon"
+                    width={24}
+                    height={24}
+                    className="w-6 h-6 md:w-7 md:h-7"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2 leading-tight group-hover:text-green-700 transition-colors duration-300">Blog Title Two</h3>
+                  <p className="text-xs md:text-sm text-gray-600 leading-relaxed">Latest insights and updates from our team.</p>
+                </div>
+              </div>
+              
+              {/* Read More Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push('/blog/blog-title-tow');
+                }}
+                className="w-24 md:w-28 bg-white border-2 border-orange-500 hover:bg-orange-50 text-orange-500 hover:text-orange-600 font-semibold py-1.5 md:py-2 px-2 md:px-3 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 text-xs md:text-sm"
+              >
+                Read More
+              </button>
+            </div>
+            
+            {/* Bottom Image Section */}
+            <div className="h-24 md:h-32 bg-white flex items-center justify-center transition-all duration-300">
+              <Image
+                src="/assests/images/HPTImg.png"
+                alt="Blog Title Two"
+                width={200}
+                height={80}
+                className="object-contain max-h-full max-w-full group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+          </div>
+
+          {/* Blog Card 2 */}
+          <div 
+            className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden border border-green-200 hover:-translate-y-2 cursor-pointer group"
+            onClick={() => router.push('/blog/urban-oasis-south-delhi')}
+            style={{
+              animation: 'slideInFromLeft 0.8s ease-out',
+              animationDelay: '0.4s',
+              animationFillMode: 'both'
+            }}
+          >
+            {/* Top Section */}
+            <div className="p-4 md:p-6">
+              <div className="flex items-start gap-3 md:gap-4 mb-4">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-green-200 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                  <Image
+                    src="/assests/images/ROCCardImg.png"
+                    alt="Blog Icon"
+                    width={24}
+                    height={24}
+                    className="w-6 h-6 md:w-7 md:h-7"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2 leading-tight group-hover:text-green-700 transition-colors duration-300">Urban Oasis South Delhi</h3>
+                  <p className="text-xs md:text-sm text-gray-600 leading-relaxed">Exploring the urban landscape and development.</p>
+                </div>
+              </div>
+              
+              {/* Read More Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push('/blog/urban-oasis-south-delhi');
+                }}
+                className="w-24 md:w-28 bg-white border-2 border-orange-500 hover:bg-orange-50 text-orange-500 hover:text-orange-600 font-semibold py-1.5 md:py-2 px-2 md:px-3 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 text-xs md:text-sm"
+              >
+                Read More
+              </button>
+            </div>
+            
+            {/* Bottom Image Section */}
+            <div className="h-24 md:h-32 bg-white flex items-center justify-center transition-all duration-300">
+              <Image
+                src="/assests/images/ROCCardImg.png"
+                alt="Urban Oasis South Delhi"
+                width={200}
+                height={80}
+                className="object-contain max-h-full max-w-full group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+          </div>
+
+          {/* Blog Card 3 */}
+          <div 
+            className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden border border-green-200 hover:-translate-y-2 cursor-pointer group"
+            onClick={() => router.push('/blog/deep-dive-cbic-instruction-03-2025-gst')}
+            style={{
+              animation: 'slideInFromLeft 0.8s ease-out',
+              animationDelay: '0.6s',
+              animationFillMode: 'both'
+            }}
+          >
+            {/* Top Section */}
+            <div className="p-4 md:p-6">
+              <div className="flex items-start gap-3 md:gap-4 mb-4">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-green-200 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                  <Image
+                    src="/assests/images/taxImg.svg"
+                    alt="Blog Icon"
+                    width={24}
+                    height={24}
+                    className="w-6 h-6 md:w-7 md:h-7"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2 leading-tight group-hover:text-green-700 transition-colors duration-300">CBIC Instruction 03/2025 GST</h3>
+                  <p className="text-xs md:text-sm text-gray-600 leading-relaxed">Deep dive into GST regulations and updates.</p>
+                </div>
+              </div>
+              
+              {/* Read More Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push('/blog/deep-dive-cbic-instruction-03-2025-gst');
+                }}
+                className="w-24 md:w-28 bg-white border-2 border-orange-500 hover:bg-orange-50 text-orange-500 hover:text-orange-600 font-semibold py-1.5 md:py-2 px-2 md:px-3 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 text-xs md:text-sm"
+              >
+                Read More
+              </button>
+            </div>
+            
+            {/* Bottom Image Section */}
+            <div className="h-24 md:h-32 bg-white flex items-center justify-center transition-all duration-300">
+              <Image
+                src="/assests/images/taxImg.svg"
+                alt="CBIC Instruction GST"
+                width={200}
+                height={80}
+                className="object-contain max-h-full max-w-full group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+          </div>
+
+          {/* Blog Card 4 */}
+          <div 
+            className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden border border-green-200 hover:-translate-y-2 cursor-pointer group"
+            onClick={() => router.push('/blog/test-blog-titlev')}
+            style={{
+              animation: 'slideInFromLeft 0.8s ease-out',
+              animationDelay: '0.8s',
+              animationFillMode: 'both'
+            }}
+          >
+            {/* Top Section */}
+            <div className="p-4 md:p-6">
+              <div className="flex items-start gap-3 md:gap-4 mb-4">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-green-200 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                  <Image
+                    src="/assests/images/oslImg1.png"
+                    alt="Blog Icon"
+                    width={24}
+                    height={24}
+                    className="w-6 h-6 md:w-7 md:h-7"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2 leading-tight group-hover:text-green-700 transition-colors duration-300">Test Blog Title V</h3>
+                  <p className="text-xs md:text-sm text-gray-600 leading-relaxed">Testing and development insights.</p>
+                </div>
+              </div>
+              
+              {/* Read More Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push('/blog/test-blog-titlev');
+                }}
+                className="w-24 md:w-28 bg-white border-2 border-orange-500 hover:bg-orange-50 text-orange-500 hover:text-orange-600 font-semibold py-1.5 md:py-2 px-2 md:px-3 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 text-xs md:text-sm"
+              >
+                Read More
+              </button>
+            </div>
+            
+            {/* Bottom Image Section */}
+            <div className="h-24 md:h-32 bg-white flex items-center justify-center transition-all duration-300">
+              <Image
+                src="/assests/images/oslImg1.png"
+                alt="Test Blog Title V"
+                width={200}
+                height={80}
+                className="object-contain max-h-full max-w-full group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* View All Blogs Button */}
+        <div className="mt-[20px] sm:mt-[25px] md:mt-[30px] lg:mt-[35px]">
+          <AppBtn
+            btnText="View All Blogs"
+            width="180px"
+            height="45px"
+            className="sm:w-[200px] sm:h-[50px] md:w-[220px] md:h-[55px] lg:w-[240px] lg:h-[60px]"
+            icon={rightArrow}
+            onClick={() => {
+              router.push("/blog");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+          />
+        </div>
       </div>
 
       <div className={`transition-opacity duration-300 ${isSliderOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
@@ -338,6 +577,7 @@ const Home = ({ className }: HomePageProps) => {
       <GoTop />
 
     </div>
+    </>
   );
 }
 
