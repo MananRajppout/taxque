@@ -32,7 +32,7 @@ interface ContactUser {
 }
 interface LocationSearchData {
     PostOffice: string;
-    City: string;
+    city: string;
     State: string;
     Pincode: string;
   }
