@@ -94,6 +94,11 @@ export default function NavBar({ currentNav }: NavProps) {
       icon: serviceIcon,
     },
     {
+      title: "Pricing",
+      url: "/pricing",
+      icon: serviceIcon,
+    },
+    {
       title: "About Us",
       url: "/about",
       icon: aboutUsIcon,

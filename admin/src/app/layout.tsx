@@ -14,8 +14,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TaxQue Admin",
-  description: "TaxQue Admin Panel - Manage your tax services efficiently",
+  title: "TAXQUE",
+  description: "TAXQUE - Your trusted tax and accounting partner",
+  icons: {
+    icon: "/logo.svg",
+    shortcut: "/logo.svg",
+    apple: "/logo.svg",
+  },
 };
 
 export default function RootLayout({

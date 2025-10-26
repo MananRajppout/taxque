@@ -8,9 +8,10 @@ export interface ContactUserDataType {
   email: string;
   phone: string;
   location: {
-    city: string,
-    pin: string,
-    state: string
+    City: string,
+    Pincode: string,
+    State: string,
+    PostOffice?: string
   };
   date: string
   section: string;

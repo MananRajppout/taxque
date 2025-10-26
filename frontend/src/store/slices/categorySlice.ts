@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { Reloader } from "@/components/Tools";
 import { STATUSES } from "@/store/slices/status";
 
-const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/taxque/api";
 
 
 export interface CategoryDataType {

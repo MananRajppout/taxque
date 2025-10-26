@@ -22,7 +22,7 @@ export default function ContactUs() {
   const ActivePage = typeof window !== 'undefined' ? localStorage.getItem("ActivePage") : null;
   const dispatch = useDispatch<AppDispatch>();
   const { data, status } = useSelector((state: RootState) => state.contactUser);
-  const filterData = data?.filter((val) => val.section === "Contact us");
+  const filterData = data?.filter((val) => val.section === "Contact Us" || val.section === "Contact us");
 
   useEffect(() => {
     dispatch(FetchContactUser());
@@ -69,8 +69,8 @@ export default function ContactUs() {
                       <p className="text-sm text-gray-600 mb-1">{el?.email}</p>
                       <p className="text-sm text-gray-600 mb-1">Phone : {el?.phone}</p>
                       <p className="text-sm text-gray-600">
-                        Address : {el?.location?.city} ({el?.location?.state}){" "}
-                        {el?.location?.pin}
+                        Address : {el?.location?.City} ({el?.location?.State}){" "}
+                        {el?.location?.Pincode}
                       </p>
                     </div>
                   ))}

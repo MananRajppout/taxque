@@ -4,7 +4,9 @@ import { toast } from "react-toastify";
 import { Reloader } from "@/components/Tools";
 
 import { STATUSES } from "@/store/slices/status";
-const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+
+const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/taxque/api";
+
 export interface ApplicationDataType {
   jobId: string;
   fullName: string;
@@ -48,13 +50,21 @@ export const CreateApplication = createAsyncThunk<
     const response = await Axios.post(`${baseURL}/application/create`, {
       ...data,
     });
-    toast.success("Application created successfully.");
-    Reloader(600);
-    return response.data;
+    
+    // Backend now returns: { success: true, message: "...", application: {...} }
+    const responseData = response.data;
+    
+    if (responseData.success && responseData.application) {
+      toast.success(responseData.message || "Application submitted successfully!");
+      return responseData.application;
+    } else {
+      throw new Error(responseData.message || "Failed to submit application");
+    }
   } catch (error: any) {
-    toast.error("Something went wrong", error.response?.data);
-    Reloader(900);
-    return rejectWithValue(error.response?.data || "Something went wrong");
+    const errorMessage = error.response?.data?.message || error.message || "Failed to submit application. Please try again.";
+    toast.error(errorMessage);
+    console.error("Application submission error:", error);
+    return rejectWithValue(error.response?.data || { message: errorMessage });
   }
 });
 
@@ -112,6 +122,40 @@ const applicationSlice = createSlice({
         state.status = STATUSES.IDLE;
       })
       .addCase(FetchApplication.rejected, (state) => {
+        state.status = STATUSES.ERROR;
+      })
+      .addCase(CreateApplication.pending, (state) => {
+        state.status = STATUSES.LOADING;
+      })
+      .addCase(CreateApplication.fulfilled, (state, action) => {
+        state.data.push(action.payload);
+        state.status = STATUSES.IDLE;
+      })
+      .addCase(CreateApplication.rejected, (state) => {
+        state.status = STATUSES.ERROR;
+      })
+      .addCase(DeleteApplication.pending, (state) => {
+        state.status = STATUSES.LOADING;
+      })
+      .addCase(DeleteApplication.fulfilled, (state, action) => {
+        state.status = STATUSES.IDLE;
+      })
+      .addCase(DeleteApplication.rejected, (state) => {
+        state.status = STATUSES.ERROR;
+      })
+      .addCase(UpdateApplication.pending, (state) => {
+        state.status = STATUSES.LOADING;
+      })
+      .addCase(UpdateApplication.fulfilled, (state, action) => {
+        const index = state.data.findIndex(
+          (app) => app._id === action.payload._id
+        );
+        if (index !== -1) {
+          state.data[index] = action.payload;
+        }
+        state.status = STATUSES.IDLE;
+      })
+      .addCase(UpdateApplication.rejected, (state) => {
         state.status = STATUSES.ERROR;
       });
   },

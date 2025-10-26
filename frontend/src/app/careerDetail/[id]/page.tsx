@@ -31,7 +31,7 @@ export default function CareerDetails() {
   const params = useParams();
   const id = params?.id as string;
   const dispatch = useDispatch<AppDispatch>();
-  const { data } = useSelector((state: RootState) => state.job);
+  const { data = [] } = useSelector((state: RootState) => state.job);
   const categoryData = useSelector((state: RootState) => state.category);
   const [currentNav, setCurrentNav] = React.useState("Careers");
 
@@ -160,7 +160,7 @@ export default function CareerDetails() {
   };
 
   // Find job data by ID
-  const jobData = data.find((val) => val?._id === id) || mockJobData[id as keyof typeof mockJobData];
+  const jobData = data.find((val: any) => val?._id === id) || mockJobData[id as keyof typeof mockJobData];
 
   // State
   const [applyPop, setApplyPop] = useState<boolean>(false);
@@ -207,40 +207,96 @@ export default function CareerDetails() {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    setUploadFileName(file.name);
-
-    try {
-      const filename = encodeURIComponent(file.name);
-      const formData = new FormData();
-      formData.append('file', file);
-
-      setFileUrls(`/uploads/${filename}`);
-      toast.success("File uploaded successfully!");
-    } catch (err) {
-      console.error("Upload failed:", err);
-      toast.error("Upload failed!");
+    // Validate file type
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Please upload a valid document (PDF, DOC, or DOCX)");
+      return;
     }
+    
+    // Validate file size (5MB max)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast.error("File size should be less than 5MB");
+      return;
+    }
+    
+    setUploadFileName(file.name);
+    
+    // For now, just store the file name - we'll send it as a reference
+    // In a production environment, you would upload to cloud storage
+    const timestamp = Date.now();
+    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+    setFileUrls(`resume_${timestamp}_${sanitizedFileName}`);
+    
+    toast.success("File selected successfully!");
   };
 
   // Create application
-  const postApplication = () => {
-    if (!id || !noticePeriod) {
-      toast.warn("Please fill all the values !");
+  const postApplication = async () => {
+    // Validate required fields
+    if (!id) {
+      toast.error("Job ID is missing!");
+      return;
+    }
+    
+    if (!noticePeriod) {
+      toast.warn("Please select a notice period!");
+      return;
+    }
+    
+    if (!applicationFormVal.fullName || !applicationFormVal.email || !applicationFormVal.phone || !applicationFormVal.address) {
+      toast.warn("Please fill all required fields!");
+      return;
+    }
+    
+    // Resume is optional - if not uploaded, use a placeholder
+    const finalResumeUrl = fileUrls || "No resume uploaded";
+    
+    if (!policyCheck) {
+      toast.warn("Please accept the terms and conditions!");
       return;
     }
 
-    dispatch(CreateApplication({
-      jobId: id,
-      fullName: applicationFormVal.fullName,
-      email: applicationFormVal.email,
-      phone: applicationFormVal.phone,
-      address: applicationFormVal.address,
-      experienceYears: applicationFormVal.experienceYears,
-      currentJobTitle: applicationFormVal.currentJobTitle,
-      expectedSalary: applicationFormVal.expectedSalary,
-      noticePeriod: noticePeriod,
-      resume: fileUrls,
-    }));
+    // Submit application
+    try {
+      await dispatch(CreateApplication({
+        jobId: id,
+        fullName: applicationFormVal.fullName,
+        email: applicationFormVal.email,
+        phone: applicationFormVal.phone,
+        address: applicationFormVal.address,
+        experienceYears: applicationFormVal.experienceYears,
+        currentJobTitle: applicationFormVal.currentJobTitle,
+        expectedSalary: applicationFormVal.expectedSalary,
+        noticePeriod: noticePeriod,
+        resume: finalResumeUrl,
+      })).unwrap();
+      
+      // Reset form after successful submission
+      setApplicationFormVal({
+        fullName: "",
+        email: "",
+        phone: "",
+        address: "",
+        experienceYears: "",
+        currentJobTitle: "",
+        expectedSalary: "",
+      });
+      setNoticePeriod("");
+      setFileUrls("");
+      setUploadFileName("");
+      setPolicyCheck(false);
+      setApplyPop(false);
+      
+      // Reload after a short delay to show success message
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } catch (error) {
+      console.error("Application submission failed:", error);
+      // Error toast is already handled in the CreateApplication thunk
+    }
   };
 
   // Handle body overflow

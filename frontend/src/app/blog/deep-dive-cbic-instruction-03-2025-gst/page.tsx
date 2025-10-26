@@ -3,10 +3,14 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { toast } from "react-toastify";
+import Axios from "axios";
 
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import Subscribe from "@/components/Subscribe";
+
+const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/taxque/api";
 
 // Using a different image for this blog
 const blogImg = "/assests/images/taxImg.svg";
@@ -36,10 +40,35 @@ export default function DeepDiveCBICInstructionPage() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
-    // Handle form submission here
+    
+    if (!formData.fullName || !formData.email || !formData.phone || !formData.location || !formData.service) {
+      toast.warn("Please fill all the fields!");
+      return;
+    }
+
+    try {
+      await Axios.post(`${baseURL}/contact-user/create`, {
+        name: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        location: {
+          City: formData.location,
+          State: "Unknown",
+          Pincode: "000000",
+          PostOffice: "",
+        },
+        date: new Date().toLocaleDateString("en-GB"),
+        section: "Blog",
+        service: formData.service
+      });
+      toast.success("Your information submitted successfully.");
+      setFormData({ fullName: "", email: "", phone: "", location: "", service: "" });
+    } catch (error: any) {
+      toast.error("Something went wrong");
+      console.error(error);
+    }
   };
 
   const services = [
@@ -143,7 +172,7 @@ export default function DeepDiveCBICInstructionPage() {
                       value={formData.fullName}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 text-sm text-gray-900 placeholder-gray-500"
+                      className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 text-sm text-gray-800 placeholder-gray-500"
                     />
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                       <Image src={personIcon} alt="Person" width={16} height={16} />
@@ -159,7 +188,7 @@ export default function DeepDiveCBICInstructionPage() {
                       value={formData.email}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 text-sm text-gray-900 placeholder-gray-500"
+                      className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 text-sm text-gray-800 placeholder-gray-500"
                     />
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                       <Image src={emailIcon} alt="Email" width={16} height={16} />
@@ -175,7 +204,7 @@ export default function DeepDiveCBICInstructionPage() {
                       value={formData.phone}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 text-sm text-gray-900 placeholder-gray-500"
+                      className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 text-sm text-gray-800 placeholder-gray-500"
                     />
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                       <Image src={phoneIcon} alt="Phone" width={16} height={16} />
@@ -191,7 +220,7 @@ export default function DeepDiveCBICInstructionPage() {
                       value={formData.location}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 text-sm text-gray-900 placeholder-gray-500"
+                      className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 text-sm text-gray-800 placeholder-gray-500"
                     />
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                       <Image src={locationIcon} alt="Location" width={16} height={16} />
@@ -205,7 +234,7 @@ export default function DeepDiveCBICInstructionPage() {
                       value={formData.service}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 appearance-none cursor-pointer text-sm text-gray-900"
+                      className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 appearance-none cursor-pointer text-sm text-gray-800"
                     >
                       <option value="" className="text-gray-500">Select A Service</option>
                       {services.map((service, index) => (

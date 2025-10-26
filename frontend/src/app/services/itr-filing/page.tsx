@@ -72,6 +72,15 @@ const ServiceCard = ({ service }: { service: any }) => {
   const router = useRouter();
 
   const handleChoosePlan = () => {
+    // Store service data in localStorage for payment page
+    localStorage.setItem('selectedService', JSON.stringify({
+      title: service.title,
+      price: service.price,
+      basicPrice: service.basicPrice,
+      period: service.period,
+      rating: service.rating
+    }));
+    
     router.push('/payment');
   };
 

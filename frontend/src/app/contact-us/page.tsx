@@ -2,17 +2,66 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import { toast } from "react-toastify";
+import Axios from "axios";
 import "@/lib/style.css";
 
 
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 
+const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/taxque/api";
+
 export default function ContactUsPage() {
   const [currentNav, setCurrentNav] = useState("Contact Us");
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    message: ""
+  });
 
   const openMail = (email: string) => {
     window.location.href = `mailto:${email}`;
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.fullName || !formData.email || !formData.phone || !formData.message) {
+      toast.warn("Please fill all the fields!");
+      return;
+    }
+
+    try {
+      await Axios.post(`${baseURL}/contact-user/create`, {
+        name: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        location: {
+          City: "Contact Form",
+          State: "Unknown",
+          Pincode: "000000",
+          PostOffice: "",
+        },
+        date: new Date().toLocaleDateString("en-GB"),
+        section: "Contact Us",
+        service: formData.message
+      });
+      toast.success("Your message submitted successfully!");
+      setFormData({ fullName: "", email: "", phone: "", message: "" });
+    } catch (error: any) {
+      toast.error("Something went wrong");
+      console.error(error);
+    }
   };
 
   return (
@@ -87,48 +136,65 @@ export default function ContactUsPage() {
         </div>
 
         {/* Contact Form */}
-        <div className="contactBox">
+        <form onSubmit={handleSubmit} className="contactBox">
           <p className="contactHeader">We're Here To Get In Touch</p>
 
           <div className="BoxInput">
             <input
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleInputChange}
               placeholder="Full Name"
               type="text"
+              required
             />
             <Image className="inputUserIcon" src="/assests/images/inputUserIcon.svg" alt="User" width={11} height={11} />
           </div>
           
           <div className="BoxInput">
             <input
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
               placeholder="Email Address"
               type="email"
+              required
             />
             <Image className="inputMailIcon" src="/assests/images/inputMailIcon.svg" alt="Email" width={16} height={16} />
           </div>
           
           <div className="BoxInput">
             <input
+              name="phone"
+              value={formData.phone}
+              onChange={handleInputChange}
               placeholder="Phone Number"
               type="tel"
+              required
             />
             <Image className="inputMailIcon" src="/assests/images/inputPhoneIcon.svg" alt="Phone" width={16} height={16} />
           </div>
 
           <div className="BoxInput">
             <input
+              name="message"
+              value={formData.message}
+              onChange={handleInputChange}
               type="text"
               placeholder="Enter your message"
+              required
             />
             <Image className="inputMailIcon" src="/assests/images/messageIcon.svg" alt="Message" width={16} height={16} />
           </div>
 
           <button
+            type="submit"
             className="bg-orange-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-orange-600 transition-colors duration-300"
             style={{ width: "150px", height: "40px" }}
           >
             Submit Now
           </button>
-        </div>
+        </form>
       </div>
 
       {/* Map Section */}

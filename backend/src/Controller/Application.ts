@@ -1,8 +1,6 @@
 import { Request, Response } from "express";
-const Application = require("../Module/Application"); // ✅ use import, not require
+const Application = require("../Module/Application");
 
-
-// ✅ Create application
 export const createApplication = async (req: Request, res: Response) => {
   try {
     const {
@@ -18,48 +16,70 @@ export const createApplication = async (req: Request, res: Response) => {
       noticePeriod,
     } = req.body;
 
-    if (!jobId || !fullName || !email || !resume) {
-      return res.status(400).json({ message: "Missing required fields" });
+    // Validate required fields
+    if (!jobId) {
+      return res.status(400).json({ message: "Job ID is required" });
+    }
+    if (!fullName || !fullName.trim()) {
+      return res.status(400).json({ message: "Full name is required" });
+    }
+    if (!email || !email.trim()) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+    // Phone and resume are recommended but not strictly required
+    if (!phone || !phone.trim()) {
+      console.log("Warning: Phone number not provided");
+    }
+    if (!resume || !resume.trim() || resume === "No resume uploaded") {
+      console.log("Warning: Resume not uploaded, proceeding without resume");
     }
 
     const newApplication = new Application({
       jobId,
-      fullName,
-      email,
-      phone,
-      address,
-      resume,
-      experienceYears,
-      currentJobTitle,
-      expectedSalary,
-      noticePeriod,
+      fullName: fullName?.trim(),
+      email: email?.trim(),
+      phone: phone?.trim() || "",
+      address: address?.trim() || "",
+      resume: resume?.trim() || "No resume uploaded",
+      experienceYears: experienceYears?.trim() || "",
+      currentJobTitle: currentJobTitle?.trim() || "",
+      expectedSalary: expectedSalary?.trim() || "",
+      noticePeriod: noticePeriod?.trim() || "",
     });
 
     const savedApplication = await newApplication.save();
-    res.status(201).json(savedApplication);
+    
+    res.status(201).json({
+      success: true,
+      message: "Application created successfully",
+      application: savedApplication
+    });
   } catch (error: any) {
-    res.status(500).json({ message: "Error creating application", error: error.message });
+    console.error("Error creating application:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Error creating application", 
+      error: error.message 
+    });
   }
 };
 
-// ✅ Get all applications (optionally filter by jobId)
 export const getAllApplications = async (req: Request, res: Response) => {
   try {
     const { jobId } = req.query;
     const filter = jobId ? { jobId } : {};
 
-    const applications = await Application.find(filter).populate("jobId");
+    const applications = await Application.find(filter);
     res.status(200).json(applications);
   } catch (error: any) {
     res.status(500).json({ message: "Error fetching applications", error: error.message });
   }
 };
 
-// ✅ Get one application by ID
 export const getApplicationById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const application = await Application.findById(id).populate("jobId");
+    const application = await Application.findById(id);
 
     if (!application) {
       return res.status(404).json({ message: "Application not found" });
@@ -71,7 +91,6 @@ export const getApplicationById = async (req: Request, res: Response) => {
   }
 };
 
-// ✅ Update application (mainly status)
 export const updateApplication = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -98,7 +117,6 @@ export const updateApplication = async (req: Request, res: Response) => {
   }
 };
 
-// ✅ Delete application
 export const deleteApplication = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -112,4 +130,4 @@ export const deleteApplication = async (req: Request, res: Response) => {
   } catch (error: any) {
     res.status(500).json({ message: "Error deleting application", error: error.message });
   }
-};
+  };

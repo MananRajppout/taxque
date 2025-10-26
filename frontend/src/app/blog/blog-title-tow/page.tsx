@@ -135,7 +135,7 @@ export default function BlogPage() {
                       value={formData.fullName}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 text-sm"
+                      className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 text-sm text-gray-800"
                     />
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                       <Image src={personIcon} alt="Person" width={16} height={16} />
@@ -150,7 +150,7 @@ export default function BlogPage() {
                       value={formData.email}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 text-sm"
+                      className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 text-sm text-gray-800"
                     />
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                       <Image src={emailIcon} alt="Email" width={16} height={16} />
@@ -165,7 +165,7 @@ export default function BlogPage() {
                       value={formData.phone}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 text-sm"
+                      className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 text-sm text-gray-800"
                     />
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                       <Image src={phoneIcon} alt="Phone" width={16} height={16} />
@@ -180,7 +180,7 @@ export default function BlogPage() {
                       value={formData.location}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 text-sm"
+                      className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 text-sm text-gray-800"
                     />
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                       <Image src={locationIcon} alt="Location" width={16} height={16} />
@@ -193,7 +193,7 @@ export default function BlogPage() {
                       value={formData.service}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 appearance-none cursor-pointer text-sm"
+                      className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 appearance-none cursor-pointer text-sm text-gray-800"
                     >
                       <option value="">Select A Service</option>
                       {services.map((service, index) => (

@@ -20,7 +20,7 @@ export default function ContactUs() {
   const ActivePage = typeof window !== 'undefined' ? localStorage.getItem("ActivePage") : null;
   const dispatch = useDispatch<AppDispatch>();
   const { data, status } = useSelector((state: RootState) => state.contactUser);
-  const filterData = data?.filter((val) => val.section === "Contact us");
+  const filterData = data?.filter((val) => val.section === "Contact Us" || val.section === "Contact us");
 
   useEffect(() => {
     dispatch(FetchContactUser());
@@ -68,8 +68,8 @@ export default function ContactUs() {
                       <p className="text-xs sm:text-sm text-gray-600">{el?.email}</p>
                       <p className="text-xs sm:text-sm text-gray-600">Phone : {el?.phone}</p>
                       <p className="text-xs sm:text-sm text-gray-600">
-                        Address : {el?.location?.city} ({el?.location?.state}){" "}
-                        {el?.location?.pin}
+                        Address : {el?.location?.City} ({el?.location?.State}){" "}
+                        {el?.location?.Pincode}
                       </p>
                     </div>
                   ))}
@@ -103,10 +103,9 @@ export function BlogLead() {
           ActivePage === "Blog page" ? "border-l-4 border-blue-500" : ""
         }`}
       >
-        {/* Loader */}
+       
         <Loader loding={status === "loading" ? true : false} />
 
-        {/* Top nav */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <p className="text-xl sm:text-2xl font-bold text-gray-800">Contact User List</p>
           <AppBtn
@@ -135,8 +134,8 @@ export function BlogLead() {
                       <p className="text-xs sm:text-sm text-gray-600">{el?.email}</p>
                       <p className="text-xs sm:text-sm text-gray-600">Phone : {el?.phone}</p>
                       <p className="text-xs sm:text-sm text-gray-600">
-                        Address : {el?.location?.city} ({el?.location?.state}){" "}
-                        {el?.location?.pin}
+                        Address : {el?.location?.City} ({el?.location?.State}){" "}
+                        {el?.location?.Pincode}
                       </p>
                     </div>
                   ))}
@@ -170,16 +169,14 @@ export function ServiceLead() {
           ActivePage === "Service lead" ? "border-l-4 border-blue-500" : ""
         }`}
       >
-        {/* Loader */}
+        
         <Loader loding={status === "loading" ? true : false} />
 
-        {/* Top nav */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <p className="text-xl sm:text-2xl font-bold text-gray-800">Contact User List</p>
           <AppBtn
             btnText="Add User"
             icon={Images.AddIcon}
-            // onClick={() => setCreateServiceSection(true)}
           />
         </div>
 
@@ -202,8 +199,8 @@ export function ServiceLead() {
                       <p className="text-xs sm:text-sm text-gray-600">{el?.email}</p>
                       <p className="text-xs sm:text-sm text-gray-600">Phone : {el?.phone}</p>
                       <p className="text-xs sm:text-sm text-gray-600">
-                        Address : {el?.location?.city} ({el?.location?.state}){" "}
-                        {el?.location?.pin}
+                        Address : {el?.location?.City} ({el?.location?.State}){" "}
+                        {el?.location?.Pincode}
                       </p>
                     </div>
                   ))}

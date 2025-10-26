@@ -2,7 +2,7 @@ import Axios from "axios";
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { STATUSES } from "@/store/slices/status";
 
-const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/taxque/api";
 
 
 export interface jobInpoutDataType {
@@ -43,7 +43,10 @@ export const FetchJob = createAsyncThunk<JobDataType[]>(
   "job/fetch",
   async () => {
     const response = await Axios.get(`${baseURL}/jobs`);
-    return response.data;
+    // Extract the jobs array from the response
+    // response.data is either { success: true, data: [...] } or directly [...]
+    const jobs = response.data.data || response.data.job || response.data;
+    return Array.isArray(jobs) ? jobs : [];
   }
 );
 

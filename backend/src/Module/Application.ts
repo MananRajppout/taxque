@@ -2,8 +2,7 @@ import mongoose from "mongoose";
 
 const ApplicationSchema = new mongoose.Schema({
   jobId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Job",
+    type: String,
     required: true,
   },
   fullName: {
@@ -22,7 +21,7 @@ const ApplicationSchema = new mongoose.Schema({
   },
   resume: {
     type: String,
-    required: true,
+    default: "No resume uploaded",
   },
   experienceYears: {
     type: String,

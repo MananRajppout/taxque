@@ -276,7 +276,7 @@ export const BlogCard = ({
   const router = useRouter();
 
   const handleClick = () => {
-    router.push(`/learn/${Slug}`);
+    router.push(`/blog/${Slug}`);
     scrollToTop();
   };
 

@@ -5,7 +5,7 @@ import { STATUSES } from "./statusTypes";
 
 export const baseURL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000/taxque/api";
 
-//Category Type
+
 export interface CategoryDataType {
   title: string;
   displayName: string;

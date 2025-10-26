@@ -152,7 +152,7 @@ export default function ContactSection({
 
       {/* Form Fields */}
       <div className="w-full">
-        <div className="w-full h-10 sm:h-12 border border-gray-300/33 rounded-lg pl-4 sm:pl-5 mb-4 sm:mb-5 relative flex items-center">
+        <div className="w-full h-10 sm:h-12 border border-gray-300/33 rounded-lg pl-4 sm:pl-5 mb-4 sm:mb-5 relative flex items-center bg-white">
           <input
             value={contactUser.name}
             placeholder="Full Name"
@@ -161,7 +161,7 @@ export default function ContactSection({
             type="text"
             required
             aria-label="Full Name"
-            className="bg-transparent w-full h-full border-none text-sm sm:text-base text-gray-600 focus:outline-none"
+            className="bg-white w-full h-full border-none text-sm sm:text-base text-gray-800 focus:outline-none"
           />
           <Image
             src={inputUserIconImg}
@@ -172,7 +172,7 @@ export default function ContactSection({
           />
         </div>
 
-        <div className="w-full h-10 sm:h-12 border border-gray-300/33 rounded-lg pl-4 sm:pl-5 mb-4 sm:mb-5 relative flex items-center">
+        <div className="w-full h-10 sm:h-12 border border-gray-300/33 rounded-lg pl-4 sm:pl-5 mb-4 sm:mb-5 relative flex items-center bg-white">
           <input
             value={contactUser.email}
             placeholder="Email Address"
@@ -181,7 +181,7 @@ export default function ContactSection({
             type="email"
             required
             aria-label="Email Address"
-            className="bg-transparent w-full h-full border-none text-sm sm:text-base text-gray-600 focus:outline-none"
+            className="bg-white w-full h-full border-none text-sm sm:text-base text-gray-800 focus:outline-none"
           />
           <Image
             src={inputMailIconImg}
@@ -192,7 +192,7 @@ export default function ContactSection({
           />
         </div>
 
-        <div className="w-full h-10 sm:h-12 border border-gray-300/33 rounded-lg pl-4 sm:pl-5 mb-4 sm:mb-5 relative flex items-center">
+        <div className="w-full h-10 sm:h-12 border border-gray-300/33 rounded-lg pl-4 sm:pl-5 mb-4 sm:mb-5 relative flex items-center bg-white">
           <input
             value={contactUser.phone}
             placeholder="Phone Number"
@@ -207,7 +207,7 @@ export default function ContactSection({
             required
             aria-label="Phone Number"
             maxLength={10}
-            className="bg-transparent w-full h-full border-none text-sm sm:text-base text-gray-600 focus:outline-none"
+            className="bg-white w-full h-full border-none text-sm sm:text-base text-gray-800 focus:outline-none"
           />
           <Image
             src={inputPhoneIconImg}
@@ -218,7 +218,7 @@ export default function ContactSection({
           />
         </div>
 
-        <div className="w-full h-10 sm:h-12 border border-gray-300/33 rounded-lg pl-4 sm:pl-5 mb-4 sm:mb-5 relative flex items-center">
+        <div className="w-full h-10 sm:h-12 border border-gray-300/33 rounded-lg pl-4 sm:pl-5 mb-4 sm:mb-5 relative flex items-center bg-white">
           <input
             type="text"
             placeholder="Enter PIN code or City/State"
@@ -226,7 +226,7 @@ export default function ContactSection({
             onChange={handleChange}
             aria-label="Location Search"
             autoComplete="off"
-            className="bg-transparent w-full h-full border-none text-sm sm:text-base text-gray-600 focus:outline-none"
+            className="bg-white w-full h-full border-none text-sm sm:text-base text-gray-800 focus:outline-none"
           />
           <Image
             src={pincodeIconImg}
