@@ -81,9 +81,13 @@ export default function SideMenu({ setActivePage }: SidebarProps) {
         { title: "Customers" },
       ],
     },
+    // {
+    //   title: "CNS",
+    //   subTitle: [{ title: "Blog" }],
+    // },
     {
-      title: "CNS",
-      subTitle: [{ title: "Blog" }],
+      title: "Blog",
+      subTitle: [{ title: "Posts" }, { title: "Categories" }, { title: "Tags" }],
     },
     {
       title: "Payment",
@@ -204,7 +208,7 @@ export default function SideMenu({ setActivePage }: SidebarProps) {
       ></div>
 
  
-      <div className={`w-[300px] h-screen shadow-[rgba(100,100,111,0.2)_0px_7px_29px_0px] bg-white transition-all duration-700 ease-[cubic-bezier(0.13,1.01,0.97,0.79)] pt-5 fixed left-0 top-0 z-[1000] lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+      <div className={`w-[250px] h-screen shadow-[rgba(100,100,111,0.2)_0px_7px_29px_0px] bg-white transition-all duration-700 ease-[cubic-bezier(0.13,1.01,0.97,0.79)] pt-5 fixed left-0 top-0 z-[1000] lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
         <div className="w-full flex justify-center">
           <Image src={Images.Clogo} alt="Clogo" width={160} height={60} />
         </div>
@@ -213,14 +217,14 @@ export default function SideMenu({ setActivePage }: SidebarProps) {
           {sideMenuList?.map((sm: any, i: number) => (
             <div key={i} className="w-full flex flex-col gap-2.5 justify-between">
               <div
-                className={`w-full min-h-[55px] pl-5 flex items-center transition-all duration-300 rounded-lg cursor-pointer relative ${
+                className={`w-full min-h-[35px] pl-5 flex items-center transition-all duration-300 rounded-lg cursor-pointer relative ${
                   activeMenu === sm.title
                     ? "bg-[#5ab15b] shadow-[0px_10px_30px_0px_#5ab15b66]"
                     : "hover:bg-[#5ab15b]"
                 }`}
                 onClick={() => handleMenuClick(sm.title)}
               >
-                <p className={`text-lg font-semibold transition-all duration-200 ${
+                <p className={`text-sm font-semibold transition-all duration-300  ${
                   activeMenu === sm.title ? "text-white" : "text-[#44465a] hover:text-white"
                 }`}>
                   {sm.title}
@@ -235,9 +239,9 @@ export default function SideMenu({ setActivePage }: SidebarProps) {
                       : Images.MenuArrow
                   }
                   alt=""
-                  className="w-5 h-5 absolute right-5 transition-all duration-700"
-                  width={20}
-                  height={20}
+                  className="w-3 h-3 absolute right-5 transition-all duration-700"
+                  width={10}
+                  height={10}
                 />
               </div>
 
@@ -258,7 +262,7 @@ export default function SideMenu({ setActivePage }: SidebarProps) {
                     key={j}
                     onClick={() => HandleActivePage(sb.title)}
                   >
-                    <p className={`transition-all duration-200 ${
+                    <p className={`transition-all duration-200 text-xs ${
                       ActivePage === sb.title ? "text-white" : "text-[#44465a] hover:text-white"
                     }`}>
                       {sb?.title}

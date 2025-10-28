@@ -12,6 +12,7 @@ interface BtnProps {
   icon?: string;
   onClick?: () => void;
   borderRadius?: string;
+  className?: string;
 }
 
 export const AppBtn: React.FC<BtnProps> = ({
@@ -22,12 +23,13 @@ export const AppBtn: React.FC<BtnProps> = ({
   textColor,
   icon,
   borderRadius,
+  className,
   onClick,
 }) => {
   return (
     <div
       onClick={onClick}
-      className="flex justify-center items-center cursor-pointer transition-all duration-500 px-3 py-2 md:px-5 md:py-3 gap-2 hover:shadow-lg"
+      className={`flex justify-center items-center cursor-pointer transition-all duration-500 px-3 py-2 md:px-5 md:py-3 gap-2 hover:shadow-lg ${className}`}
       style={{
         width,
         height: height || '50px',

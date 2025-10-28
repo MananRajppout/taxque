@@ -151,8 +151,8 @@ export default function Home() {
       ) : (
         <div className="w-full min-h-screen bg-white relative">
           <SideMenu setActivePage={setActivePage} />
-          <div className="w-full ml-0 lg:ml-[300px] min-h-screen bg-gray-50 transition-all duration-300">
-            <div className="w-full h-full p-6">
+          <div className="w-[calc(100%-250px)] ml-0 lg:ml-[250px] min-h-screen bg-gray-50 transition-all duration-300">
+            <div className="w-full h-screen p-3 overflow-y-auto">
              
               {activePage === "View Analytics" && (
                 <div className="p-6 bg-white rounded-lg shadow-sm">
@@ -206,7 +206,9 @@ export default function Home() {
               )}
 
               
-              {activePage === "Blog" && <BlogSection />}
+              {activePage === "Posts" && <BlogSection />}
+              {activePage === "Categories" && <BlogSection />}
+              {activePage === "Tags" && <BlogSection />}
 
             
               {activePage === "Payment List" && (
