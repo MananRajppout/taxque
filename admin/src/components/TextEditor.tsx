@@ -9,6 +9,7 @@ import {
   useState,
   memo,
 } from 'react';
+import { uploadImage } from "@/util/ImageUploader/page";
 
 // Global instance counter to prevent conflicts
 let editorInstanceCounter = 0;
@@ -54,6 +55,9 @@ const Editor = forwardRef<any, EditorProps>(
     const [Quill, setQuill] = useState<any>(null);
     const [instanceId] = useState(() => ++editorInstanceCounter);
     const quillInstanceRef = useRef<any>(null);
+    const [showButtonModal, setShowButtonModal] = useState(false);
+    const [buttonName, setButtonName] = useState("");
+    const [buttonUrl, setButtonUrl] = useState("");
 
    
     useEffect(() => {
@@ -110,7 +114,7 @@ const Editor = forwardRef<any, EditorProps>(
             toolbar: [
               [{ 'header': [1, 2, 3, false] }],
               ['bold', 'italic', 'underline'],
-              ['link'],
+              ['link', 'image'],
               [{ 'list': 'ordered'}, { 'list': 'bullet' }],
               ['clean']
             ]
@@ -133,6 +137,34 @@ const Editor = forwardRef<any, EditorProps>(
         quill.on('selection-change', (range: any, oldRange: any, source: any) => {
           onSelectionChangeRef.current?.(range, oldRange, source);
         });
+
+        // Add custom image handler: open file picker, upload to Cloudinary, insert URL
+        const toolbar = quill.getModule('toolbar');
+        if (toolbar && toolbar.addHandler) {
+          toolbar.addHandler('image', async () => {
+            try {
+              const input = document.createElement('input');
+              input.setAttribute('type', 'file');
+              input.setAttribute('accept', 'image/*');
+              input.onchange = async () => {
+                const file = (input.files && input.files[0]) || null;
+                if (!file) return;
+
+                // Upload via existing utility
+                const url = await uploadImage(file);
+                if (!url) return;
+
+                const range = quill.getSelection(true);
+                const index = range ? range.index : quill.getLength();
+                quill.insertEmbed(index, 'image', url, 'user');
+                quill.setSelection(index + 1, 0, 'silent');
+              };
+              input.click();
+            } catch (_) {
+              // Swallow errors to avoid breaking editor UX
+            }
+          });
+        }
       }
 
       // Update content only if it has changed
@@ -183,7 +215,7 @@ const Editor = forwardRef<any, EditorProps>(
     }
 
     return (
-      <div className="quill-editor">
+      <div className="quill-editor" style={{ position: 'relative', overflow: 'visible' }}>
         <style jsx global>{`
           .quill-editor .ql-container {
             height: 130px;
@@ -218,11 +250,52 @@ const Editor = forwardRef<any, EditorProps>(
           .quill-editor .ql-editor a {
             color: #000 !important;
           }
+          /* Preserve button styling in editor */
+          .quill-editor .ql-editor a[style*="background-color"],
+          .quill-editor .ql-editor a[href]:has-text[style*="display: inline-block"] {
+            background-color: #3b82f6 !important;
+            color: white !important;
+            display: inline-block !important;
+            padding: 8px 16px !important;
+            border-radius: 4px !important;
+            text-decoration: none !important;
+            font-weight: 500 !important;
+            margin: 8px 0 !important;
+            border: none !important;
+          }
+          /* Alternative selector for buttons */
+          .quill-editor .ql-editor a[style*="inline-block"] {
+            background-color: #3b82f6 !important;
+            color: white !important;
+          }
+          /* Limit image size in editor */
+          .quill-editor .ql-editor img {
+            max-width: 200px !important;
+            max-height: 150px !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain !important;
+            display: inline-block !important;
+            margin: 4px 0 !important;
+          }
           .quill-editor .ql-toolbar {
             border-bottom: 1px solid #ccc;
           }
           .quill-editor .ql-container.ql-snow {
             border-top: none;
+            overflow: visible !important;
+          }
+          /* Ensure button is visible above editor */
+          .quill-editor .ql-editor {
+            overflow: visible !important;
+          }
+          /* Ensure quill-wrapper doesn't hide button */
+          .quill-wrapper {
+            position: relative !important;
+            overflow: visible !important;
+          }
+          .quill-wrapper .quill-editor {
+            overflow: visible !important;
           }
           /* Ensure only one toolbar per editor */
           .quill-editor .ql-toolbar:not(:first-child) {
@@ -244,7 +317,138 @@ const Editor = forwardRef<any, EditorProps>(
             }
           }
         `}</style>
-        <div ref={containerRef} />
+        <div className="relative" style={{ overflow: 'visible' }}>
+          <div ref={containerRef} />
+          {/* Custom Button Helper - positioned at bottom right of editor */}
+          {!readOnly && !showButtonModal && (
+            <button
+              type="button"
+              onClick={() => setShowButtonModal(true)}
+              className="absolute bottom-2 right-2 px-3 py-1.5 text-xs font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 transition-colors z-[100] shadow-md pointer-events-auto"
+              title="Insert Button"
+              style={{ 
+                marginBottom: '4px',
+                position: 'absolute',
+                zIndex: 100
+              }}
+            >
+              + Button
+            </button>
+          )}
+        </div>
+        
+        {/* Button Insert Modal */}
+        {showButtonModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">Insert Button</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Button Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={buttonName}
+                    onChange={(e) => setButtonName(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g., Learn More"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Button URL <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={buttonUrl}
+                    onChange={(e) => setButtonUrl(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g., /blog/some-post or https://example.com"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-4 mt-6">
+                <button
+                  onClick={() => {
+                    setShowButtonModal(false);
+                    setButtonName("");
+                    setButtonUrl("");
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    // Validate inputs
+                    if (!buttonName.trim() || !buttonUrl.trim()) {
+                      return; // Don't close modal if fields are empty
+                    }
+
+                    // Get Quill instance
+                    const quill = quillInstanceRef.current;
+                    if (quill) {
+                      // Get current cursor position or end of content
+                      const range = quill.getSelection(true);
+                      const index = range ? range.index : quill.getLength();
+
+                      // Generate button HTML with inline styles for better compatibility
+                      const buttonHTML = `<a href="${buttonUrl.trim()}" style="display: inline-block; padding: 8px 16px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 4px; font-weight: 500; margin: 8px 0;">${buttonName.trim()}</a>`;
+
+                      // Method 1: Try directly inserting HTML using clipboard's dangerouslyPasteHTML
+                      try {
+                        // Get current selection
+                        const length = quill.getLength();
+                        const cursorPos = range ? range.index : length;
+                        
+                        // Insert button HTML directly at cursor position
+                        quill.clipboard.dangerouslyPasteHTML(cursorPos, buttonHTML, 'user');
+                        
+                        // Move cursor after button
+                        const newPos = cursorPos + buttonName.trim().length + 10;
+                        quill.setSelection(newPos, 0, 'api');
+                      } catch (e) {
+                        // Fallback: Use Delta method
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = buttonHTML;
+                        
+                        // Convert HTML to Quill Delta
+                        const delta = quill.clipboard.convert(tempDiv);
+                        
+                        // Get the Delta class from Quill constructor
+                        const QuillClass = quill.constructor as any;
+                        const QuillDelta = QuillClass.import('delta');
+                        
+                        // Create a Delta that retains up to cursor position, then inserts the button
+                        const insertDelta = new QuillDelta().retain(index).concat(delta);
+                        
+                        // Insert the Delta
+                        quill.updateContents(insertDelta, 'user');
+                        
+                        // Move cursor after inserted button
+                        const buttonTextLength = buttonName.trim().length;
+                        quill.setSelection(index + buttonTextLength + 1, 0, 'api');
+                        
+                        // Clean up
+                        tempDiv.remove();
+                      }
+                    }
+
+                    // Close modal and reset form
+                    setShowButtonModal(false);
+                    setButtonName("");
+                    setButtonUrl("");
+                  }}
+                  disabled={!buttonName.trim() || !buttonUrl.trim()}
+                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  Insert
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

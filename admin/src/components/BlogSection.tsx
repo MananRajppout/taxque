@@ -55,6 +55,7 @@ export default function BlogSection() {
   const { data, status } = useSelector((state: RootState) => state.blog);
   const [loding, setLoading] = useState(false);
   const [createBlogPop, setCreateBlogPop] = useState(false);
+  const [updateBlogPop, setUpdateBlogPop] = useState(false);
   const [image, setImage] = useState<File | null>(null);
   const [previewURL, setPreviewURL] = useState<string | null>(null);
   const [imgAltText, setImgAltText] = useState<string>("");
@@ -65,11 +66,28 @@ export default function BlogSection() {
 
   // Create-page extras for richer UI (local-only, not sent to API)
   const [isFeatured, setIsFeatured] = useState<boolean>(false);
+  const [isFeaturedUpdate, setIsFeaturedUpdate] = useState<boolean>(false);
   const [statusValue, setStatusValue] = useState<string>("Published");
+  const [statusValueUpdate, setStatusValueUpdate] = useState<string>("Published");
   const [categorySearch, setCategorySearch] = useState<string>("");
+  const [categorySearchUpdate, setCategorySearchUpdate] = useState<string>("");
   const [tags, setTags] = useState<string[]>([]);
+  const [tagsUpdate, setTagsUpdate] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState<string>("");
+  const [tagInputUpdate, setTagInputUpdate] = useState<string>("");
   const [allowComments, setAllowComments] = useState<boolean>(true);
+  const [allowCommentsUpdate, setAllowCommentsUpdate] = useState<boolean>(true);
+  const [categories, setCategories] = useState<string[]>(BlogCategoryList);
+  const [showAddCategory, setShowAddCategory] = useState<boolean>(false);
+  const [showAddCategoryUpdate, setShowAddCategoryUpdate] = useState<boolean>(false);
+  const [newCategoryInput, setNewCategoryInput] = useState<string>("");
+  const [newCategoryInputUpdate, setNewCategoryInputUpdate] = useState<string>("");
+  
+  // Update-specific states
+  const [updateImage, setUpdateImage] = useState<File | null>(null);
+  const [updatePreviewURL, setUpdatePreviewURL] = useState<string | null>(null);
+  const [updateImgAltText, setUpdateImgAltText] = useState<string>("");
+  const [categoryDropValUpdate, setCategoryDropValUpdate] = useState<string>();
   const basePermalink = typeof window !== 'undefined' ? `${window.location.origin}/blog/` : 'https://example.com/blog/';
 
 
@@ -80,6 +98,7 @@ export default function BlogSection() {
     metaDescription: ""
   });
   const [slugString, setSlugString] = useState<string>("")
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState<boolean>(false);
 
   const [blogSummaryData, setBlogSummaryData] = useState<blogTextType[]>([
     {
@@ -96,6 +115,7 @@ export default function BlogSection() {
     metaDescription: ""
   });
   const [slugUpdateString, setSlugUpdateString] = useState<string>("")
+  const [slugManuallyEditedUpdate, setSlugManuallyEditedUpdate] = useState<boolean>(false);
   const [blogSummaryUpdateData, setBlogSummaryUpdateData] = useState<
     blogTextType[]
   >([
@@ -127,6 +147,17 @@ export default function BlogSection() {
     }
   }, [bloglocVal.slug, bloglocUpdateVal.slug])
 
+  // Auto-generate slug from metaTitle in CREATE form only (if slug wasn't manually edited)
+  useEffect(() => {
+    if (!slugManuallyEdited && bloglocVal.metaTitle) {
+      const generatedSlug = generateSlug(bloglocVal.metaTitle);
+      setBloglocVal((prev) => ({
+        ...prev,
+        slug: generatedSlug
+      }));
+    }
+  }, [bloglocVal.metaTitle, slugManuallyEdited])
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     section: string
@@ -134,12 +165,20 @@ export default function BlogSection() {
     const { name, value } = e.target;
 
     if (section === "create") {
+      // If user manually edits slug, mark it as manually edited to stop auto-generation
+      if (name === "slug") {
+        setSlugManuallyEdited(true);
+      }
       setBloglocVal((prv) => ({
         ...prv,
         [name]: value
       }))
     }
     if (section === "update") {
+      // For update form, always mark slug as manually edited (no auto-generation)
+      if (name === "slug") {
+        setSlugManuallyEditedUpdate(true);
+      }
       setBloglocUpdateVal((prv) => ({
         ...prv,
         [name]: value
@@ -273,19 +312,65 @@ export default function BlogSection() {
     }
   };
 
-  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, isUpdate: boolean = false) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      const value = tagInput.trim();
-      if (value && !tags.includes(value)) {
-        setTags((prev) => [...prev, value]);
+      if (isUpdate) {
+        const value = tagInputUpdate.trim();
+        if (value && !tagsUpdate.includes(value)) {
+          setTagsUpdate((prev) => [...prev, value]);
+        }
+        setTagInputUpdate("");
+      } else {
+        const value = tagInput.trim();
+        if (value && !tags.includes(value)) {
+          setTags((prev) => [...prev, value]);
+        }
+        setTagInput("");
       }
-      setTagInput("");
     }
   };
 
-  const removeTag = (value: string) => {
-    setTags((prev) => prev.filter((t) => t !== value));
+  const removeTag = (value: string, isUpdate: boolean = false) => {
+    if (isUpdate) {
+      setTagsUpdate((prev) => prev.filter((t) => t !== value));
+    } else {
+      setTags((prev) => prev.filter((t) => t !== value));
+    }
+  };
+
+  const handleAddCategory = (isUpdate: boolean = false) => {
+    const categoryInput = isUpdate ? newCategoryInputUpdate : newCategoryInput;
+    const trimmedCategory = categoryInput.trim();
+    if (trimmedCategory && !categories.includes(trimmedCategory)) {
+      setCategories((prev) => [...prev, trimmedCategory]);
+      if (isUpdate) {
+        setNewCategoryInputUpdate("");
+        setShowAddCategoryUpdate(false);
+        setCategoryDropValUpdate(trimmedCategory);
+      } else {
+        setNewCategoryInput("");
+        setShowAddCategory(false);
+        setCategoryDropVal(trimmedCategory);
+      }
+    } else if (categories.includes(trimmedCategory)) {
+      toast.warn("This category already exists!");
+    }
+  };
+
+  const handleAddCategoryKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, isUpdate: boolean = false) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddCategory(isUpdate);
+    } else if (e.key === 'Escape') {
+      if (isUpdate) {
+        setShowAddCategoryUpdate(false);
+        setNewCategoryInputUpdate("");
+      } else {
+        setShowAddCategory(false);
+        setNewCategoryInput("");
+      }
+    }
   };
 
 
@@ -310,19 +395,26 @@ export default function BlogSection() {
       setLoading(false);
       return;
     }
-    if (
-      !bloglocVal.title.length ||
-      !slugString.length ||
-      !bloglocVal.metaTitle.length ||
-      !bloglocVal.metaDescription.length
-    ) {
-      toast.warn("Please fill all the values !");
+    // Check each required field and show specific error
+    
+    if (!slugString.length || !bloglocVal.slug.length) {
+      toast.warn("Please fill the Permalink/Slug field!");
+      setLoading(false);
+      return;
+    }
+    if (!bloglocVal.metaTitle.length) {
+      toast.warn("Please fill the Meta Title field!");
+      setLoading(false);
+      return;
+    }
+    if (!bloglocVal.metaDescription.length) {
+      toast.warn("Please fill the Meta Description field!");
       setLoading(false);
       return;
     }
     dispatch(
       CreateBlog({
-        title: bloglocVal.title,
+        title: bloglocVal.metaTitle,
         Slug: slugString,
         metaTitle: bloglocVal?.metaTitle,
         metaDescription: bloglocVal?.metaDescription,
@@ -336,48 +428,96 @@ export default function BlogSection() {
 
   const handleActiveEdit = (index: number) => {
     setUpdateIndex(index);
-    setBloglocUpdateVal((prv) => ({
-      ...prv,
-      title: data[index]?.title,
-      slug: data[index]?.Slug,
-      metaTitle: data[index]?.metaTitle,
-      metaDescription: data[index]?.metaDescription
-    }))
-    setBlogSummaryUpdateData(() => [...data[index]?.blogText]);
+    const blogData = data[index];
+    
+    // Set basic form values
+    setBloglocUpdateVal({
+      title: blogData?.title || "",
+      slug: blogData?.Slug || "",
+      metaTitle: blogData?.metaTitle || "",
+      metaDescription: blogData?.metaDescription || ""
+    });
+    
+    // Set blog text data
+    setBlogSummaryUpdateData([...blogData?.blogText || []]);
+    
+    // Set category
+    setCategoryDropValUpdate(blogData?.category || "");
+    
+    // Set image preview (existing image)
+    setUpdateImage(null);
+    setUpdatePreviewURL(blogData?.imageUrl || null);
+    setUpdateImgAltText("");
+    
+    // Set additional UI fields (use defaults if not in data)
+    setIsFeaturedUpdate(false);
+    setStatusValueUpdate("Published");
+    setTagsUpdate([]);
+    setTagInputUpdate("");
+    setAllowCommentsUpdate(true);
+    setCategorySearchUpdate("");
+    setShowAddCategoryUpdate(false);
+    setNewCategoryInputUpdate("");
+    
+    // Always mark slug as manually edited for update form (no auto-generation)
+    setSlugManuallyEditedUpdate(true);
+    
+    // Open update popup
+    setUpdateBlogPop(true);
+    GoTop();
   };
 
   const updateBlog = async () => {
+    GoTop();
+    setLoading(true);
+
     if (!data[updateIndex]?._id) {
+      setLoading(false);
       return;
     }
-    const imageUrl = image ? (await uploadImage(image)) || "image url" : "";
+
+    if (!categoryDropValUpdate) {
+      toast.warn("Select a category for your blog!");
+      setLoading(false);
+      return;
+    }
+
+    if (!slugUpdateString.length || !bloglocUpdateVal.slug.length) {
+      toast.warn("Please fill the Permalink/Slug field!");
+      setLoading(false);
+      return;
+    }
+    if (!bloglocUpdateVal.metaTitle.length) {
+      toast.warn("Please fill the Meta Title field!");
+      setLoading(false);
+      return;
+    }
+    if (!bloglocUpdateVal.metaDescription.length) {
+      toast.warn("Please fill the Meta Description field!");
+      setLoading(false);
+      return;
+    }
+
+    const imageUrl = updateImage ? (await uploadImage(updateImage)) || "image url" : data[updateIndex]?.imageUrl;
 
     dispatch(
       UpdateBlog({
         data: {
-          ...(bloglocUpdateVal?.title.length && {
-            title: bloglocUpdateVal?.title
-          }),
-          ...(slugUpdateString.length && {
-            Slug: slugUpdateString
-          }),
-          ...(bloglocUpdateVal?.metaTitle.length && {
-            metaTitle: bloglocUpdateVal?.metaTitle
-          }),
-          ...(bloglocUpdateVal?.metaDescription.length && {
-            metaDescription: bloglocUpdateVal?.metaDescription
-          }),
+          title: bloglocUpdateVal?.metaTitle || bloglocUpdateVal?.title,
+          Slug: slugUpdateString,
+          metaTitle: bloglocUpdateVal?.metaTitle,
+          metaDescription: bloglocUpdateVal?.metaDescription,
           blogText: blogSummaryUpdateData,
-          ...(image && {
-            imageUrl,
-          }),
-          ...(categoryDropVal && {
-            category: categoryDropVal,
-          }),
+          imageUrl: imageUrl,
+          category: categoryDropValUpdate,
         },
         id: data[updateIndex]?._id,
       })
     );
+
+    // Close popup after update
+    setUpdateBlogPop(false);
+    setLoading(false);
   };
 
 
@@ -399,6 +539,22 @@ export default function BlogSection() {
       dispatch(FetchBlog());
     }
   }, []);
+
+  // Extract categories from existing blogs and add to categories list
+  useEffect(() => {
+    if (data && data.length > 0) {
+      const existingCategories = data
+        .map((blog: any) => blog?.category)
+        .filter((cat: string | undefined): cat is string => Boolean(cat) && typeof cat === 'string');
+      
+      const uniqueCategories = [...new Set(existingCategories)];
+      
+      setCategories((prevCategories) => {
+        const combined = [...new Set([...prevCategories, ...uniqueCategories])];
+        return combined;
+      });
+    }
+  }, [data]);
 
   return (
     <>
@@ -426,20 +582,36 @@ export default function BlogSection() {
 
 
           {
-            !createBlogPop ?
+            !createBlogPop && !updateBlogPop ?
               (
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                   <p className="text-xl sm:text-2xl font-bold text-gray-800">All Blog</p>
-                  <button className="p-2 px-8 rounded-3xl bg-[#5ab15b] !text-white text-sm font-medium cursor-pointer" onClick={() => setCreateBlogPop(true)}>
+                  <button className="p-2 px-8 rounded-3xl bg-[#5ab15b] !text-white text-sm font-medium cursor-pointer" onClick={() => {
+                    setCreateBlogPop(true);
+                    setSlugManuallyEdited(false); // Reset flag when opening create form
+                  }}>
                     Create
+                  </button>
+                </div>
+              )
+              :
+              createBlogPop ?
+              (
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                  <p className="text-xl sm:text-2xl font-bold text-gray-800">Create Blog</p>
+                  <button className="p-2 px-8 rounded-3xl bg-[#5ab15b] !text-white text-sm font-medium cursor-pointer" onClick={() => {
+                    setCreateBlogPop(false);
+                    setSlugManuallyEdited(false); // Reset flag when closing create form
+                  }}>
+                    Cancel
                   </button>
                 </div>
               )
               :
               (
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                  <p className="text-xl sm:text-2xl font-bold text-gray-800">Create Blog</p>
-                  <button className="p-2 px-8 rounded-3xl bg-[#5ab15b] !text-white text-sm font-medium cursor-pointer" onClick={() => setCreateBlogPop(false)}>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-800">Update Blog</p>
+                  <button className="p-2 px-8 rounded-3xl bg-[#5ab15b] !text-white text-sm font-medium cursor-pointer" onClick={() => setUpdateBlogPop(false)}>
                     Cancel
                   </button>
                 </div>
@@ -452,7 +624,7 @@ export default function BlogSection() {
               <Image src={Images.InternalServerErrImg} alt="Server Error" width={200} height={200} />
             </div>
           ) : status === "idle" ? (
-            <div className={`space-y-6 ${createBlogPop ? "mt-0" : "mt-20"}`}>
+            <div className={`space-y-6 ${createBlogPop || updateBlogPop ? "mt-0" : "mt-20"}`}>
               {
                 createBlogPop ? (
                   <div
@@ -462,14 +634,19 @@ export default function BlogSection() {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                       {/* Left: Main form */}
                       <div className="lg:col-span-2 space-y-6">
+                       
+
                         <div className="border border-gray-200 rounded-lg p-5">
+                          <div className="flex items-center justify-between mb-3">
+                            <p className="text-sm font-medium text-gray-800"> Meta Details</p>
+                          </div>
                           <div className="mb-4">
-                            <p className="text-sm font-medium text-gray-700 mb-1">Name</p>
+                            <p className="text-sm font-medium text-gray-700 mb-1">Meta Title <span className="text-red-500">*</span></p>
                             <input
                               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                               type="text"
-                              name="title"
-                              value={bloglocVal.title}
+                              name="metaTitle"
+                              value={bloglocVal.metaTitle}
                               onChange={(e) => handleChange(e, "create")}
                               placeholder="Name"
                             />
@@ -490,7 +667,7 @@ export default function BlogSection() {
                             <p className="text-xs text-gray-400 mt-1">Preview: {basePermalink}{slugString}</p>
                           </div>
                           <div className="mb-4">
-                            <p className="text-sm font-medium text-gray-700 mb-1">Description</p>
+                            <p className="text-sm font-medium text-gray-700 mb-1">Meta Description</p>
                             <input
                               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                               type="text"
@@ -632,7 +809,52 @@ export default function BlogSection() {
                         </div>
 
                         <div className="border border-gray-200 rounded-lg p-5">
-                          <p className="text-sm font-semibold text-gray-800 mb-3">Categories</p>
+                          <div className="flex items-center justify-between mb-3">
+                            <p className="text-sm font-semibold text-gray-800">Categories</p>
+                            <button
+                              onClick={() => setShowAddCategory(!showAddCategory)}
+                              className="flex items-center justify-center w-6 h-6 rounded-md hover:bg-gray-100 transition-colors"
+                              title="Add new category"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                strokeWidth={2}
+                                stroke="currentColor"
+                                className="w-5 h-5 text-gray-600"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                              </svg>
+                            </button>
+                          </div>
+                          {showAddCategory && (
+                            <div className="mb-3 flex items-center gap-2">
+                              <input
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Enter category name..."
+                                value={newCategoryInput}
+                                onChange={(e) => setNewCategoryInput(e.target.value)}
+                                onKeyDown={(e) => handleAddCategoryKeyDown(e, false)}
+                                autoFocus
+                              />
+                              <button
+                                onClick={() => handleAddCategory(false)}
+                                className="px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm"
+                              >
+                                Add
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setShowAddCategory(false);
+                                  setNewCategoryInput("");
+                                }}
+                                className="px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-sm"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          )}
                           <input
                             className="w-full px-3 py-2 mb-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Search..."
@@ -640,7 +862,7 @@ export default function BlogSection() {
                             onChange={(e) => setCategorySearch(e.target.value)}
                           />
                           <div className="max-h-56 overflow-y-auto pr-1">
-                            {BlogCategoryList.filter((c) => c.toLowerCase().includes(categorySearch.toLowerCase())).map((c) => (
+                            {categories.filter((c) => c.toLowerCase().includes(categorySearch.toLowerCase())).map((c) => (
                               <label key={c} className="flex items-center gap-2 py-1">
                                 <input type="radio" name="category" checked={categoryDropVal === c} onChange={() => setCategoryDropVal(c)} />
                                 <span className="text-sm text-gray-700">{c}</span>
@@ -694,6 +916,296 @@ export default function BlogSection() {
                     </div>
                   </div>
 
+                ) : updateBlogPop ? (
+                  <div
+                    style={{ display: updateBlogPop ? "block" : "none" }}
+                    className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm"
+                  >
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      {/* Left: Main form */}
+                      <div className="lg:col-span-2 space-y-6">
+                       
+
+                        <div className="border border-gray-200 rounded-lg p-5">
+                          <div className="flex items-center justify-between mb-3">
+                            <p className="text-sm font-medium text-gray-800"> Meta Details</p>
+                          </div>
+                          <div className="mb-4">
+                            <p className="text-sm font-medium text-gray-700 mb-1">Meta Title <span className="text-red-500">*</span></p>
+                            <input
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              type="text"
+                              name="metaTitle"
+                              value={bloglocUpdateVal.metaTitle}
+                              onChange={(e) => handleChange(e, "update")}
+                              placeholder="Name"
+                            />
+                          </div>
+                          <div className="mb-4">
+                            <p className="text-sm font-medium text-gray-700 mb-1">Permalink</p>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-gray-500 whitespace-nowrap">{basePermalink}</span>
+                              <input
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                type="text"
+                                name="slug"
+                                value={bloglocUpdateVal?.slug}
+                                onChange={(e) => handleChange(e, "update")}
+                                placeholder="your-slug"
+                              />
+                            </div>
+                            <p className="text-xs text-gray-400 mt-1">Preview: {basePermalink}{slugUpdateString}</p>
+                          </div>
+                          <div className="mb-4">
+                            <p className="text-sm font-medium text-gray-700 mb-1">Meta Description</p>
+                            <input
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              type="text"
+                              name="metaDescription"
+                              value={bloglocUpdateVal.metaDescription}
+                              onChange={(e) => handleChange(e, "update")}
+                              placeholder="Short description"
+                            />
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <input id="is-featured-update" type="checkbox" className="accent-blue-600" checked={isFeaturedUpdate} onChange={(e) => setIsFeaturedUpdate(e.target.checked)} />
+                            <label htmlFor="is-featured-update" className="text-sm text-gray-700">Is featured?</label>
+                          </div>
+                        </div>
+
+                        <div className="border border-gray-200 rounded-lg p-5">
+                          <div className="flex items-center justify-between mb-3">
+                            <p className="text-sm font-medium text-gray-800">Content</p>
+                          </div>
+                          {blogSummaryUpdateData?.map((bl, i) => (
+                            <div key={i} className="mb-6 p-4 border border-gray-200 rounded-lg">
+                              <div className="mb-4">
+                                <p className="text-sm font-medium text-gray-700 mb-1">Title</p>
+                                <input
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  name="title"
+                                  value={bl.title}
+                                  onChange={(e) =>
+                                    handleChangeForMap(e, i, "blogSectionUpdateChange")
+                                  }
+                                  placeholder="Enter title..."
+                                />
+                              </div>
+                              <h2 className="text-lg font-semibold mb-3">Summary Paragraphs</h2>
+                              {bl?.summarys?.map((blPoint, j) => (
+                                <div key={`update-summary-${i}-${j}`} className="mb-4">
+                                  <div className="quill-wrapper">
+                                    <RichTextEditor
+                                      key={`update-editor-${i}-${j}`}
+                                      state={blPoint.summary}
+                                      setState={(val) => {
+                                        setBlogSummaryUpdateData((prev) => {
+                                          const updated = [...prev];
+                                          updated[i] = {
+                                            ...updated[i],
+                                            summarys: updated[i].summarys.map((s, idx) =>
+                                              idx === j ? { ...s, summary: val } : s
+                                            ),
+                                          };
+                                          return updated;
+                                        });
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                              ))}
+                              <div className="flex gap-4">
+                                <AddMoreBtn
+                                  icon={Images.addIconV2}
+                                  btnText="Add More"
+                                  onClick={() =>
+                                    handleAddSummary("blogSummaryUpdateSection", i)
+                                  }
+                                />
+                                {bl.summarys.length > 1 && (
+                                  <RemoveBtn
+                                    icon={Images.removeIcon}
+                                    btnText="Remove"
+                                    onClick={() =>
+                                      handleRemoveSummary("blogSummaryUpdateSection", i)
+                                    }
+                                  />
+                                )}
+                              </div>
+                            </div>
+                          ))}
+
+                          <div className="flex gap-4">
+                            <AddMoreBtn
+                              icon={Images.addIconV2}
+                              btnText="Add More"
+                              onClick={() => handleAddSummary("blogUpdateSection")}
+                            />
+                            {blogSummaryUpdateData.length ? (
+                              <RemoveBtn
+                                icon={Images.removeIcon}
+                                btnText="Remove"
+                                onClick={() => handleRemoveSummary("blogUpdateSection")}
+                              />
+                            ) : null}
+                          </div>
+                        </div>
+
+                        <div className="border border-gray-200 rounded-lg p-5">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium text-gray-800">FAQ schema configuration (Learn more)</p>
+                            <button className="px-3 py-1 text-sm rounded-md bg-gray-100">Add new</button>
+                          </div>
+                          <button className="mt-3 text-xs text-blue-600">or Select from existing FAQs</button>
+                        </div>
+
+                        <div className="border border-gray-200 rounded-lg p-5">
+                          <p className="text-sm font-medium text-gray-800 mb-3">Gallery images</p>
+                          <button className="px-3 py-1 text-sm rounded-md bg-gray-100">Select images</button>
+                        </div>
+
+                        <div className="border border-gray-200 rounded-lg p-5">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium text-gray-800">Search Engine Optimize</p>
+                            <button className="text-sm text-blue-600">Edit SEO meta</button>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-2">Setup meta title & description to make your site easy to discovered on search engines such as Google</p>
+                        </div>
+                      </div>
+
+                      {/* Right: Sidebar */}
+                      <div className="lg:col-span-1 space-y-6">
+                        <div className="border border-gray-200 rounded-lg p-5">
+                          <p className="text-sm font-semibold text-gray-800">Publish</p>
+                          <div className="flex items-center gap-3 mt-3">
+                            <button className="p-2 px-8 rounded-3xl bg-[#5ab15b] !text-white text-sm font-medium cursor-pointer" onClick={updateBlog}>
+                              Save
+                            </button>
+                            <button className="p-2 px-8 rounded-3xl bg-gray-200 !text-gray-800 text-sm font-medium cursor-pointer" onClick={updateBlog}>
+                              Save & Exit
+                            </button>
+                          </div>
+                          <div className="mt-4">
+                            <p className="text-sm font-medium text-gray-700 mb-1">Status</p>
+                            <select
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              value={statusValueUpdate}
+                              onChange={(e) => setStatusValueUpdate(e.target.value)}
+                            >
+                              <option>Published</option>
+                              <option>Draft</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="border border-gray-200 rounded-lg p-5">
+                          <div className="flex items-center justify-between mb-3">
+                            <p className="text-sm font-semibold text-gray-800">Categories</p>
+                            <button
+                              onClick={() => setShowAddCategoryUpdate(!showAddCategoryUpdate)}
+                              className="flex items-center justify-center w-6 h-6 rounded-md hover:bg-gray-100 transition-colors"
+                              title="Add new category"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                strokeWidth={2}
+                                stroke="currentColor"
+                                className="w-5 h-5 text-gray-600"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                              </svg>
+                            </button>
+                          </div>
+                          {showAddCategoryUpdate && (
+                            <div className="mb-3 flex items-center gap-2">
+                              <input
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Enter category name..."
+                                value={newCategoryInputUpdate}
+                                onChange={(e) => setNewCategoryInputUpdate(e.target.value)}
+                                onKeyDown={(e) => handleAddCategoryKeyDown(e, true)}
+                                autoFocus
+                              />
+                              <button
+                                onClick={() => handleAddCategory(true)}
+                                className="px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm"
+                              >
+                                Add
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setShowAddCategoryUpdate(false);
+                                  setNewCategoryInputUpdate("");
+                                }}
+                                className="px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-sm"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          )}
+                          <input
+                            className="w-full px-3 py-2 mb-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Search..."
+                            value={categorySearchUpdate}
+                            onChange={(e) => setCategorySearchUpdate(e.target.value)}
+                          />
+                          <div className="max-h-56 overflow-y-auto pr-1">
+                            {categories.filter((c) => c.toLowerCase().includes(categorySearchUpdate.toLowerCase())).map((c) => (
+                              <label key={c} className="flex items-center gap-2 py-1">
+                                <input type="radio" name="category-update" checked={categoryDropValUpdate === c} onChange={() => setCategoryDropValUpdate(c)} />
+                                <span className="text-sm text-gray-700">{c}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="border border-gray-200 rounded-lg p-5">
+                          <p className="text-sm font-semibold text-gray-800 mb-3">Image</p>
+                          <div className="w-full h-20 p-0.5 bg-green-500 rounded-lg">
+                            <SingleImageUploadProps
+                              id="BlogImgUpdate"
+                              image={updateImage}
+                              setImage={setUpdateImage}
+                              previewURL={updatePreviewURL}
+                              setPreviewURL={setUpdatePreviewURL}
+                              imgAltText={updateImgAltText}
+                              setImgAltText={setUpdateImgAltText}
+                              DBImg={data[updateIndex]?.imageUrl || Images.uploadImgIcon}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="border border-gray-200 rounded-lg p-5">
+                          <p className="text-sm font-semibold text-gray-800 mb-2">Tags</p>
+                          <input
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Write some tags"
+                            value={tagInputUpdate}
+                            onChange={(e) => setTagInputUpdate(e.target.value)}
+                            onKeyDown={(e) => handleTagKeyDown(e, true)}
+                          />
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {tagsUpdate.map((t) => (
+                              <span key={t} className="inline-flex items-center gap-2 text-xs bg-gray-100 px-2 py-1 rounded-md">
+                                {t}
+                                <button className="text-gray-500" onClick={() => removeTag(t, true)}>×</button>
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="border border-gray-200 rounded-lg p-5">
+                          <label className="flex items-center gap-2 text-sm text-gray-800">
+                            <input type="checkbox" className="accent-blue-600" checked={allowCommentsUpdate} onChange={(e) => setAllowCommentsUpdate(e.target.checked)} />
+                            Allow comments
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                 ) :
                   (
                     <div>
@@ -716,222 +1228,43 @@ export default function BlogSection() {
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
                               {data?.map((el: any, i: number) => (
-                                <Fragment key={i}>
-                                  <tr className={i === updateIndex ? "bg-blue-50" : ""}>
-                                    <td className="px-4 py-3 text-sm text-gray-700">{i + 1}</td>
-                                    <td className="px-4 py-3">
-                                      <div className="w-16 h-10 rounded overflow-hidden bg-gray-100">
-                                        <Image
-                                          className="w-full h-full object-cover"
-                                          src={el.imageUrl}
-                                          alt=""
-                                          width={64}
-                                          height={40}
-                                        />
-                                      </div>
-                                    </td>
-                                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{el.title}</td>
-                                    <td className="px-4 py-3 text-sm text-gray-700">{el.category}</td>
-                                    <td className="px-4 py-3 text-sm text-gray-500">{el.date}</td>
-                                    <td className="px-4 py-3">
-                                      <div className="flex justify-end items-center gap-3">
-                                        {i !== updateIndex ? (
-                                          <Image
-                                            src={Images.editIcon}
-                                            className="w-5 h-5 cursor-pointer"
-                                            alt=""
-                                            onClick={() => handleActiveEdit(i)}
-                                            width={20}
-                                            height={20}
-                                          />
-                                        ) : (
-                                          <Image
-                                            src={Images.crossIconV2}
-                                            className="w-6 h-6 cursor-pointer"
-                                            alt=""
-                                            onClick={() => setUpdateIndex(9999)}
-                                            width={24}
-                                            height={24}
-                                          />
-                                        )}
-                                        <Image
-                                          src={Images.deleteIcon}
-                                          className="w-5 h-5 cursor-pointer"
-                                          alt=""
-                                          onClick={() => DeletePopOpen(el?._id)}
-                                          width={20}
-                                          height={20}
-                                        />
-                                      </div>
-                                    </td>
-                                  </tr>
-                                  {i === updateIndex && (
-                                    <tr>
-                                      <td className="px-4 py-4" colSpan={6}>
-                                        <div className="flex justify-between items-center mb-4">
-                                          <AppBtn btnText="Save" height="32px" onClick={updateBlog} />
-                                        </div>
-                                        <div className="flex flex-col lg:flex-row gap-6">
-                                          <div className="w-full lg:w-32 h-20 p-0.5 bg-green-500 rounded-lg">
-                                            <SingleImageUploadProps
-                                              id="BlogImg"
-                                              image={image}
-                                              setImage={setImage}
-                                              previewURL={previewURL}
-                                              setPreviewURL={setPreviewURL}
-                                              imgAltText={imgAltText}
-                                              setImgAltText={setImgAltText}
-                                              DBImg={el.imageUrl ? el.imageUrl : Images.uploadImgIcon}
-                                            />
-                                          </div>
-                                          <div className="flex-1">
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-2.5">
-                                              <div>
-                                                <p className="text-sm font-medium text-gray-700 mb-1">Blog Title</p>
-                                                <input
-                                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                  type="text"
-                                                  name="title"
-                                                  value={i === updateIndex ? bloglocUpdateVal.title : el?.title}
-                                                  onChange={(e) => handleChange(e, "update")}
-                                                  placeholder="Enter Title"
-                                                />
-                                              </div>
-                                              <div>
-                                                <p className="text-sm font-medium text-gray-700 mb-1">Category</p>
-                                                <DropBox
-                                                  setDropVal={setCategoryDropVal}
-                                                  list={BlogCategoryList}
-                                                  defaultVal={el?.category || "Select"}
-                                                />
-                                              </div>
-                                            </div>
-                                            <div className="mb-5">
-                                              <p className="text-sm font-medium text-gray-700 mb-1">Slug String</p>
-                                              <input
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                type="text"
-                                                name="slug"
-                                                value={i === updateIndex ? bloglocUpdateVal.slug : el?.Slug}
-                                                onChange={(e) => handleChange(e, "update")}
-                                                placeholder="Enter Slug String"
-                                              />
-                                              <span
-                                                style={{ display: slugUpdateString.length ? "block" : "none" }}
-                                                className="text-sm text-gray-400 mt-1"
-                                              >
-                                                {slugUpdateString}
-                                              </span>
-                                            </div>
-                                            <div className="mb-5">
-                                              <p className="text-sm font-medium text-gray-700 mb-1">Meta Title</p>
-                                              <input
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                type="text"
-                                                name="metaTitle"
-                                                value={i === updateIndex ? bloglocUpdateVal.metaTitle : el?.metaTitle}
-                                                onChange={(e) => handleChange(e, "update")}
-                                                placeholder="Enter Meta Title"
-                                              />
-                                            </div>
-                                            <div className="mb-5">
-                                              <p className="text-sm font-medium text-gray-700 mb-1">Meta Description</p>
-                                              <input
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                type="text"
-                                                name="metaDescription"
-                                                value={i === updateIndex ? bloglocUpdateVal.metaDescription : el?.metaDescription}
-                                                onChange={(e) => handleChange(e, "update")}
-                                                placeholder="Enter Meta Description"
-                                              />
-                                            </div>
-                                            {(i === updateIndex ? blogSummaryUpdateData : blogSummaryData).map((bl, summaryIndex) => (
-                                              <div key={summaryIndex} className="mb-6 p-4 border border-gray-200 rounded-lg">
-                                                <div className="mb-4">
-                                                  <p className="text-sm font-medium text-gray-700 mb-1">Title</p>
-                                                  <input
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                    name="title"
-                                                    value={bl.title}
-                                                    onChange={(e) =>
-                                                      handleChangeForMap(
-                                                        e,
-                                                        summaryIndex,
-                                                        "blogSectionUpdateChange"
-                                                      )
-                                                    }
-                                                    placeholder="Enter title..."
-                                                  />
-                                                </div>
-                                                <h2 className="text-lg font-semibold mb-3">Summary Paragraphs</h2>
-                                                {bl?.summarys?.map((blPoint: any, j: number) => (
-                                                  <div key={`update-summary-${summaryIndex}-${j}`} className="mb-4">
-                                                    <div className="quill-wrapper">
-                                                      <RichTextEditor
-                                                        key={`update-editor-${summaryIndex}-${j}`}
-                                                        state={blPoint.summary}
-                                                        setState={(val) => {
-                                                          setBlogSummaryUpdateData((prev) => {
-                                                            const updated = [...prev];
-                                                            updated[summaryIndex] = {
-                                                              ...updated[summaryIndex],
-                                                              summarys: updated[summaryIndex].summarys.map((s: any, idx: number) =>
-                                                                idx === j ? { ...s, summary: val } : s
-                                                              ),
-                                                            };
-                                                            return updated;
-                                                          });
-                                                        }}
-                                                      />
-                                                    </div>
-                                                  </div>
-                                                ))}
-                                                <div className="flex gap-4">
-                                                  <AddMoreBtn
-                                                    icon={Images.addIconV2}
-                                                    btnText="Add More"
-                                                    onClick={() =>
-                                                      handleAddSummary(
-                                                        "blogSummaryUpdateSection",
-                                                        summaryIndex
-                                                      )
-                                                    }
-                                                  />
-                                                  {bl.summarys.length > 1 && (
-                                                    <RemoveBtn
-                                                      icon={Images.removeIcon}
-                                                      btnText="Remove"
-                                                      onClick={() =>
-                                                        handleRemoveSummary(
-                                                          "blogSummaryUpdateSection",
-                                                          summaryIndex
-                                                        )
-                                                      }
-                                                    />
-                                                  )}
-                                                </div>
-                                              </div>
-                                            ))}
-                                            <div className="flex gap-4">
-                                              <AddMoreBtn
-                                                icon={Images.addIconV2}
-                                                btnText="Add More"
-                                                onClick={() => handleAddSummary("blogUpdateSection")}
-                                              />
-                                              {blogSummaryUpdateData.length ? (
-                                                <RemoveBtn
-                                                  icon={Images.removeIcon}
-                                                  btnText="Remove"
-                                                  onClick={() => handleRemoveSummary("blogUpdateSection")}
-                                                />
-                                              ) : null}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </td>
-                                    </tr>
-                                  )}
-                                </Fragment>
+                                <tr key={i}>
+                                  <td className="px-4 py-3 text-sm text-gray-700">{i + 1}</td>
+                                  <td className="px-4 py-3">
+                                    <div className="w-16 h-10 rounded overflow-hidden bg-gray-100">
+                                      <Image
+                                        className="w-full h-full object-cover"
+                                        src={el.imageUrl}
+                                        alt=""
+                                        width={64}
+                                        height={40}
+                                      />
+                                    </div>
+                                  </td>
+                                  <td className="px-4 py-3 text-sm font-medium text-gray-900">{el.title}</td>
+                                  <td className="px-4 py-3 text-sm text-gray-700">{el.category}</td>
+                                  <td className="px-4 py-3 text-sm text-gray-500">{el.date}</td>
+                                  <td className="px-4 py-3">
+                                    <div className="flex justify-end items-center gap-3">
+                                      <Image
+                                        src={Images.editIcon}
+                                        className="w-5 h-5 cursor-pointer"
+                                        alt=""
+                                        onClick={() => handleActiveEdit(i)}
+                                        width={20}
+                                        height={20}
+                                      />
+                                      <Image
+                                        src={Images.deleteIcon}
+                                        className="w-5 h-5 cursor-pointer"
+                                        alt=""
+                                        onClick={() => DeletePopOpen(el?._id)}
+                                        width={20}
+                                        height={20}
+                                      />
+                                    </div>
+                                  </td>
+                                </tr>
                               ))}
                             </tbody>
                           </table>

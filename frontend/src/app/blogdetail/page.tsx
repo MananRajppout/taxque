@@ -107,9 +107,9 @@ export default function BlogDetails() {
                   </h2>
                   {el?.summarys?.map((sm, ind: number) => (
                     <div key={ind} className="mb-4">
-                      <p className="text-base md:text-lg text-gray-600 leading-relaxed">
+                      <div className="text-base md:text-lg text-gray-600 leading-relaxed">
                         {parse(sm?.summary)}
-                      </p>
+                      </div>
                     </div>
                   ))}
                 </div>
