@@ -17,15 +17,6 @@ const Images = {
 };
 
 
-const BlogCategoryList = [
-  "Technology",
-  "Business",
-  "Finance",
-  "Tax",
-  "Legal",
-  "General"
-];
-
 import { Loader, GoTop, DropBox } from "@/components/Tools";
 import {
   AppBtn,
@@ -48,11 +39,13 @@ import {
   DeleteBlog,
   UpdateBlog,
 } from "@/store/blogSlice";
+import { FetchBlogCategories, CreateBlogCategory } from "@/store/blogCategorySlice";
 
 export default function BlogSection() {
   const ActivePage = typeof window !== 'undefined' ? localStorage.getItem("ActivePage") : null;
   const dispatch = useDispatch<AppDispatch>();
   const { data, status } = useSelector((state: RootState) => state.blog);
+  const blogCategoriesState = useSelector((state: RootState) => state.blogCategories?.data || []);
   const [loding, setLoading] = useState(false);
   const [createBlogPop, setCreateBlogPop] = useState(false);
   const [updateBlogPop, setUpdateBlogPop] = useState(false);
@@ -77,11 +70,14 @@ export default function BlogSection() {
   const [tagInputUpdate, setTagInputUpdate] = useState<string>("");
   const [allowComments, setAllowComments] = useState<boolean>(true);
   const [allowCommentsUpdate, setAllowCommentsUpdate] = useState<boolean>(true);
-  const [categories, setCategories] = useState<string[]>(BlogCategoryList);
+  const [categories, setCategories] = useState<string[]>([]);
   const [showAddCategory, setShowAddCategory] = useState<boolean>(false);
   const [showAddCategoryUpdate, setShowAddCategoryUpdate] = useState<boolean>(false);
   const [newCategoryInput, setNewCategoryInput] = useState<string>("");
   const [newCategoryInputUpdate, setNewCategoryInputUpdate] = useState<string>("");
+  // SEO meta toggles
+  const [showSeoCreate, setShowSeoCreate] = useState<boolean>(false);
+  const [showSeoUpdate, setShowSeoUpdate] = useState<boolean>(false);
   
   // Update-specific states
   const [updateImage, setUpdateImage] = useState<File | null>(null);
@@ -93,6 +89,7 @@ export default function BlogSection() {
 
   const [bloglocVal, setBloglocVal] = useState({
     title: "",
+    description: "",
     slug: "",
     metaTitle: "",
     metaDescription: ""
@@ -110,6 +107,7 @@ export default function BlogSection() {
 
   const [bloglocUpdateVal, setBloglocUpdateVal] = useState({
     title: "",
+    description: "",
     slug: "",
     metaTitle: "",
     metaDescription: ""
@@ -147,16 +145,17 @@ export default function BlogSection() {
     }
   }, [bloglocVal.slug, bloglocUpdateVal.slug])
 
-  // Auto-generate slug from metaTitle in CREATE form only (if slug wasn't manually edited)
+  // Auto-generate slug from Title in CREATE form only (if slug wasn't manually edited)
   useEffect(() => {
-    if (!slugManuallyEdited && bloglocVal.metaTitle) {
-      const generatedSlug = generateSlug(bloglocVal.metaTitle);
+    if (!slugManuallyEdited && bloglocVal.title) {
+      const generatedSlug = generateSlug(bloglocVal.title);
       setBloglocVal((prev) => ({
         ...prev,
         slug: generatedSlug
       }));
     }
-  }, [bloglocVal.metaTitle, slugManuallyEdited])
+  }, [bloglocVal.title, slugManuallyEdited])
+  // Note: dependency retains metaTitle to avoid wide refactor; Title change also triggers above.
 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -344,6 +343,12 @@ export default function BlogSection() {
     const trimmedCategory = categoryInput.trim();
     if (trimmedCategory && !categories.includes(trimmedCategory)) {
       setCategories((prev) => [...prev, trimmedCategory]);
+      // persist to backend blog categories
+      try {
+        const slug = generateSlug(trimmedCategory);
+        // @ts-ignore minimal payload
+        dispatch(CreateBlogCategory({ name: trimmedCategory, slug }));
+      } catch (_) {}
       if (isUpdate) {
         setNewCategoryInputUpdate("");
         setShowAddCategoryUpdate(false);
@@ -414,12 +419,15 @@ export default function BlogSection() {
     }
     dispatch(
       CreateBlog({
-        title: bloglocVal.metaTitle,
+        title: bloglocVal.title,
         Slug: slugString,
+        description: bloglocVal.description,
+        status: statusValue,
         metaTitle: bloglocVal?.metaTitle,
         metaDescription: bloglocVal?.metaDescription,
         imageUrl: imageUrl,
         blogText: blogSummaryData,
+        tags: tags,
         date: new Date().toLocaleDateString("en-GB"),
         category: categoryDropVal,
       })
@@ -433,6 +441,7 @@ export default function BlogSection() {
     // Set basic form values
     setBloglocUpdateVal({
       title: blogData?.title || "",
+      description: blogData?.description || "",
       slug: blogData?.Slug || "",
       metaTitle: blogData?.metaTitle || "",
       metaDescription: blogData?.metaDescription || ""
@@ -451,8 +460,8 @@ export default function BlogSection() {
     
     // Set additional UI fields (use defaults if not in data)
     setIsFeaturedUpdate(false);
-    setStatusValueUpdate("Published");
-    setTagsUpdate([]);
+    setStatusValueUpdate(blogData?.status || "Published");
+    setTagsUpdate(blogData?.tags || []);
     setTagInputUpdate("");
     setAllowCommentsUpdate(true);
     setCategorySearchUpdate("");
@@ -503,12 +512,15 @@ export default function BlogSection() {
     dispatch(
       UpdateBlog({
         data: {
-          title: bloglocUpdateVal?.metaTitle || bloglocUpdateVal?.title,
+          title: bloglocUpdateVal?.title,
           Slug: slugUpdateString,
+          description: bloglocUpdateVal?.description,
+          status: statusValueUpdate,
           metaTitle: bloglocUpdateVal?.metaTitle,
           metaDescription: bloglocUpdateVal?.metaDescription,
           blogText: blogSummaryUpdateData,
           imageUrl: imageUrl,
+          tags: tagsUpdate,
           category: categoryDropValUpdate,
         },
         id: data[updateIndex]?._id,
@@ -535,26 +547,21 @@ export default function BlogSection() {
 
   useEffect(() => {
     dispatch(FetchBlog());
+    dispatch(FetchBlogCategories());
     if (data?.length < 0) {
       dispatch(FetchBlog());
     }
   }, []);
 
-  // Extract categories from existing blogs and add to categories list
+  // Load categories strictly from the backend category table
   useEffect(() => {
-    if (data && data.length > 0) {
-      const existingCategories = data
-        .map((blog: any) => blog?.category)
-        .filter((cat: string | undefined): cat is string => Boolean(cat) && typeof cat === 'string');
-      
-      const uniqueCategories = [...new Set(existingCategories)];
-      
-      setCategories((prevCategories) => {
-        const combined = [...new Set([...prevCategories, ...uniqueCategories])];
-        return combined;
-      });
-    }
-  }, [data]);
+    const fromStore = Array.isArray(blogCategoriesState)
+      ? blogCategoriesState
+          .map((c: any) => c?.name)
+          .filter((v: any): v is string => Boolean(v) && typeof v === 'string')
+      : [];
+    setCategories([...new Set(fromStore)]);
+  }, [blogCategoriesState]);
 
   return (
     <>
@@ -641,12 +648,12 @@ export default function BlogSection() {
                             <p className="text-sm font-medium text-gray-800"> Meta Details</p>
                           </div>
                           <div className="mb-4">
-                            <p className="text-sm font-medium text-gray-700 mb-1">Meta Title <span className="text-red-500">*</span></p>
+                            <p className="text-sm font-medium text-gray-700 mb-1">Title <span className="text-red-500">*</span></p>
                             <input
                               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                               type="text"
-                              name="metaTitle"
-                              value={bloglocVal.metaTitle}
+                              name="title"
+                              value={bloglocVal.title}
                               onChange={(e) => handleChange(e, "create")}
                               placeholder="Name"
                             />
@@ -664,15 +671,25 @@ export default function BlogSection() {
                                 placeholder="your-slug"
                               />
                             </div>
-                            <p className="text-xs text-gray-400 mt-1">Preview: {basePermalink}{slugString}</p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              Preview: {" "}
+                              <a
+                                href={`${basePermalink}${slugString}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline"
+                              >
+                                {basePermalink}{slugString}
+                              </a>
+                            </p>
                           </div>
                           <div className="mb-4">
-                            <p className="text-sm font-medium text-gray-700 mb-1">Meta Description</p>
+                            <p className="text-sm font-medium text-gray-700 mb-1">Description</p>
                             <input
                               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                               type="text"
-                              name="metaDescription"
-                              value={bloglocVal.metaDescription}
+                              name="description"
+                              value={bloglocVal.description}
                               onChange={(e) => handleChange(e, "create")}
                               placeholder="Short description"
                             />
@@ -777,9 +794,37 @@ export default function BlogSection() {
                         <div className="border border-gray-200 rounded-lg p-5">
                           <div className="flex items-center justify-between">
                             <p className="text-sm font-medium text-gray-800">Search Engine Optimize</p>
-                            <button className="text-sm text-blue-600">Edit SEO meta</button>
+                            <button className="text-sm text-blue-600" onClick={() => setShowSeoCreate((p) => !p)}>
+                              {showSeoCreate ? "Hide SEO meta" : "Edit SEO meta"}
+                            </button>
                           </div>
                           <p className="text-xs text-gray-500 mt-2">Setup meta title & description to make your site easy to discovered on search engines such as Google</p>
+                          {showSeoCreate && (
+                            <div className="mt-4 space-y-3">
+                              <div>
+                                <p className="text-sm font-medium text-gray-700 mb-1">Meta Title</p>
+                                <input
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  type="text"
+                                  name="metaTitle"
+                                  value={bloglocVal.metaTitle}
+                                  onChange={(e) => handleChange(e, "create")}
+                                  placeholder="Meta title"
+                                />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-gray-700 mb-1">Meta Description</p>
+                                <input
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  type="text"
+                                  name="metaDescription"
+                                  value={bloglocVal.metaDescription}
+                                  onChange={(e) => handleChange(e, "create")}
+                                  placeholder="Meta description"
+                                />
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -931,12 +976,12 @@ export default function BlogSection() {
                             <p className="text-sm font-medium text-gray-800"> Meta Details</p>
                           </div>
                           <div className="mb-4">
-                            <p className="text-sm font-medium text-gray-700 mb-1">Meta Title <span className="text-red-500">*</span></p>
+                            <p className="text-sm font-medium text-gray-700 mb-1">Title <span className="text-red-500">*</span></p>
                             <input
                               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                               type="text"
-                              name="metaTitle"
-                              value={bloglocUpdateVal.metaTitle}
+                              name="title"
+                              value={bloglocUpdateVal.title}
                               onChange={(e) => handleChange(e, "update")}
                               placeholder="Name"
                             />
@@ -954,15 +999,25 @@ export default function BlogSection() {
                                 placeholder="your-slug"
                               />
                             </div>
-                            <p className="text-xs text-gray-400 mt-1">Preview: {basePermalink}{slugUpdateString}</p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              Preview: {" "}
+                              <a
+                                href={`${basePermalink}${slugUpdateString}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline"
+                              >
+                                {basePermalink}{slugUpdateString}
+                              </a>
+                            </p>
                           </div>
                           <div className="mb-4">
-                            <p className="text-sm font-medium text-gray-700 mb-1">Meta Description</p>
+                            <p className="text-sm font-medium text-gray-700 mb-1">Description</p>
                             <input
                               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                               type="text"
-                              name="metaDescription"
-                              value={bloglocUpdateVal.metaDescription}
+                              name="description"
+                              value={bloglocUpdateVal.description}
                               onChange={(e) => handleChange(e, "update")}
                               placeholder="Short description"
                             />
@@ -1067,9 +1122,37 @@ export default function BlogSection() {
                         <div className="border border-gray-200 rounded-lg p-5">
                           <div className="flex items-center justify-between">
                             <p className="text-sm font-medium text-gray-800">Search Engine Optimize</p>
-                            <button className="text-sm text-blue-600">Edit SEO meta</button>
+                            <button className="text-sm text-blue-600" onClick={() => setShowSeoUpdate((p) => !p)}>
+                              {showSeoUpdate ? "Hide SEO meta" : "Edit SEO meta"}
+                            </button>
                           </div>
                           <p className="text-xs text-gray-500 mt-2">Setup meta title & description to make your site easy to discovered on search engines such as Google</p>
+                          {showSeoUpdate && (
+                            <div className="mt-4 space-y-3">
+                              <div>
+                                <p className="text-sm font-medium text-gray-700 mb-1">Meta Title</p>
+                                <input
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  type="text"
+                                  name="metaTitle"
+                                  value={bloglocUpdateVal.metaTitle}
+                                  onChange={(e) => handleChange(e, "update")}
+                                  placeholder="Meta title"
+                                />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-gray-700 mb-1">Meta Description</p>
+                                <input
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  type="text"
+                                  name="metaDescription"
+                                  value={bloglocUpdateVal.metaDescription}
+                                  onChange={(e) => handleChange(e, "update")}
+                                  placeholder="Meta description"
+                                />
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -1223,6 +1306,7 @@ export default function BlogSection() {
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categories</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created at</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Operations</th>
                               </tr>
                             </thead>
@@ -1244,6 +1328,17 @@ export default function BlogSection() {
                                   <td className="px-4 py-3 text-sm font-medium text-gray-900">{el.title}</td>
                                   <td className="px-4 py-3 text-sm text-gray-700">{el.category}</td>
                                   <td className="px-4 py-3 text-sm text-gray-500">{el.date}</td>
+                                  <td className="px-4 py-3 text-sm">
+                                    <span
+                                      className={`inline-block px-3 py-1 rounded-full text-white text-xs font-semibold ${
+                                        (el.status || "Published") === "Published"
+                                          ? "bg-green-500"
+                                          : "bg-red-500"
+                                      }`}
+                                    >
+                                      {(el.status || "Published")}
+                                    </span>
+                                  </td>
                                   <td className="px-4 py-3">
                                     <div className="flex justify-end items-center gap-3">
                                       <Image

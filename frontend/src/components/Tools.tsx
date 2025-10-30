@@ -275,6 +275,11 @@ export const BlogCard = ({
 }: BlogCardProps) => {
   const router = useRouter();
 
+  // Build a plain-text preview from the first summary (strip HTML tags)
+  const rawHtml = blogText?.[0]?.summarys?.[0]?.summary || "";
+  const textOnly = rawHtml.replace(/<[^>]+>/g, "");
+  const previewText = textOnly.length > 200 ? textOnly.slice(0, 200) + "..." : textOnly;
+
   const handleClick = () => {
     router.push(`/blog/${Slug}`);
     scrollToTop();
@@ -329,8 +334,7 @@ export const BlogCard = ({
           <h3 className="text-lg md:text-xl font-semibold mt-3 mb-2 text-gray-900 hover:text-[#fe8903] transition-colors duration-200">{title}</h3>
 
           <p className="text-sm text-gray-600 line-clamp-4">
-            {blogText?.[0]?.summarys?.[0]?.summary?.slice(0, 200) || "No description available"}
-            {blogText?.[0]?.summarys?.[0]?.summary?.length > 200 ? "..." : "."}
+            {previewText || "No description available."}
           </p>
 
           {/* Circular arrow button */}
@@ -388,6 +392,8 @@ interface JobCardProps {
   className?: string;
 }
 
+// removed duplicate import of parse; already imported at top
+
 export const JobCard = ({ 
   _id,
   title, 
@@ -402,7 +408,7 @@ export const JobCard = ({
 
   const handleClick = () => {
     if (_id) {
-      router.push(`/careers/${_id}`);
+      router.push(`/careerDetail/${_id}`);
     }
   };
 
@@ -410,16 +416,16 @@ export const JobCard = ({
     <div className={`w-full bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer ${className}`} onClick={handleClick}>
       <div className="p-6">
         <h3 className="text-xl font-semibold text-gray-900 mb-3">{title}</h3>
-        <p className="text-gray-600 mb-4 line-clamp-3">{description}</p>
+        <div className="text-gray-600 mb-4 max-h-20 overflow-hidden">{description ? parse(description) : null}</div>
         
         <div className="space-y-2 mb-4">
           <div className="flex items-center gap-2">
             <Image src={locationIcon} alt="Location" width={16} height={16} />
             <span className="text-sm text-gray-600">{location}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Image src={watchYIcom} alt="Experience" width={16} height={16} />
-            <span className="text-sm text-gray-600">{experience}</span>
+          <div className="flex items-start gap-2">
+            <Image src={watchYIcom} alt="Experience" width={16} height={16} className="mt-0.5" />
+            <div className="text-sm text-gray-600 max-h-20 overflow-hidden flex-1">{experience ? parse(experience) : null}</div>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-green-600">{salary}</span>

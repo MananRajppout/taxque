@@ -26,6 +26,7 @@ export default function CareersPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { data } = useSelector((state: RootState) => state.job);
   const [currentNav, setCurrentNav] = React.useState("Careers");
+  const [visibleCount, setVisibleCount] = React.useState(6);
 
   useEffect(() => {
     if (data?.length <= 0) {
@@ -102,161 +103,41 @@ export default function CareersPage() {
             <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-8">
               Career opportunities
             </h2>
-            
-            {/* Static Job Cards */}
+
             <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-              {/* Frontend Developer Card */}
-              <div className="bg-white rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-gray-100">
-                {/* Card Header with Gradient */}
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-b border-gray-100">
-                  {/* Job Type Tag */}
-                  <div className="flex justify-between items-start mb-4">
-                    <span className="bg-gradient-to-r from-orange-400 to-orange-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-md">
-                      Hybrid
-                    </span>
-                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                      </svg>
-                    </div>
-                  </div>
-                  
-                  {/* Job Title */}
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Frontend Developer</h3>
-                  
-                  {/* Location and Employment Type */}
-                  <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm">
-                      <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      <span className="font-medium">Bangalore, India</span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm">
-                      <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="font-medium">Full-time</span>
-                    </div>
-                  </div>
+              {Array.isArray(data) && data.length > 0 ? (
+                data.slice(0, visibleCount).map((job) => (
+                  <JobCard
+                    key={job._id || job.title}
+                    _id={job._id}
+                    title={job.title}
+                    description={job.description}
+                    location={job.location}
+                    experience={job.experience}
+                    salary={job.salary}
+                    type={job.type}
+                  />
+                ))
+              ) : (
+                <div className="col-span-1 md:col-span-2 text-center text-gray-600">
+                  No openings available right now.
                 </div>
-                
-                {/* Card Body */}
-                <div className="p-6">
-                  {/* Job Description */}
-                  <div className="mb-6">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-3">Job Description</h4>
-                    <p className="text-gray-600 leading-relaxed text-sm">
-                      A Legal Advisor provides expert legal guidance and support to an organization or individual, ensuring compliance with laws and regulations while mitigating legal risks. This role involves advising on legal matters, drafting and reviewing contracts, and representing the organization in legal proceedings.
-                    </p>
-                  </div>
-                  
-                  {/* Skills Tags */}
-                  <div className="mb-6">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Required Skills</h4>
-                    <div className="flex flex-wrap gap-2">
-                      <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium">React</span>
-                      <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium">JavaScript</span>
-                      <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium">CSS</span>
-                      <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium">HTML</span>
-                    </div>
-                  </div>
-                  
-                  {/* Apply Now Button */}
-                  <button 
-                    onClick={() => router.push("/careerDetail/frontend-developer")}
-                    className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-105"
-                  >
-                    <span>Apply Now</span>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              {/* Backend Engineer Card */}
-              <div className="bg-white rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-gray-100">
-                {/* Card Header with Gradient */}
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 border-b border-gray-100">
-                  {/* Job Type Tag */}
-                  <div className="flex justify-between items-start mb-4">
-                    <span className="bg-gradient-to-r from-green-400 to-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-md">
-                      Remote
-                    </span>
-                    <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a7 7 0 017-7h0a7 7 0 017 7M5 12a7 7 0 00-7 7h0a7 7 0 007-7" />
-                      </svg>
-                    </div>
-                  </div>
-                  
-                  {/* Job Title */}
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Backend Engineer</h3>
-                  
-                  {/* Location and Employment Type */}
-                  <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm">
-                      <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      <span className="font-medium">Bangalore, India</span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm">
-                      <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="font-medium">Full-time</span>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Card Body */}
-                <div className="p-6">
-                  {/* Job Description */}
-                  <div className="mb-6">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-3">Job Description</h4>
-                    <p className="text-gray-600 leading-relaxed text-sm">
-                      Seeking an experienced Backend Engineer to develop scalable APIs and microservices. You will collaborate with designers, backend developers, and product managers to deliver high-quality user interfaces.
-                    </p>
-                  </div>
-                  
-                  {/* Skills Tags */}
-                  <div className="mb-6">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Required Skills</h4>
-                    <div className="flex flex-wrap gap-2">
-                      <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium">Node.js</span>
-                      <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium">Python</span>
-                      <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium">API</span>
-                      <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium">Database</span>
-                    </div>
-                  </div>
-                  
-                  {/* Apply Now Button */}
-                  <button 
-                    onClick={() => router.push("/careerDetail/backend-engineer")}
-                    className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-105"
-                  >
-                    <span>Apply Now</span>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
+              )}
             </div>
 
-            {/* Load More Button */}
-            <div className="flex justify-center">
-              <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center gap-2">
-                Load more
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
+            {Array.isArray(data) && data.length > visibleCount && (
+              <div className="flex justify-center">
+                <button
+                  onClick={() => setVisibleCount((c) => c + 6)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center gap-2"
+                >
+                  Load more
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

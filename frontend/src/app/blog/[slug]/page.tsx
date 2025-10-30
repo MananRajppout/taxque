@@ -20,7 +20,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "@/store/slices/store";
 import { FetchBlogBySlug } from "@/store/slices/blogSlice";
 
-export default function BlogDetails() {
+export default function BlogDetailsPage() {
   const router = useRouter();
   const params = useParams();
   const slug = params?.slug as string;
@@ -32,9 +32,6 @@ export default function BlogDetails() {
   useEffect(() => {
     if (!slug) return;
     dispatch(FetchBlogBySlug({ slug }));
-    if (Blog) {
-      dispatch(FetchBlogBySlug({ slug }));
-    }
   }, [slug, dispatch]);
 
   const goTop = () => {
@@ -43,26 +40,14 @@ export default function BlogDetails() {
 
   return (
     <div className="w-full min-h-screen bg-white text-black">
-      <div className="w-full h-[120px] flex flex-col relative bg-transparent text-black md:h-[160px] lg:h-[180px]">
+      <div className="w-full h-[40px] flex flex-col relative bg-transparent text-black md:h-[60px] lg:h-[100px]">
         <NavBar currentNav={currentNav} setCurrentNav={setCurrentNav} />
-        
         <Image src={smPageBG} className="absolute top-0 left-0 w-full h-full -z-10 object-cover" alt="Page Background" fill priority />
-        
-        <div className="w-full flex items-center justify-start px-4 md:px-8 lg:px-16 mt-2">
+        <div className="w-full flex items-center justify-start px-4 md:px-8 lg:px-16 mt-20">
           <p className="text-gray-600 text-sm md:text-base">
-            <span 
-              onClick={() => router.push("/")} 
-              className="cursor-pointer hover:text-orange-500 transition-colors duration-300"
-            >
-              Home
-            </span>
+            <span onClick={() => router.push("/")} className="cursor-pointer hover:text-orange-500 transition-colors duration-300">Home</span>
             <span className="mx-2">&gt;</span>
-            <span 
-              onClick={() => router.push("/blog")} 
-              className="cursor-pointer hover:text-orange-500 transition-colors duration-300"
-            >
-              {Blog?.category || "Blog"}
-            </span>
+            <span onClick={() => router.push("/blog")} className="cursor-pointer hover:text-orange-500 transition-colors duration-300">{Blog?.category || "Blog"}</span>
             <span className="mx-2">&gt;</span>
             <span className="text-gray-800 font-medium">{Blog?.title || "Blog Details"}</span>
           </p>
@@ -75,17 +60,11 @@ export default function BlogDetails() {
             <div className="w-full lg:w-2/3">
               {Blog?.imageUrl && (
                 <div className="w-full mb-8">
-                  <Image 
-                    src={Blog.imageUrl} 
-                    alt={Blog.title || "Blog Image"} 
-                    width={800} 
-                    height={400} 
-                    className="w-full h-auto rounded-lg md:rounded-xl"
-                  />
+                  <Image src={Blog.imageUrl} alt={Blog.title || "Blog Image"} width={800} height={400} className="w-full h-auto rounded-lg md:rounded-xl" />
                 </div>
               )}
 
-              <div className="flex items-center gap-6 mb-6">
+              <div className="flex items-center justify-between gap-6 mb-6">
                 <div className="flex items-center gap-2">
                   <Image src={avatarIcon} alt="Author" width={20} height={20} />
                   <p className="text-orange-500 font-medium">Amit</p>
@@ -100,56 +79,42 @@ export default function BlogDetails() {
               {Blog?.description && (
                 <p className="text-base md:text-lg text-gray-600 mb-3">{Blog.description}</p>
               )}
-              {Array.isArray(Blog?.tags) && Blog!.tags!.length > 0 && (
+             
+
+              {Blog?.blogText?.map((el, i) => (
+                <div key={i} className="mb-8">
+                  <h2 className="text-xl md:text-2xl font-semibold text-gray-900 mb-4">{el.title}</h2>
+                  {el?.summarys?.map((sm, ind: number) => (
+                    <div key={ind} className="mb-4">
+                      <div className="text-base md:text-lg text-gray-600 leading-relaxed">{parse(sm?.summary)}</div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+                <hr className="my-8 border-gray-200" />
+            {Array.isArray(Blog?.tags) && Blog!.tags!.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-8">
                   {Blog!.tags!.map((t, i) => (
                     <span key={`${t}-${i}`} className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-700 border border-gray-200">{t}</span>
                   ))}
                 </div>
               )}
-
-              {Blog?.blogText?.map((el, i) => (
-                <div key={i} className="mb-8">
-                  <h2 className="text-xl md:text-2xl font-semibold text-gray-900 mb-4">
-                    {el.title}
-                  </h2>
-                  {el?.summarys?.map((sm, ind: number) => (
-                    <div key={ind} className="mb-4">
-                      <div className="text-base md:text-lg text-gray-600 leading-relaxed">
-                        {parse(sm?.summary)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ))}
             </div>
-              
+          
+
             <div className="w-full lg:w-1/3">
-              {/* Contact Section */}
               <div className="mb-8">
                 <ContactSection subjectList={categoryData.data} section="Blog" />
               </div>
-
-              {/* Our Services */}
               {categoryData?.data?.length && (
                 <div className="bg-gray-50 rounded-xl p-6">
-                  <h3 className="text-xl font-semibold text-gray-900 text-center mb-6">
-                    Our Services
-                  </h3>
+                  <h3 className="text-xl font-semibold text-gray-900 text-center mb-6">Our Services</h3>
                   <div className="space-y-4 mb-6">
                     {categoryData?.data?.slice(0, 2).map((el, i) => (
                       <ServiceCard {...el} key={i} />
                     ))}
                   </div>
-                  <AppBtn
-                    btnText="Explore All Services"
-                    onClick={() => {
-                      router.push("/services");
-                      goTop();
-                    }}
-                    width="100%"
-                    height="50px"
-                  />
+                  <AppBtn btnText="Explore All Services" onClick={() => { router.push("/services"); goTop(); }} width="100%" height="50px" />
                 </div>
               )}
             </div>
@@ -157,37 +122,13 @@ export default function BlogDetails() {
         </div>
       </div>
 
-      {/* Subscribe Section */}
       <div className="w-full py-12 px-4 md:px-8 lg:px-16">
         <Subscribe />
-      </div>
-
-      {/* Popular Services Section */}
-      <div className="w-full py-12 px-4 md:px-8 lg:px-16 bg-gray-50">
-        <div className="w-full max-w-6xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-8">
-            Popular Services
-          </h2>
-          <div className="flex flex-wrap gap-3 justify-center">
-            {categoryData?.data?.slice(0, 20).map((el, i) => (
-              <div
-                onClick={() => {
-                  router.push(`/services/${el?.Slug}`);
-                  goTop();
-                }}
-                key={i}
-                className="px-4 py-2 bg-white rounded-full border border-gray-200 hover:border-orange-500 hover:bg-orange-50 cursor-pointer transition-all duration-300 ease-in-out"
-              >
-                <p className="text-sm md:text-base text-gray-700 hover:text-orange-600">
-                  {el?.title}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
 
       <Footer />
     </div>
   );
 }
+
+

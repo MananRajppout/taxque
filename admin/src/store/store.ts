@@ -4,6 +4,8 @@ import serviceReducer from "./serviceSlice";
 import userReducer from "./userSlice";
 import contactUserReducer from "./contactUserSlice";
 import blogReducer from "./blogSlice";
+import blogTagReducer from "./blogTagSlice";
+import blogCategoryReducer from "./blogCategorySlice";
 import teamReducer from "./teamSlice";
 import jobReducer from "./jobSlice";
 import applicationReducer from "./applicationSlice";
@@ -15,6 +17,8 @@ export const store = configureStore({
     user: userReducer,
     contactUser: contactUserReducer,
     blog: blogReducer,
+    blogTags: blogTagReducer,
+    blogCategories: blogCategoryReducer,
     team: teamReducer,
     job: jobReducer,
     application: applicationReducer

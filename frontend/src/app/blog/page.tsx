@@ -43,9 +43,14 @@ export default function BlogPage() {
   const [blogType, setBlogType] = useState<string>();
   const [currentNav, setCurrentNav] = React.useState("Blog");
 
-  const filterBlogData = blogType?.length
-    ? data?.filter((val) => val.category === blogType)
+  // Show only published posts; treat missing status as Published for backward compatibility
+  const publishedOnly = Array.isArray(data)
+    ? data.filter((b) => (b.status ?? "Published") === "Published")
     : data;
+
+  const filterBlogData = blogType?.length
+    ? publishedOnly?.filter((val) => val.category === blogType)
+    : publishedOnly;
 
   useEffect(() => {
     dispatch(FetchBlog());

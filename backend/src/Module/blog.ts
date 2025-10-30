@@ -13,6 +13,9 @@ const BlogSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  description: {
+    type: String,
+  },
   metaTitle: {
     type: String,
     required: true,
@@ -32,6 +35,12 @@ const BlogSchema = new mongoose.Schema({
       summarys: [{ summary: String }],
     },
   ],
+  tags: [{ type: String }],
+  status: {
+    type: String,
+    enum: ["Published", "Draft"],
+    default: "Published",
+  },
 });
 
 module.exports = mongoose.model("Blog", BlogSchema);

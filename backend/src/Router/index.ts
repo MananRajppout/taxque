@@ -62,6 +62,21 @@ const {
   DeleteBlog,
 } = require("../Controller/blog");
 
+// Blog Categories
+const {
+  createBlogCategory,
+  getBlogCategories,
+  updateBlogCategory,
+} = require("../Controller/blogCategory");
+
+// Blog Tags
+const {
+  createBlogTag,
+  getBlogTags,
+  updateBlogTag,
+  deleteBlogTag,
+} = require("../Controller/blogTag");
+
 //Team
 const { createTeam, getAllTeams, updateTeam, deleteTeam, fix } = require("../Controller/team")
 
@@ -168,6 +183,17 @@ router.get("/blogs", GetBlogs);
 router.get("/blog/:slug", GetOneBlog);
 router.post("/blog/update/:id", UpdateBlog);
 router.post("/blog/delete/:id", DeleteBlog);
+
+// Blog categories routes
+router.post("/blog-category/create", createBlogCategory);
+router.get("/blog-categories", getBlogCategories);
+router.post("/blog-category/update/:id", updateBlogCategory);
+
+// Blog tags routes
+router.post("/blog-tag/create", createBlogTag);
+router.get("/blog-tags", getBlogTags);
+router.post("/blog-tag/update/:id", updateBlogTag);
+router.post("/blog-tag/delete/:id", deleteBlogTag);
 
 //Team
 router.post("/team/create", createTeam)

@@ -19,6 +19,8 @@ export interface BlogDataType {
   blogText: blogTextType[];
   date?: string;
   category?: string;
+  status?: string;
+  tags?: string[];
   _id?: string;
 }
 interface UpdateBlogArgs {

@@ -218,7 +218,8 @@ const Editor = forwardRef<any, EditorProps>(
       <div className="quill-editor" style={{ position: 'relative', overflow: 'visible' }}>
         <style jsx global>{`
           .quill-editor .ql-container {
-            height: 130px;
+            min-height: 130px;
+            height: auto;
             background: #fff;
             border-radius: 0 0 5px 5px;
           }
@@ -230,6 +231,7 @@ const Editor = forwardRef<any, EditorProps>(
             line-height: 1.5;
             color: #000 !important;
             background: #fff !important;
+            min-height: 110px;
           }
           .quill-editor .ql-editor p {
             color: #000 !important;
@@ -256,7 +258,7 @@ const Editor = forwardRef<any, EditorProps>(
             background-color: #3b82f6 !important;
             color: white !important;
             display: inline-block !important;
-            padding: 8px 16px !important;
+            padding: 10px 18px !important;
             border-radius: 4px !important;
             text-decoration: none !important;
             font-weight: 500 !important;
@@ -313,7 +315,8 @@ const Editor = forwardRef<any, EditorProps>(
               margin-right: 8px;
             }
             .quill-editor .ql-container {
-              height: 100px;
+              min-height: 100px;
+              height: auto;
             }
           }
         `}</style>
@@ -394,7 +397,7 @@ const Editor = forwardRef<any, EditorProps>(
                       const index = range ? range.index : quill.getLength();
 
                       // Generate button HTML with inline styles for better compatibility
-                      const buttonHTML = `<a href="${buttonUrl.trim()}" style="display: inline-block; padding: 8px 16px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 4px; font-weight: 500; margin: 8px 0;">${buttonName.trim()}</a>`;
+                      const buttonHTML = `<a href="${buttonUrl.trim()}" style="display: inline-block; padding: 10px 18px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 4px; font-weight: 500; margin: 8px 0;">${buttonName.trim()}</a>`;
 
                       // Method 1: Try directly inserting HTML using clipboard's dangerouslyPasteHTML
                       try {

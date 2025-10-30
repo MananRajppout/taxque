@@ -49,8 +49,8 @@ export default function CreateJobSection() {
     metaTitle: "",
     metaDescription: "",
   });
-  const [jobType, setJobType] = useState();
-  const [jobLocation, setJobLocation] = useState();
+  const [jobType, setJobType] = useState<string | undefined>();
+  const [jobLocation, setJobLocation] = useState<string | undefined>();
   const [experience, setExperience] = useState<string>("");
   const [jobDescription, setJobDescription] = useState<string>("");
   const [inputSkill, setInputSkill] = useState<string>();
@@ -73,6 +73,8 @@ export default function CreateJobSection() {
   const [deletePop, setDeletePop] = useState(false);
   const [updateIndex, setUpdateIndex] = useState<number>(1111111111111);
   const [createJobPop, setCreateJobPop] = useState(false);
+  const [showCreateSeo, setShowCreateSeo] = useState(false);
+  const [showUpdateSeo, setShowUpdateSeo] = useState(false);
 
   const handleLocalJobVal = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -97,15 +99,26 @@ export default function CreateJobSection() {
   const postJobData = async () => {
     GoTop();
 
-    if (
-      !jobLocData.title ||
-      !jobLocData.location ||
-      !jobLocData.salary ||
-      !experience ||
-      !jobDescription ||
-      skills.length === 0
-    ) {
-      toast.error("Please fill in all the mandatory fields!");
+    const pendingSkill = inputSkill?.trim();
+    const currentSkills = (() => {
+      if (pendingSkill && !skills.includes(pendingSkill)) {
+        return [...skills, pendingSkill];
+      }
+      return skills;
+    })();
+
+    const missingFields: string[] = [];
+    if (!jobLocData.title?.trim()) missingFields.push("Job Title");
+    if (!jobLocData.location?.trim()) missingFields.push("Location");
+    if (!jobLocData.salary?.trim()) missingFields.push("Salary");
+    if (!jobType?.trim()) missingFields.push("Job Type");
+    if (!jobLocation?.trim()) missingFields.push("Work Arrangement");
+    if (!experience?.trim()) missingFields.push("Experience Required");
+    if (!jobDescription?.trim()) missingFields.push("Job Description");
+    if (!currentSkills || currentSkills.length === 0) missingFields.push("Required Skills");
+
+    if (missingFields.length > 0) {
+      toast.error(`Missing required: ${missingFields.join(", ")}`);
       return;
     }
 
@@ -116,12 +129,11 @@ export default function CreateJobSection() {
         salary: jobLocData?.salary,
         experience: experience,
         description: jobDescription,
-        skills: skills,
+        skills: currentSkills,
         metaTitle: jobLocData?.metaTitle,
         metaDescription: jobLocData?.metaDescription,
-        type: "1",
-        postedDate: Date.now(),
-        jobLocation: jobLocation || jobLocData?.location,
+        type: jobType as string,
+        jobLocation: jobLocation as string,
       })
     );
   };
@@ -138,10 +150,25 @@ export default function CreateJobSection() {
     }));
     setExperienceUpdate(data[index].experience);
     setJobDescriptionUpdate(data[index].description);
+    setJobType(data[index]?.type as unknown as string);
+    setJobLocation(data[index]?.jobLocation as unknown as string);
   };
 
   const updateJob = async () => {
     if (!data[updateIndex]?._id) {
+      return;
+    }
+    const missingFields: string[] = [];
+    if (!jobLocUpdateData.title?.trim()) missingFields.push("Job Title");
+    if (!jobLocUpdateData.location?.trim()) missingFields.push("Location");
+    if (!jobLocUpdateData.salary?.trim()) missingFields.push("Salary");
+    if (!jobType?.trim()) missingFields.push("Job Type");
+    if (!jobLocation?.trim()) missingFields.push("Work Arrangement");
+    if (!experienceUpdate?.trim()) missingFields.push("Experience Required");
+    if (!jobDescriptionUpdate?.trim()) missingFields.push("Job Description");
+
+    if (missingFields.length > 0) {
+      toast.error(`Missing required: ${missingFields.join(", ")}`);
       return;
     }
 
@@ -155,8 +182,8 @@ export default function CreateJobSection() {
           description: jobDescriptionUpdate,
           metaTitle: jobLocUpdateData?.metaTitle,
           metaDescription: jobLocUpdateData?.metaDescription,
-          type: "1",
-          jobLocation: jobLocation || jobLocUpdateData?.location,
+          type: jobType as string,
+          jobLocation: jobLocation as string,
         },
         id: data[updateIndex]?._id,
       })
@@ -178,10 +205,12 @@ export default function CreateJobSection() {
 
   
   const addSkill = () => {
-    if (inputSkill && !skills.includes(inputSkill)) {
-      setSkills([...skills, inputSkill]);
-      setInputSkill("");
-    }
+    const normalized = (inputSkill || "").trim();
+    if (!normalized) return;
+    const hasDuplicate = skills.some((s) => s.toLowerCase() === normalized.toLowerCase());
+    if (hasDuplicate) return;
+    setSkills([...skills, normalized]);
+    setInputSkill("");
   };
 
   const removeSkill = (skillToRemove: string) => {
@@ -293,8 +322,19 @@ export default function CreateJobSection() {
                     <p className="text-lg mb-2">Job Type</p>
                     <DropBox
                       setDropVal={setJobType}
-                      list={["Full Time", "Part Time", "Contract", "Remote"]}
+                      list={["Full-time", "Part-time", "Contract", "Internship"]}
                       defaultVal="Select Job Type"
+                    />
+                  </div>
+                </div>
+
+                <div className="w-full flex flex-col md:flex-row justify-between gap-5">
+                  <div className="w-full md:w-1/2">
+                    <p className="text-lg mb-2">Work Arrangement</p>
+                    <DropBox
+                      setDropVal={setJobLocation}
+                      list={["on-site", "hybrid", "remote"]}
+                      defaultVal="Select Work Arrangement"
                     />
                   </div>
                 </div>
@@ -317,6 +357,12 @@ export default function CreateJobSection() {
                       type="text"
                       value={inputSkill || ""}
                       onChange={(e) => setInputSkill(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addSkill();
+                        }
+                      }}
                       placeholder="Enter Skill"
                     />
                     <img
@@ -344,27 +390,36 @@ export default function CreateJobSection() {
                   </div>
                 </div>
 
-                <div className="w-full flex flex-col md:flex-row justify-between gap-5">
-                  <div className="w-full md:w-1/2">
-                    <p className="text-lg mb-2">Meta Title</p>
+                <div className="w-full border rounded-lg p-4 bg-white">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <p className="text-lg font-semibold">Search Engine Optimize</p>
+                      <p className="text-sm text-gray-500">Setup meta title & description to make your site easy to discovered on search engines such as Google</p>
+                    </div>
+                    <button type="button" className="text-blue-600 text-sm underline" onClick={() => setShowCreateSeo(!showCreateSeo)}>
+                      {showCreateSeo ? "Hide SEO meta" : "Edit SEO meta"}
+                    </button>
+                  </div>
+                  <div className="w-full" style={{ display: showCreateSeo ? "block" : "none" }}>
+                    <p className="text-sm font-medium mb-2">SEO Title</p>
                     <input
-                      className="w-full h-11 border border-gray-300 rounded overflow-hidden pl-2 mb-2"
+                      className="w-full h-11 border border-gray-300 rounded overflow-hidden pl-2 mb-1"
                       type="text"
                       name="metaTitle"
                       value={jobLocData?.metaTitle}
                       onChange={(e) => handleLocalJobVal(e, "create")}
-                      placeholder="Enter Meta Title"
+                      placeholder="SEO Title"
                     />
+                    <p className="text-xs text-gray-500 mb-4">Optimal length: 50-60 characters. This appears as the clickable headline in search results.</p>
                   </div>
-                  <div className="w-full md:w-1/2">
-                    <p className="text-lg mb-2">Meta Description</p>
-                    <input
-                      className="w-full h-11 border border-gray-300 rounded overflow-hidden pl-2 mb-2"
-                      type="text"
+                  <div className="w-full" style={{ display: showCreateSeo ? "block" : "none" }}>
+                    <p className="text-sm font-medium mb-2">SEO description</p>
+                    <textarea
+                      className="w-full min-h-[90px] border border-gray-300 rounded overflow-hidden p-2 mb-1"
                       name="metaDescription"
                       value={jobLocData?.metaDescription}
                       onChange={(e) => handleLocalJobVal(e, "create")}
-                      placeholder="Enter Meta Description"
+                      placeholder="SEO description"
                     />
                   </div>
                 </div>
@@ -383,43 +438,36 @@ export default function CreateJobSection() {
                   {data?.map((el, i) => (
                     <div key={i} className="w-full p-5 relative bg-[#5ab15b1a] border border-green-500 mb-5 rounded-[20px] pr-24">
                      
-                      <div
-                        className={
-                          i != updateIndex
-                            ? "w-full flex justify-end items-center gap-5 mb-5 opacity-0"
-                            : "w-full flex justify-end items-center gap-5 mb-5"
-                        }
-                      >
-                        {i != updateIndex ? null : (
-                          <AppBtn
-                            btnText="Save"
-                            height="32px"
-                            onClick={updateJob}
-                          />
-                        )}
+                      <div className="w-full flex justify-end items-center gap-5 mb-5">
                         {i != updateIndex ? (
                           <img
-                            src={Images.editIcon}
+                            src={Images.deleteIcon}
                             className="w-10 h-10 cursor-pointer"
                             alt=""
-                            onClick={() => handleActiveEdit(i)}
+                            onClick={() => DeletePopOpen(el?._id)}
                           />
                         ) : (
-                          <img
-                            style={{ width: "27px" }}
-                            src={Images.crossIconV2}
-                            className="w-10 h-10 cursor-pointer"
-                            alt=""
-                            onClick={() => setUpdateIndex(9999)}
-                          />
+                          <>
+                            <AppBtn
+                              btnText="Save"
+                              height="32px"
+                              onClick={updateJob}
+                            />
+                            <img
+                              style={{ width: "27px" }}
+                              src={Images.crossIconV2}
+                              className="w-10 h-10 cursor-pointer"
+                              alt=""
+                              onClick={() => setUpdateIndex(9999)}
+                            />
+                            <img
+                              src={Images.deleteIcon}
+                              className="w-10 h-10 cursor-pointer"
+                              alt=""
+                              onClick={() => DeletePopOpen(el?._id)}
+                            />
+                          </>
                         )}
-
-                        <img
-                          src={Images.deleteIcon}
-                          className="w-10 h-10 cursor-pointer"
-                          alt=""
-                          onClick={() => DeletePopOpen(el?._id)}
-                        />
                       </div>
 
                       {i != updateIndex ? (
@@ -506,8 +554,19 @@ export default function CreateJobSection() {
                               <p className="text-lg mb-2">Job Type</p>
                               <DropBox
                                 setDropVal={setJobType}
-                                list={["Full Time", "Part Time", "Contract", "Remote"]}
+                                list={["Full-time", "Part-time", "Contract", "Internship"]}
                                 defaultVal="Select Job Type"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="w-full flex flex-col md:flex-row justify-between gap-5">
+                            <div className="w-full md:w-1/2">
+                              <p className="text-lg mb-2">Work Arrangement</p>
+                              <DropBox
+                                setDropVal={setJobLocation}
+                                list={["on-site", "hybrid", "remote"]}
+                                defaultVal="Select Work Arrangement"
                               />
                             </div>
                           </div>
@@ -522,11 +581,20 @@ export default function CreateJobSection() {
                             <RichTextEditor ref={jobDescriptionRefUpdate} state={jobDescriptionUpdate} setState={setJobDescriptionUpdate} />
                           </div>
 
-                          <div className="w-full flex flex-col md:flex-row justify-between gap-5">
-                            <div className="w-full md:w-1/2">
-                              <p className="text-lg mb-2">Meta Title</p>
+                          <div className="w-full border rounded-lg p-4 bg-white">
+                            <div className="flex items-start justify-between mb-4">
+                              <div>
+                                <p className="text-lg font-semibold">Search Engine Optimize</p>
+                                <p className="text-sm text-gray-500">Setup meta title & description to make your site easy to discovered on search engines such as Google</p>
+                              </div>
+                              <button type="button" className="text-blue-600 text-sm underline" onClick={() => setShowUpdateSeo(!showUpdateSeo)}>
+                                {showUpdateSeo ? "Hide SEO meta" : "Edit SEO meta"}
+                              </button>
+                            </div>
+                            <div className="w-full" style={{ display: showUpdateSeo ? "block" : "none" }}>
+                              <p className="text-sm font-medium mb-2">SEO Title</p>
                               <input
-                                className="w-full h-11 border border-gray-300 rounded overflow-hidden pl-2 mb-2"
+                                className="w-full h-11 border border-gray-300 rounded overflow-hidden pl-2 mb-1"
                                 type="text"
                                 name="metaTitle"
                                 value={
@@ -535,14 +603,14 @@ export default function CreateJobSection() {
                                     : el?.metaTitle
                                 }
                                 onChange={(e) => handleLocalJobVal(e, "update")}
-                                placeholder="Enter Meta Title"
+                                placeholder="SEO Title"
                               />
+                              <p className="text-xs text-gray-500 mb-4">Optimal length: 50-60 characters. This appears as the clickable headline in search results.</p>
                             </div>
-                            <div className="w-full md:w-1/2">
-                              <p className="text-lg mb-2">Meta Description</p>
-                              <input
-                                className="w-full h-11 border border-gray-300 rounded overflow-hidden pl-2 mb-2"
-                                type="text"
+                            <div className="w-full" style={{ display: showUpdateSeo ? "block" : "none" }}>
+                              <p className="text-sm font-medium mb-2">SEO description</p>
+                              <textarea
+                                className="w-full min-h-[90px] border border-gray-300 rounded overflow-hidden p-2 mb-1"
                                 name="metaDescription"
                                 value={
                                   i === updateIndex
@@ -550,7 +618,7 @@ export default function CreateJobSection() {
                                     : el?.metaDescription
                                 }
                                 onChange={(e) => handleLocalJobVal(e, "update")}
-                                placeholder="Enter Meta Description"
+                                placeholder="SEO description"
                               />
                             </div>
                           </div>

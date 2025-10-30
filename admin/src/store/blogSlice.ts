@@ -13,24 +13,30 @@ export interface blogTextType {
 export interface BlogDataType {
   title: string;
   Slug: string;
+  description?: string;
   metaTitle: string;
   metaDescription: string
   imageUrl?: string;
   blogText: blogTextType[];
   date?: string;
   category?: string;
+  status?: string;
+  tags?: string[];
   _id?: string;
 }
 
 interface BlogUpdateDataType {
   title?: string;
   Slug?: string;
+  description?: string;
   metaTitle?: string;
   metaDescription?: string
   imageUrl?: string;
   blogText?: blogTextType[];
   date?: string;
   category?: string;
+  status?: string;
+  tags?: string[];
   _id?: string;
 }
 

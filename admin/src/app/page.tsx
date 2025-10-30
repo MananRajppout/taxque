@@ -9,6 +9,8 @@ import FAQSection from "@/components/FAQSection";
 import PriceSection from "@/components/PriceSection";
 import UserSection from "@/components/Order";
 import BlogSection from "@/components/BlogSection";
+import BlogTags from "@/components/BlogTags";
+import BlogCategories from "@/components/BlogCategories";
 import TeamSection from "@/components/TeamSection";
 import CreateJobSection from "@/components/JobCreate";
 import ApplicationSection from "@/components/Application";
@@ -207,8 +209,8 @@ export default function Home() {
 
               
               {activePage === "Posts" && <BlogSection />}
-              {activePage === "Categories" && <BlogSection />}
-              {activePage === "Tags" && <BlogSection />}
+              {activePage === "Categories" && <BlogCategories />}
+              {activePage === "Tags" && <BlogTags />}
 
             
               {activePage === "Payment List" && (
