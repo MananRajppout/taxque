@@ -59,8 +59,16 @@ export default function BlogDetailsPage() {
           <div className="flex flex-col lg:flex-row gap-8">
             <div className="w-full lg:w-2/3">
               {Blog?.imageUrl && (
-                <div className="w-full mb-8">
-                  <Image src={Blog.imageUrl} alt={Blog.title || "Blog Image"} width={800} height={400} className="w-full h-auto rounded-lg md:rounded-xl" />
+                <div className="w-full mb-8 overflow-hidden rounded-lg md:rounded-xl">
+                  <div className="relative w-full h-[300px] md:h-[400px] lg:h-[500px]">
+                    <Image 
+                      src={Blog.imageUrl} 
+                      alt={Blog.title || "Blog Image"} 
+                      fill
+                      className="object-cover w-full h-full"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 66.67vw, 66.67vw"
+                    />
+                  </div>
                 </div>
               )}
 
@@ -94,9 +102,29 @@ export default function BlogDetailsPage() {
                 <hr className="my-8 border-gray-200" />
             {Array.isArray(Blog?.tags) && Blog!.tags!.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-8">
-                  {Blog!.tags!.map((t, i) => (
-                    <span key={`${t}-${i}`} className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-700 border border-gray-200">{t}</span>
-                  ))}
+                  <span className="text-sm font-medium text-gray-700 mr-2">Tags:</span>
+                  {Blog!.tags!.map((t, i) => {
+                    // Generate slug from tag name (same logic as generateTagSlug in admin)
+                    const tagSlug = t
+                      .toLowerCase()
+                      .replace(/,/g, "")
+                      .replace(/&/g, "and")
+                      .replace(/[^a-z0-9]+/g, "-")
+                      .replace(/^-+|-+$/g, "");
+                    
+                    return (
+                      <span
+                        key={`${t}-${i}`}
+                        onClick={() => {
+                          router.push(`/tag/${tagSlug}`);
+                          goTop();
+                        }}
+                        className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-700 border border-gray-200 hover:bg-blue-100 hover:border-blue-300 hover:text-blue-700 cursor-pointer transition-all duration-200"
+                      >
+                        {t}
+                      </span>
+                    );
+                  })}
                 </div>
               )}
             </div>

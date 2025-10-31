@@ -169,7 +169,10 @@ export const isAuthenticated = (): boolean => {
 export const getCurrentUser = (): any => {
   try {
     const user = localStorage.getItem("user");
-    return user ? JSON.parse(user) : null;
+    if (!user || user.trim() === "") {
+      return null;
+    }
+    return JSON.parse(user);
   } catch (error) {
     console.error("Error getting user data:", error);
     return null;

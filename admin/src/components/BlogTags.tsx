@@ -35,6 +35,8 @@ export default function BlogTags() {
   const [createOpen, setCreateOpen] = useState(false);
   const [updateOpen, setUpdateOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
+  
+  const basePermalink = 'https://taxquee.rafikyconnect.net/tag/';
 
   useEffect(() => { dispatch(FetchBlogTags()); }, [dispatch]);
   useEffect(() => { if (name && !slug) setSlug(generateSlug(name)); }, [name, slug]);
@@ -97,7 +99,7 @@ export default function BlogTags() {
                 <tr key={t._id || t.slug}>
                   <td className="px-4 py-3 text-sm text-gray-700">{i + 1}</td>
                   <td className="px-4 py-3 text-sm font-medium text-gray-900">{t.name}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{`/tags/${t.slug}`}</td>
+                  <td className="px-4 py-3 text-sm text-gray-700">{`${basePermalink}${t.slug}`}</td>
                   <td className="px-4 py-3 text-sm">
                     <span className={`inline-block px-3 py-1 rounded-full text-white text-xs font-semibold ${
                       (t.status || 'Published') === 'Published' ? 'bg-green-500' : 'bg-red-500'
@@ -151,10 +153,21 @@ export default function BlogTags() {
                 <div className="mb-4">
                   <p className="text-sm font-medium text-gray-700 mb-1">Permalink <span className="text-red-500">*</span></p>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500 whitespace-nowrap">/tags/</span>
+                    <span className="text-sm text-gray-500 whitespace-nowrap">{basePermalink}</span>
                     <input className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="your-slug" />
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">Preview: {`/tags/${slug || generateSlug(name)}`}</p>
+                  <p className="text-sm mt-1">
+                    <span className="text-gray-700">Preview: </span>
+                    <a
+                      href={`${basePermalink}${slug || generateSlug(name)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="!text-blue-600 hover:!text-blue-700 underline font-medium"
+                      style={{ color: '#2563eb' }}
+                    >
+                      {basePermalink}{slug || generateSlug(name)}
+                    </a>
+                  </p>
                 </div>
                 <div className="mb-4">
                   <p className="text-sm font-medium text-gray-700 mb-1">Description</p>
@@ -172,11 +185,13 @@ export default function BlogTags() {
                   <div className="mt-3 space-y-3">
                     <div>
                       <p className="text-sm font-medium text-gray-700 mb-1">Meta Title</p>
-                      <input className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} placeholder="Meta title" />
+                      <input className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} placeholder="Meta title" maxLength={75} />
+                      <p className="text-xs text-gray-500 mt-1">{metaTitle.length}/75 characters</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-700 mb-1">Meta Description</p>
-                      <input className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} placeholder="Meta description" />
+                      <textarea className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" rows={4} value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} placeholder="Meta description" maxLength={160} />
+                      <p className="text-xs text-gray-500 mt-1">{metaDescription.length}/160 characters</p>
                     </div>
                   </div>
                 )}
@@ -219,10 +234,21 @@ export default function BlogTags() {
               <div>
                 <p className="text-sm font-medium text-gray-700 mb-1">Permalink</p>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500 whitespace-nowrap">/tags/</span>
+                  <span className="text-sm text-gray-500 whitespace-nowrap">{basePermalink}</span>
                   <input className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="your-slug" />
                 </div>
-                <p className="text-xs text-gray-400 mt-1">Preview: {`/tags/${slug || generateSlug(name)}`}</p>
+                <p className="text-sm mt-1">
+                  <span className="text-gray-700">Preview: </span>
+                  <a
+                    href={`${basePermalink}${slug || generateSlug(name)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="!text-blue-600 hover:!text-blue-700 underline font-medium"
+                    style={{ color: '#2563eb' }}
+                  >
+                    {basePermalink}{slug || generateSlug(name)}
+                  </a>
+                </p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-700 mb-1">Description</p>
@@ -245,11 +271,13 @@ export default function BlogTags() {
                   <div className="mt-3 space-y-3">
                     <div>
                       <p className="text-sm font-medium text-gray-700 mb-1">Meta Title</p>
-                      <input className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} placeholder="Meta title" />
+                      <input className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} placeholder="Meta title" maxLength={75} />
+                      <p className="text-xs text-gray-500 mt-1">{metaTitle.length}/75 characters</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-700 mb-1">Meta Description</p>
-                      <input className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} placeholder="Meta description" />
+                      <textarea className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" rows={4} value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} placeholder="Meta description" maxLength={160} />
+                      <p className="text-xs text-gray-500 mt-1">{metaDescription.length}/160 characters</p>
                     </div>
                   </div>
                 )}

@@ -40,12 +40,14 @@ import {
   UpdateBlog,
 } from "@/store/blogSlice";
 import { FetchBlogCategories, CreateBlogCategory } from "@/store/blogCategorySlice";
+import { FetchBlogTags, CreateBlogTag } from "@/store/blogTagSlice";
 
 export default function BlogSection() {
   const ActivePage = typeof window !== 'undefined' ? localStorage.getItem("ActivePage") : null;
   const dispatch = useDispatch<AppDispatch>();
   const { data, status } = useSelector((state: RootState) => state.blog);
   const blogCategoriesState = useSelector((state: RootState) => state.blogCategories?.data || []);
+  const blogTagsState = useSelector((state: RootState) => state.blogTags?.data || []);
   const [loding, setLoading] = useState(false);
   const [createBlogPop, setCreateBlogPop] = useState(false);
   const [updateBlogPop, setUpdateBlogPop] = useState(false);
@@ -78,13 +80,16 @@ export default function BlogSection() {
   // SEO meta toggles
   const [showSeoCreate, setShowSeoCreate] = useState<boolean>(false);
   const [showSeoUpdate, setShowSeoUpdate] = useState<boolean>(false);
+  // Tag dropdown
+  const [showTagDropdown, setShowTagDropdown] = useState<boolean>(false);
+  const [showTagDropdownUpdate, setShowTagDropdownUpdate] = useState<boolean>(false);
   
   // Update-specific states
   const [updateImage, setUpdateImage] = useState<File | null>(null);
   const [updatePreviewURL, setUpdatePreviewURL] = useState<string | null>(null);
   const [updateImgAltText, setUpdateImgAltText] = useState<string>("");
   const [categoryDropValUpdate, setCategoryDropValUpdate] = useState<string>();
-  const basePermalink = typeof window !== 'undefined' ? `${window.location.origin}/blog/` : 'https://example.com/blog/';
+  const basePermalink = 'https://taxquee.rafikyconnect.net/blog/';
 
 
   const [bloglocVal, setBloglocVal] = useState({
@@ -126,6 +131,15 @@ export default function BlogSection() {
 
   const generateSlug = (title: string) => {
     return title
+      .toLowerCase()
+      .replace(/,/g, "")
+      .replace(/&/g, "and")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  const generateTagSlug = (name: string) => {
+    return name
       .toLowerCase()
       .replace(/,/g, "")
       .replace(/&/g, "and")
@@ -312,21 +326,112 @@ export default function BlogSection() {
   };
 
   const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, isUpdate: boolean = false) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
-      if (isUpdate) {
-        const value = tagInputUpdate.trim();
-        if (value && !tagsUpdate.includes(value)) {
-          setTagsUpdate((prev) => [...prev, value]);
+      const value = isUpdate ? tagInputUpdate.trim() : tagInput.trim();
+      if (value) {
+        addTagToBlog(value, isUpdate);
+        if (isUpdate) {
+          setTagInputUpdate("");
+        } else {
+          setTagInput("");
         }
-        setTagInputUpdate("");
-      } else {
-        const value = tagInput.trim();
-        if (value && !tags.includes(value)) {
-          setTags((prev) => [...prev, value]);
-        }
-        setTagInput("");
       }
+    }
+  };
+
+  const addTagToBlog = (tagName: string, isUpdate: boolean = false) => {
+    const trimmedTag = tagName.trim();
+    if (!trimmedTag) return;
+
+    // Just add tag to blog post tags (don't create in DB yet)
+    if (isUpdate) {
+      if (!tagsUpdate.includes(trimmedTag)) {
+        setTagsUpdate((prev) => [...prev, trimmedTag]);
+      }
+    } else {
+      if (!tags.includes(trimmedTag)) {
+        setTags((prev) => [...prev, trimmedTag]);
+      }
+    }
+  };
+
+  const createNewTagsInDB = async (tagList: string[]) => {
+    const newTags: string[] = [];
+    
+    for (const tag of tagList) {
+      const existingTag = blogTagsState.find((t: any) => 
+        t.name?.toLowerCase() === tag.toLowerCase()
+      );
+      
+      // If tag doesn't exist in table, mark it for creation
+      if (!existingTag) {
+        newTags.push(tag);
+      }
+    }
+
+    // Create all new tags
+    for (const tag of newTags) {
+      try {
+        const slug = generateTagSlug(tag);
+        await dispatch(CreateBlogTag({ 
+          name: tag, 
+          slug,
+          status: 'Published'
+        } as any));
+      } catch (error) {
+        console.error('Failed to create tag:', error);
+      }
+    }
+
+    // Refetch tags to update dropdown after creating new ones
+    if (newTags.length > 0) {
+      await dispatch(FetchBlogTags());
+    }
+  };
+
+  const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>, isUpdate: boolean = false) => {
+    const value = e.target.value;
+    
+    // Check if the value contains a comma
+    if (value.includes(',')) {
+      const parts = value.split(',');
+      const tagToAdd = parts[0].trim();
+      
+      if (tagToAdd) {
+        addTagToBlog(tagToAdd, isUpdate);
+        // Keep everything after the first comma
+        if (isUpdate) {
+          setTagInputUpdate(parts.slice(1).join(',').trim());
+        } else {
+          setTagInput(parts.slice(1).join(',').trim());
+        }
+      } else {
+        // If nothing before comma, just remove the comma
+        if (isUpdate) {
+          setTagInputUpdate(parts.slice(1).join(',').trim());
+        } else {
+          setTagInput(parts.slice(1).join(',').trim());
+        }
+      }
+    } else {
+      // No comma, just update the input normally
+      if (isUpdate) {
+        setTagInputUpdate(value);
+      } else {
+        setTagInput(value);
+      }
+    }
+  };
+
+  const handleSelectTagFromDropdown = (tagName: string, isUpdate: boolean = false) => {
+    addTagToBlog(tagName, isUpdate);
+    if (isUpdate) {
+      setTagInputUpdate("");
+      setShowTagDropdownUpdate(false);
+    } else {
+      setTagInput("");
+      setShowTagDropdown(false);
     }
   };
 
@@ -417,6 +522,10 @@ export default function BlogSection() {
       setLoading(false);
       return;
     }
+    
+    // Create new tags in database before saving blog
+    await createNewTagsInDB(tags);
+    
     dispatch(
       CreateBlog({
         title: bloglocVal.title,
@@ -509,6 +618,9 @@ export default function BlogSection() {
 
     const imageUrl = updateImage ? (await uploadImage(updateImage)) || "image url" : data[updateIndex]?.imageUrl;
 
+    // Create new tags in database before updating blog
+    await createNewTagsInDB(tagsUpdate);
+
     dispatch(
       UpdateBlog({
         data: {
@@ -548,6 +660,7 @@ export default function BlogSection() {
   useEffect(() => {
     dispatch(FetchBlog());
     dispatch(FetchBlogCategories());
+    dispatch(FetchBlogTags());
     if (data?.length < 0) {
       dispatch(FetchBlog());
     }
@@ -671,13 +784,14 @@ export default function BlogSection() {
                                 placeholder="your-slug"
                               />
                             </div>
-                            <p className="text-xs text-gray-400 mt-1">
-                              Preview: {" "}
+                            <p className="text-sm mt-1">
+                              <span className="text-gray-700">Preview: </span>
                               <a
                                 href={`${basePermalink}${slugString}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-blue-600 hover:underline"
+                                className="!text-blue-600 hover:!text-blue-700 underline font-medium"
+                                style={{ color: '#2563eb' }}
                               >
                                 {basePermalink}{slugString}
                               </a>
@@ -787,11 +901,6 @@ export default function BlogSection() {
                         </div>
 
                         <div className="border border-gray-200 rounded-lg p-5">
-                          <p className="text-sm font-medium text-gray-800 mb-3">Gallery images</p>
-                          <button className="px-3 py-1 text-sm rounded-md bg-gray-100">Select images</button>
-                        </div>
-
-                        <div className="border border-gray-200 rounded-lg p-5">
                           <div className="flex items-center justify-between">
                             <p className="text-sm font-medium text-gray-800">Search Engine Optimize</p>
                             <button className="text-sm text-blue-600" onClick={() => setShowSeoCreate((p) => !p)}>
@@ -810,18 +919,22 @@ export default function BlogSection() {
                                   value={bloglocVal.metaTitle}
                                   onChange={(e) => handleChange(e, "create")}
                                   placeholder="Meta title"
+                                  maxLength={75}
                                 />
+                                <p className="text-xs text-gray-500 mt-1">{bloglocVal.metaTitle.length}/75 characters</p>
                               </div>
                               <div>
                                 <p className="text-sm font-medium text-gray-700 mb-1">Meta Description</p>
-                                <input
+                                <textarea
                                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                  type="text"
                                   name="metaDescription"
                                   value={bloglocVal.metaDescription}
                                   onChange={(e) => handleChange(e, "create")}
                                   placeholder="Meta description"
+                                  rows={4}
+                                  maxLength={160}
                                 />
+                                <p className="text-xs text-gray-500 mt-1">{bloglocVal.metaDescription.length}/160 characters</p>
                               </div>
                             </div>
                           )}
@@ -918,7 +1031,7 @@ export default function BlogSection() {
 
                         <div className="border border-gray-200 rounded-lg p-5">
                           <p className="text-sm font-semibold text-gray-800 mb-3">Image</p>
-                          <div className="w-full h-20 p-0.5 bg-green-500 rounded-lg">
+                          <div className="w-full h-40 p-0.5 bg-green-500 rounded-lg">
                             <SingleImageUploadProps
                               id="BlogImg"
                               image={image}
@@ -934,13 +1047,37 @@ export default function BlogSection() {
 
                         <div className="border border-gray-200 rounded-lg p-5">
                           <p className="text-sm font-semibold text-gray-800 mb-2">Tags</p>
-                          <input
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Write some tags"
-                            value={tagInput}
-                            onChange={(e) => setTagInput(e.target.value)}
-                            onKeyDown={handleTagKeyDown}
-                          />
+                          <div className="relative">
+                            <input
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="Write some tags"
+                              value={tagInput}
+                              onChange={(e) => handleTagChange(e, false)}
+                              onKeyDown={handleTagKeyDown}
+                              onFocus={() => setShowTagDropdown(true)}
+                              onBlur={() => setTimeout(() => setShowTagDropdown(false), 200)}
+                            />
+                            {showTagDropdown && blogTagsState.length > 0 && (
+                              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                                {blogTagsState
+                                  .filter((tag: any) => {
+                                    const tagName = tag.name?.toLowerCase() || '';
+                                    const searchTerm = tagInput.toLowerCase();
+                                    return tagName.includes(searchTerm) && !tags.includes(tag.name);
+                                  })
+                                  .map((tag: any) => (
+                                    <button
+                                      key={tag._id || tag.name}
+                                      type="button"
+                                      className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm text-gray-700"
+                                      onClick={() => handleSelectTagFromDropdown(tag.name, false)}
+                                    >
+                                      {tag.name}
+                                    </button>
+                                  ))}
+                              </div>
+                            )}
+                          </div>
                           <div className="flex flex-wrap gap-2 mt-2">
                             {tags.map((t) => (
                               <span key={t} className="inline-flex items-center gap-2 text-xs bg-gray-100 px-2 py-1 rounded-md">
@@ -999,13 +1136,14 @@ export default function BlogSection() {
                                 placeholder="your-slug"
                               />
                             </div>
-                            <p className="text-xs text-gray-400 mt-1">
-                              Preview: {" "}
+                            <p className="text-sm mt-1">
+                              <span className="text-gray-700">Preview: </span>
                               <a
                                 href={`${basePermalink}${slugUpdateString}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-blue-600 hover:underline"
+                                className="!text-blue-600 hover:!text-blue-700 underline font-medium"
+                                style={{ color: '#2563eb' }}
                               >
                                 {basePermalink}{slugUpdateString}
                               </a>
@@ -1115,11 +1253,6 @@ export default function BlogSection() {
                         </div>
 
                         <div className="border border-gray-200 rounded-lg p-5">
-                          <p className="text-sm font-medium text-gray-800 mb-3">Gallery images</p>
-                          <button className="px-3 py-1 text-sm rounded-md bg-gray-100">Select images</button>
-                        </div>
-
-                        <div className="border border-gray-200 rounded-lg p-5">
                           <div className="flex items-center justify-between">
                             <p className="text-sm font-medium text-gray-800">Search Engine Optimize</p>
                             <button className="text-sm text-blue-600" onClick={() => setShowSeoUpdate((p) => !p)}>
@@ -1138,18 +1271,22 @@ export default function BlogSection() {
                                   value={bloglocUpdateVal.metaTitle}
                                   onChange={(e) => handleChange(e, "update")}
                                   placeholder="Meta title"
+                                  maxLength={75}
                                 />
+                                <p className="text-xs text-gray-500 mt-1">{bloglocUpdateVal.metaTitle.length}/75 characters</p>
                               </div>
                               <div>
                                 <p className="text-sm font-medium text-gray-700 mb-1">Meta Description</p>
-                                <input
+                                <textarea
                                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                  type="text"
                                   name="metaDescription"
                                   value={bloglocUpdateVal.metaDescription}
                                   onChange={(e) => handleChange(e, "update")}
                                   placeholder="Meta description"
+                                  rows={4}
+                                  maxLength={160}
                                 />
+                                <p className="text-xs text-gray-500 mt-1">{bloglocUpdateVal.metaDescription.length}/160 characters</p>
                               </div>
                             </div>
                           )}
@@ -1246,7 +1383,7 @@ export default function BlogSection() {
 
                         <div className="border border-gray-200 rounded-lg p-5">
                           <p className="text-sm font-semibold text-gray-800 mb-3">Image</p>
-                          <div className="w-full h-20 p-0.5 bg-green-500 rounded-lg">
+                          <div className="w-full h-40 p-0.5 bg-green-500 rounded-lg">
                             <SingleImageUploadProps
                               id="BlogImgUpdate"
                               image={updateImage}
@@ -1262,13 +1399,37 @@ export default function BlogSection() {
 
                         <div className="border border-gray-200 rounded-lg p-5">
                           <p className="text-sm font-semibold text-gray-800 mb-2">Tags</p>
-                          <input
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Write some tags"
-                            value={tagInputUpdate}
-                            onChange={(e) => setTagInputUpdate(e.target.value)}
-                            onKeyDown={(e) => handleTagKeyDown(e, true)}
-                          />
+                          <div className="relative">
+                            <input
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="Write some tags"
+                              value={tagInputUpdate}
+                              onChange={(e) => handleTagChange(e, true)}
+                              onKeyDown={(e) => handleTagKeyDown(e, true)}
+                              onFocus={() => setShowTagDropdownUpdate(true)}
+                              onBlur={() => setTimeout(() => setShowTagDropdownUpdate(false), 200)}
+                            />
+                            {showTagDropdownUpdate && blogTagsState.length > 0 && (
+                              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                                {blogTagsState
+                                  .filter((tag: any) => {
+                                    const tagName = tag.name?.toLowerCase() || '';
+                                    const searchTerm = tagInputUpdate.toLowerCase();
+                                    return tagName.includes(searchTerm) && !tagsUpdate.includes(tag.name);
+                                  })
+                                  .map((tag: any) => (
+                                    <button
+                                      key={tag._id || tag.name}
+                                      type="button"
+                                      className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm text-gray-700"
+                                      onClick={() => handleSelectTagFromDropdown(tag.name, true)}
+                                    >
+                                      {tag.name}
+                                    </button>
+                                  ))}
+                              </div>
+                            )}
+                          </div>
                           <div className="flex flex-wrap gap-2 mt-2">
                             {tagsUpdate.map((t) => (
                               <span key={t} className="inline-flex items-center gap-2 text-xs bg-gray-100 px-2 py-1 rounded-md">
@@ -1316,13 +1477,15 @@ export default function BlogSection() {
                                   <td className="px-4 py-3 text-sm text-gray-700">{i + 1}</td>
                                   <td className="px-4 py-3">
                                     <div className="w-16 h-10 rounded overflow-hidden bg-gray-100">
-                                      <Image
-                                        className="w-full h-full object-cover"
-                                        src={el.imageUrl}
-                                        alt=""
-                                        width={64}
-                                        height={40}
-                                      />
+                                      <div className="relative w-full h-full">
+                                        <Image
+                                          src={el.imageUrl}
+                                          alt=""
+                                          fill
+                                          className="object-cover w-full h-full"
+                                          sizes="64px"
+                                        />
+                                      </div>
                                     </div>
                                   </td>
                                   <td className="px-4 py-3 text-sm font-medium text-gray-900">{el.title}</td>

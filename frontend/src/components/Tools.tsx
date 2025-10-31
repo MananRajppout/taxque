@@ -304,12 +304,13 @@ export const BlogCard = ({
       <div className="flex flex-col md:flex-row items-stretch gap-4 p-4 md:p-6">
         {/* Left image */}
         <div className="w-full md:w-5/12 lg:w-4/12 rounded-lg overflow-hidden flex-shrink-0">
-          <div className="relative h-44 md:h-40 lg:h-48 w-full">
+          <div className="relative h-44 md:h-40 lg:h-48 w-full overflow-hidden">
             <Image
               src={imageUrl || "/assests/images/NOData.jpg"}
               alt={title}
               fill
-              className="object-cover"
+              className="object-cover w-full h-full"
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 41.67vw, 33.33vw"
               onError={(e: any) => { e.currentTarget.src = "/assests/images/NOData.jpg"; }}
             />
           </div>

@@ -49,8 +49,8 @@ export default function Home() {
   });
   const [pwdView, setPwdView] = useState<boolean>(false);
   const DBUserAuth = {
-    email: "sadafhina197@gmail.com",
-    password: "hinamirza",
+    email: "admin@gmail.com",
+    password: "admin1122",
   };
   const [differenceInDays, setDifferenceInDays] = useState<number>(0);
 

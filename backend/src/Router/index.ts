@@ -60,6 +60,7 @@ const {
   GetOneBlog,
   UpdateBlog,
   DeleteBlog,
+  GetBlogsByTag,
 } = require("../Controller/blog");
 
 // Blog Categories
@@ -176,11 +177,11 @@ router.post("/user/update_doc_url", UpdateDoc);
 router.post("/contact-user/create", CreateContactUser);
 router.get("/contact-user", GetContactUsers);
 
-
-//Blos-
+//Blog
 router.post("/blog/create", createBlog);
 router.get("/blogs", GetBlogs);
 router.get("/blog/:slug", GetOneBlog);
+router.get("/blogs/tag/:slug", GetBlogsByTag);
 router.post("/blog/update/:id", UpdateBlog);
 router.post("/blog/delete/:id", DeleteBlog);
 

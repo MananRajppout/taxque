@@ -52,9 +52,43 @@ export const DeleteBlog = async (req: Request, res: Response) => {
   try {
     const blog = await Blog.findByIdAndDelete(req.params.id);
     if (!blog) return res.status(404).json({ message: "Blog not found" });
-
+    
     res.status(200).json({ message: "Blog deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
+  }
+};
+
+export const GetBlogsByTag = async (req: Request, res: Response) => {
+  try {
+    const BlogTag = require("../Module/blogTag");
+    const tagSlug = req.params.slug;
+    
+    // First, find the tag by slug to get the tag name
+    const tag = await BlogTag.findOne({ slug: tagSlug, status: "Published" });
+    if (!tag) {
+      return res.status(200).json({ success: true, blog: [], tagName: null });
+    }
+    
+    // Find all blogs that contain this tag name in their tags array
+    const blogs = await Blog.find({ 
+      tags: { $in: [tag.name] },
+      status: "Published" 
+    }).sort({ date: -1 });
+    
+    res.status(200).json({ 
+      success: true, 
+      blog: blogs,
+      tagName: tag.name,
+      tagDescription: tag.description,
+      tagMetaTitle: tag.metaTitle,
+      tagMetaDescription: tag.metaDescription
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: "Internal server error", 
+      error: error 
+    });
   }
 };

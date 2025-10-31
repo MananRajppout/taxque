@@ -28,6 +28,14 @@ const SingleImageUpload: React.FC<SingleImageUploadProps> = ({
   DBImg,
   id,
 }) => {
+  // Check if a string is a valid image URL
+  const isValidImageUrl = (url: string | null | undefined): boolean => {
+    if (!url || typeof url !== 'string') return false;
+    // Check if it's a valid URL format (starts with http://, https://, or /)
+    // This prevents text-based icons like "ti ti-home" from being treated as URLs
+    return url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/');
+  };
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -42,6 +50,10 @@ const SingleImageUpload: React.FC<SingleImageUploadProps> = ({
     setPreviewURL(null);
     setImgAltText("");
   };
+
+  // Determine if we should show an image
+  const imageSource = previewURL || (DBImg && isValidImageUrl(DBImg) ? DBImg : null);
+  const shouldShowImage = imageSource && isValidImageUrl(imageSource);
 
   return (
     <div className="w-full h-full flex flex-row flex-wrap relative cursor-pointer">
@@ -65,19 +77,19 @@ const SingleImageUpload: React.FC<SingleImageUploadProps> = ({
         onChange={handleFileChange}
         className="hidden"
       />
-      {previewURL || DBImg ? (
-        <div className="w-full h-full flex">
-          <div className="relative w-full h-full rounded-lg shadow-md">
+      {shouldShowImage ? (
+        <div className="w-full h-full flex overflow-hidden">
+          <div className="relative w-full h-full rounded-lg shadow-md overflow-hidden">
             <Image 
-              src={previewURL || DBImg || ''} 
+              src={imageSource} 
               alt="thumbnail" 
-              className="w-full h-full object-cover rounded-lg"
-              width={200}
-              height={200}
+              fill
+              className="object-cover w-full h-full rounded-lg"
+              sizes="(max-width: 768px) 100vw, 400px"
             />
             {previewURL && (
               <Image
-                className="absolute -top-8 right-10 w-5 h-5 cursor-pointer transition-transform duration-200 hover:scale-110"
+                className="absolute -top-8 right-10 w-5 h-5 cursor-pointer transition-transform duration-200 hover:scale-110 z-10"
                 onClick={handleDelete}
                 src={Images.crossIcon}
                 alt="Delete"

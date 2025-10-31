@@ -140,6 +140,8 @@ export default function CreateJobSection() {
 
   
   const handleActiveEdit = (index: number) => {
+    GoTop();
+    setUpdateIndex(index);
     setJobLocUpdateData((prv) => ({
       ...prv,
       title: data[index]?.title,
@@ -152,6 +154,8 @@ export default function CreateJobSection() {
     setJobDescriptionUpdate(data[index].description);
     setJobType(data[index]?.type as unknown as string);
     setJobLocation(data[index]?.jobLocation as unknown as string);
+    setSkills(data[index]?.skills || []);
+    setInputSkill("");
   };
 
   const updateJob = async () => {
@@ -184,6 +188,7 @@ export default function CreateJobSection() {
           metaDescription: jobLocUpdateData?.metaDescription,
           type: jobType as string,
           jobLocation: jobLocation as string,
+          skills: skills,
         },
         id: data[updateIndex]?._id,
       })
@@ -409,18 +414,23 @@ export default function CreateJobSection() {
                       value={jobLocData?.metaTitle}
                       onChange={(e) => handleLocalJobVal(e, "create")}
                       placeholder="SEO Title"
+                      maxLength={75}
                     />
+                    <p className="text-xs text-gray-500 mb-2">{jobLocData?.metaTitle?.length || 0}/75 characters</p>
                     <p className="text-xs text-gray-500 mb-4">Optimal length: 50-60 characters. This appears as the clickable headline in search results.</p>
                   </div>
                   <div className="w-full" style={{ display: showCreateSeo ? "block" : "none" }}>
                     <p className="text-sm font-medium mb-2">SEO description</p>
                     <textarea
-                      className="w-full min-h-[90px] border border-gray-300 rounded overflow-hidden p-2 mb-1"
+                      className="w-full border border-gray-300 rounded overflow-hidden p-2 mb-1"
                       name="metaDescription"
                       value={jobLocData?.metaDescription}
                       onChange={(e) => handleLocalJobVal(e, "create")}
                       placeholder="SEO description"
+                      rows={4}
+                      maxLength={160}
                     />
+                    <p className="text-xs text-gray-500 mt-1">{jobLocData?.metaDescription?.length || 0}/160 characters</p>
                   </div>
                 </div>
               </div>
@@ -440,12 +450,20 @@ export default function CreateJobSection() {
                      
                       <div className="w-full flex justify-end items-center gap-5 mb-5">
                         {i != updateIndex ? (
-                          <img
-                            src={Images.deleteIcon}
-                            className="w-10 h-10 cursor-pointer"
-                            alt=""
-                            onClick={() => DeletePopOpen(el?._id)}
-                          />
+                          <>
+                            <img
+                              src={Images.editIcon}
+                              className="w-10 h-10 cursor-pointer"
+                              alt=""
+                              onClick={() => handleActiveEdit(i)}
+                            />
+                            <img
+                              src={Images.deleteIcon}
+                              className="w-10 h-10 cursor-pointer"
+                              alt=""
+                              onClick={() => DeletePopOpen(el?._id)}
+                            />
+                          </>
                         ) : (
                           <>
                             <AppBtn
@@ -458,7 +476,11 @@ export default function CreateJobSection() {
                               src={Images.crossIconV2}
                               className="w-10 h-10 cursor-pointer"
                               alt=""
-                              onClick={() => setUpdateIndex(9999)}
+                              onClick={() => {
+                                setUpdateIndex(9999);
+                                setSkills([]);
+                                setInputSkill("");
+                              }}
                             />
                             <img
                               src={Images.deleteIcon}
@@ -581,6 +603,47 @@ export default function CreateJobSection() {
                             <RichTextEditor ref={jobDescriptionRefUpdate} state={jobDescriptionUpdate} setState={setJobDescriptionUpdate} />
                           </div>
 
+                          <div className="w-full flex flex-col gap-5">
+                            <p className="text-lg mb-2">Required Skills</p>
+                            <div className="w-full flex flex-row gap-8 items-center justify-between relative">
+                              <input
+                                className="w-full h-11 border border-gray-300 rounded overflow-hidden pl-2 mb-2"
+                                type="text"
+                                value={inputSkill || ""}
+                                onChange={(e) => setInputSkill(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    addSkill();
+                                  }
+                                }}
+                                placeholder="Enter Skill"
+                              />
+                              <img
+                                src={Images.AddIcon}
+                                className="w-10 h-10 cursor-pointer absolute right-2"
+                                alt=""
+                                onClick={addSkill}
+                              />
+                            </div>
+                            <div className="w-full flex flex-row gap-2 flex-wrap p-1 pr-5">
+                              {skills?.map((skill, j) => (
+                                <div
+                                  key={j}
+                                  className="h-8 px-5 rounded-[14px] flex justify-center items-center bg-[#5ab15b] relative overflow-hidden cursor-pointer"
+                                >
+                                  <p className="text-white">{skill}</p>
+                                  <div
+                                    className="absolute w-full h-full bg-gray-500 bg-opacity-30 hidden justify-center items-center cursor-pointer transition-all duration-500 hover:flex"
+                                    onClick={() => removeSkill(skill)}
+                                  >
+                                    <img src={Images.AddIcon} alt="" className="w-5" />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
                           <div className="w-full border rounded-lg p-4 bg-white">
                             <div className="flex items-start justify-between mb-4">
                               <div>
@@ -604,13 +667,15 @@ export default function CreateJobSection() {
                                 }
                                 onChange={(e) => handleLocalJobVal(e, "update")}
                                 placeholder="SEO Title"
+                                maxLength={75}
                               />
+                              <p className="text-xs text-gray-500 mb-2">{(i === updateIndex ? jobLocUpdateData?.metaTitle : el?.metaTitle)?.length || 0}/75 characters</p>
                               <p className="text-xs text-gray-500 mb-4">Optimal length: 50-60 characters. This appears as the clickable headline in search results.</p>
                             </div>
                             <div className="w-full" style={{ display: showUpdateSeo ? "block" : "none" }}>
                               <p className="text-sm font-medium mb-2">SEO description</p>
                               <textarea
-                                className="w-full min-h-[90px] border border-gray-300 rounded overflow-hidden p-2 mb-1"
+                                className="w-full border border-gray-300 rounded overflow-hidden p-2 mb-1"
                                 name="metaDescription"
                                 value={
                                   i === updateIndex
@@ -619,7 +684,10 @@ export default function CreateJobSection() {
                                 }
                                 onChange={(e) => handleLocalJobVal(e, "update")}
                                 placeholder="SEO description"
+                                rows={4}
+                                maxLength={160}
                               />
+                              <p className="text-xs text-gray-500 mt-1">{(i === updateIndex ? jobLocUpdateData?.metaDescription : el?.metaDescription)?.length || 0}/160 characters</p>
                             </div>
                           </div>
                         </div>

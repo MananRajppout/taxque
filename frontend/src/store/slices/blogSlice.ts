@@ -30,29 +30,89 @@ interface UpdateBlogArgs {
 interface blogState {
   data: BlogDataType[];
   Blog: BlogDataType | null;
+  blogsByTag: BlogDataType[];
+  tagInfo: {
+    tagName: string | null;
+    tagDescription?: string;
+    tagMetaTitle?: string;
+    tagMetaDescription?: string;
+  } | null;
   status: STATUSES;
 }
 
 const initialState: blogState = {
   data: [],
   Blog: null,
+  blogsByTag: [],
+  tagInfo: null,
   status: STATUSES.LOADING,
 };
 
 export const FetchBlog = createAsyncThunk<BlogDataType[]>(
   "blog/fetch",
-  async () => {
-    const response = await Axios.get(`${baseURL}/blogs`);
-    return response.data.data || response.data.blog || response.data; // Handle multiple response formats
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await Axios.get(`${baseURL}/blogs`);
+      // Handle multiple response formats and ensure we always return an array
+      const blogData = response.data?.data || response.data?.blog || response.data || [];
+      return Array.isArray(blogData) ? blogData : [];
+    } catch (error: any) {
+      console.error('Error fetching blogs:', error);
+      return rejectWithValue([]);
+    }
   }
 );
 
 
 export const FetchBlogBySlug = createAsyncThunk<BlogDataType, { slug: string }>(
   "blogBySlug/fetch",
-  async ({ slug }) => {
-    const response = await Axios.get(`${baseURL}/blog/${slug}`);
-    return response.data;
+  async ({ slug }, { rejectWithValue }) => {
+    try {
+      const response = await Axios.get(`${baseURL}/blog/${slug}`);
+      return response.data || {};
+    } catch (error: any) {
+      console.error('Error fetching blog by slug:', error);
+      return rejectWithValue({} as BlogDataType);
+    }
+  }
+);
+
+export interface BlogsByTagResponse {
+  blog: BlogDataType[];
+  tagName: string | null;
+  tagDescription?: string;
+  tagMetaTitle?: string;
+  tagMetaDescription?: string;
+}
+
+export const FetchBlogsByTag = createAsyncThunk<BlogsByTagResponse, { tagSlug: string }>(
+  "blogsByTag/fetch",
+  async ({ tagSlug }, { rejectWithValue }) => {
+    try {
+      const response = await Axios.get(`${baseURL}/blogs/tag/${tagSlug}`);
+      // Ensure response.data exists and has the expected structure
+      if (response.data) {
+        return response.data;
+      }
+      // Return default structure if response.data is empty
+      return {
+        blog: [],
+        tagName: null,
+        tagDescription: undefined,
+        tagMetaTitle: undefined,
+        tagMetaDescription: undefined
+      };
+    } catch (error: any) {
+      console.error('Error fetching blogs by tag:', error);
+      // Return default structure on error
+      return {
+        blog: [],
+        tagName: null,
+        tagDescription: undefined,
+        tagMetaTitle: undefined,
+        tagMetaDescription: undefined
+      };
+    }
   }
 );
 
@@ -136,6 +196,26 @@ const blogSlice = createSlice({
       })
       .addCase(FetchBlogBySlug.rejected, (state) => {
         state.status = STATUSES.ERROR;
+      });
+
+    builder
+      .addCase(FetchBlogsByTag.pending, (state) => {
+        state.status = STATUSES.LOADING;
+      })
+      .addCase(FetchBlogsByTag.fulfilled, (state, action) => {
+        state.blogsByTag = action.payload.blog || [];
+        state.tagInfo = {
+          tagName: action.payload.tagName,
+          tagDescription: action.payload.tagDescription,
+          tagMetaTitle: action.payload.tagMetaTitle,
+          tagMetaDescription: action.payload.tagMetaDescription,
+        };
+        state.status = STATUSES.IDLE;
+      })
+      .addCase(FetchBlogsByTag.rejected, (state) => {
+        state.status = STATUSES.ERROR;
+        state.blogsByTag = [];
+        state.tagInfo = null;
       });
   },
 });

@@ -102,9 +102,29 @@ export default function BlogDetails() {
               )}
               {Array.isArray(Blog?.tags) && Blog!.tags!.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-8">
-                  {Blog!.tags!.map((t, i) => (
-                    <span key={`${t}-${i}`} className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-700 border border-gray-200">{t}</span>
-                  ))}
+                  <span className="text-sm font-medium text-gray-700 mr-2">Tags:</span>
+                  {Blog!.tags!.map((t, i) => {
+                    // Generate slug from tag name (same logic as generateTagSlug in admin)
+                    const tagSlug = t
+                      .toLowerCase()
+                      .replace(/,/g, "")
+                      .replace(/&/g, "and")
+                      .replace(/[^a-z0-9]+/g, "-")
+                      .replace(/^-+|-+$/g, "");
+                    
+                    return (
+                      <span
+                        key={`${t}-${i}`}
+                        onClick={() => {
+                          router.push(`/tag/${tagSlug}`);
+                          goTop();
+                        }}
+                        className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-700 border border-gray-200 hover:bg-blue-100 hover:border-blue-300 hover:text-blue-700 cursor-pointer transition-all duration-200"
+                      >
+                        {t}
+                      </span>
+                    );
+                  })}
                 </div>
               )}
 
