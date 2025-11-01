@@ -42,53 +42,23 @@ export default function PaymentCheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<string>("razorpay");
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Mock data for demonstration
-  const mockProduct = {
-    _id: "mock-product-id",
-    title: "ECA Assisted - Standard",
-    priceData: [
-      {
-        _id: "plan-1",
-        title: "Basic Plan",
-        price: "2,999",
-        basicPrice: "3,999",
-        fetures: [
-          "GST Registration",
-          "Monthly GST Filing",
-          "Annual Return Filing",
-          "Tax Consultation",
-          "Document Support",
-          "Email Support"
-        ]
-      },
-      {
-        _id: "plan-2", 
-        title: "Premium Plan",
-        price: "4,999",
-        basicPrice: "6,999",
-        fetures: [
-          "Everything in Basic",
-          "Income Tax Filing",
-          "TDS Compliance",
-          "ROC Filings",
-          "Priority Support",
-          "Phone Support"
-        ]
-      }
-    ]
-  };
-
   const planArray = Product?.priceData?.map((val: any) => val.title) || [];
   const [userId, setUserId] = useState<string>("");
   const [serviceId, setServiceId] = useState<string>("");
+  const [priceId, setPriceId] = useState<string>("");
   const amount = currentPriceData?.price?.replace(/,/g, "") ?? "0";
   const [serviceName, setServiceName] = useState<string>("");
 
 
   useEffect(() => {
     setUserId(window.localStorage.getItem("userId") || "");
-    setServiceId(window.localStorage.getItem("planServiceId") || "");
-    setServiceName(window.localStorage.getItem("planServiceName") || "Tax Service");
+    const storedServiceId = window.localStorage.getItem("planServiceId") || "";
+    const storedPriceId = window.localStorage.getItem("planPriceId") || "";
+    const storedServiceName = window.localStorage.getItem("planServiceName") || "Tax Service";
+    
+    setServiceId(storedServiceId);
+    setPriceId(storedPriceId);
+    setServiceName(storedServiceName);
   }, []);
 
   const handleBuy = async () => {
@@ -120,28 +90,39 @@ export default function PaymentCheckoutPage() {
     }
   };
 
-  // Handle change plan
+  // Fetch actual service data based on serviceId from Redux store
   useEffect(() => {
-    if (!Product?.priceData?.length) return;
-    const initialData = Product.priceData.find((pd: any) => pd._id === "plan-1");
-    if (!initialData) {
-      return;
+    if (!serviceId || !data?.length) return;
+    
+    // Find the service by ID from Redux store
+    const foundService = data.find((service: any) => service._id === serviceId);
+    
+    if (foundService && foundService.priceData?.length) {
+      setProduct(foundService);
+      
+      // If we have a priceId, find and set that specific price plan
+      if (priceId) {
+        const foundPrice = foundService.priceData.find((pd: any) => pd._id === priceId);
+        if (foundPrice) {
+          setCurrentPriceData(foundPrice);
+          setPlanDrop(foundPrice.title);
+        }
+      } else if (foundService.priceData.length > 0) {
+        // Default to first price plan if no priceId specified
+        setCurrentPriceData(foundService.priceData[0]);
+        setPlanDrop(foundService.priceData[0].title);
+      }
     }
-    setCurrentPriceData(initialData);
-  }, [Product?.priceData]);
+  }, [serviceId, priceId, data]);
 
+  // Handle change plan when user selects different plan from dropdown
   useEffect(() => {
-    if (!Product?.priceData?.length) return;
+    if (!Product?.priceData?.length || !planDrop) return;
     const updatedData = Product.priceData.find((pd: any) => pd.title === planDrop);
-    if (!updatedData) {
-      return;
+    if (updatedData) {
+      setCurrentPriceData(updatedData);
     }
-    setCurrentPriceData(updatedData);
   }, [planDrop, Product?.priceData]);
-
-  useEffect(() => {
-    setProduct(mockProduct);
-  }, []);
 
   useEffect(() => {
     if (!userId) return;
@@ -218,7 +199,7 @@ export default function PaymentCheckoutPage() {
 
                 <div className="text-center lg:text-left">
                   <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
-                    {Product?.title || "ECA Assisted - Standard"}
+                    {Product?.title || serviceName || "Service"}
                   </h2>
                   
                   <div className="flex items-center justify-center lg:justify-start gap-4 mb-4">

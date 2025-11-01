@@ -116,6 +116,9 @@ export default function CareersPage() {
                     experience={job.experience}
                     salary={job.salary}
                     type={job.type}
+                    skills={job.skills}
+                    postedDate={job.postedDate}
+                    jobLocation={job.jobLocation}
                   />
                 ))
               ) : (

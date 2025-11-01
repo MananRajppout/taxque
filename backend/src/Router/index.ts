@@ -63,6 +63,12 @@ const {
   GetBlogsByTag,
 } = require("../Controller/blog");
 
+//Comments
+const {
+  AddComment,
+  GetBlogCommentsBySlug,
+} = require("../Controller/comment");
+
 // Blog Categories
 const {
   createBlogCategory,
@@ -180,10 +186,14 @@ router.get("/contact-user", GetContactUsers);
 //Blog
 router.post("/blog/create", createBlog);
 router.get("/blogs", GetBlogs);
-router.get("/blog/:slug", GetOneBlog);
 router.get("/blogs/tag/:slug", GetBlogsByTag);
 router.post("/blog/update/:id", UpdateBlog);
 router.post("/blog/delete/:id", DeleteBlog);
+
+//Comments (must be before /blog/:slug to avoid route conflicts)
+router.post("/blog/comment/add", AddComment);
+router.get("/blog/:slug/comments", GetBlogCommentsBySlug);
+router.get("/blog/:slug", GetOneBlog);
 
 // Blog categories routes
 router.post("/blog-category/create", createBlogCategory);

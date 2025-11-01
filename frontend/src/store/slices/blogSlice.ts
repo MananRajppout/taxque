@@ -10,6 +10,19 @@ export interface blogTextType {
   title: string;
   summarys: { summary: string }[];
 }
+export interface FAQType {
+  question: string;
+  answer: string;
+  _id?: string;
+}
+export interface CommentType {
+  name: string;
+  email: string;
+  comment: string;
+  date?: string;
+  _id?: string;
+}
+
 export interface BlogDataType {
   title: string;
   Slug: string;
@@ -21,6 +34,8 @@ export interface BlogDataType {
   category?: string;
   status?: string;
   tags?: string[];
+  FAQ?: FAQType[];
+  allowComments?: boolean;
   _id?: string;
 }
 interface UpdateBlogArgs {
@@ -31,6 +46,7 @@ interface blogState {
   data: BlogDataType[];
   Blog: BlogDataType | null;
   blogsByTag: BlogDataType[];
+  comments: CommentType[];
   tagInfo: {
     tagName: string | null;
     tagDescription?: string;
@@ -44,6 +60,7 @@ const initialState: blogState = {
   data: [],
   Blog: null,
   blogsByTag: [],
+  comments: [],
   tagInfo: null,
   status: STATUSES.LOADING,
 };
@@ -165,6 +182,51 @@ export const UpdateBlog = createAsyncThunk<BlogDataType, UpdateBlogArgs>(
   }
 );
 
+export interface AddCommentArgs {
+  blogId: string;
+  name: string;
+  email: string;
+  comment: string;
+}
+
+export const AddBlogComment = createAsyncThunk<void, AddCommentArgs>(
+  "blog/comment/add",
+  async ({ blogId, name, email, comment }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await Axios.post(`${baseURL}/blog/comment/add`, {
+        blogId,
+        name,
+        email,
+        comment,
+      });
+      toast.success(response.data?.message || "Comment submitted successfully.");
+      // Refresh comments after adding
+      if (response.data) {
+        // We'll need to fetch comments again, but we don't have slug here
+        // So we'll handle this in the component
+      }
+      return;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || "Failed to submit comment";
+      toast.error(errorMessage);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+export const FetchBlogComments = createAsyncThunk<CommentType[], { slug: string }>(
+  "blog/comments/fetch",
+  async ({ slug }, { rejectWithValue }) => {
+    try {
+      const response = await Axios.get(`${baseURL}/blog/${slug}/comments`);
+      return response.data?.comments || [];
+    } catch (error: any) {
+      console.error('Error fetching comments:', error);
+      return rejectWithValue([]);
+    }
+  }
+);
+
 const blogSlice = createSlice({
   name: "blog",
   initialState,
@@ -216,6 +278,19 @@ const blogSlice = createSlice({
         state.status = STATUSES.ERROR;
         state.blogsByTag = [];
         state.tagInfo = null;
+      });
+
+    builder
+      .addCase(FetchBlogComments.pending, (state) => {
+        state.status = STATUSES.LOADING;
+      })
+      .addCase(FetchBlogComments.fulfilled, (state, action) => {
+        state.comments = action.payload;
+        state.status = STATUSES.IDLE;
+      })
+      .addCase(FetchBlogComments.rejected, (state) => {
+        state.status = STATUSES.ERROR;
+        state.comments = [];
       });
   },
 });

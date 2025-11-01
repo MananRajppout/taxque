@@ -146,15 +146,35 @@ export const ServiceCard = ({
   );
 };
 
+// Check Icon Component
+const Check = ({ className, strokeWidth = 3 }: { className?: string; strokeWidth?: number }) => (
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    strokeWidth={strokeWidth}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M5 13l4 4L19 7"
+    />
+  </svg>
+);
+
 // Price Card Component
 export const PriceCard = ({
   title, 
   basicPrice, 
   price, 
-  plan, 
+  plan = "Month", 
   summary, 
-  fetures, 
-  MostPopular,
+  fetures, // Keep for backward compatibility
+  features, // New prop name
+  MostPopular, // Keep for backward compatibility
+  mostPopular, // New prop name
   priceTabe, 
   index, 
   isMobile, 
@@ -162,15 +182,22 @@ export const PriceCard = ({
   id, 
   priceId,
   className = ""
-}: PriceCardComponentProps) => {
+}: PriceCardComponentProps & { features?: string[]; mostPopular?: boolean }) => {
   const router = useRouter();
 
+  // Use new prop names if available, otherwise fall back to old ones
+  const featuresList = features || fetures || [];
+  const isMostPopular = mostPopular !== undefined ? mostPopular : (MostPopular || false);
+
   const handleBuyClick = () => {
-    router.push("/services/product-details/payment-checkout");
+    // Set payment data in localStorage for payment page
+    if (id) localStorage.setItem("planServiceId", id);
+    if (productName) localStorage.setItem("planServiceName", productName);
+    if (priceId) localStorage.setItem("planPriceId", priceId);
+    
+    // Navigate to payment page
+    router.push("/payment");
     scrollToTop();
-    localStorage.setItem("planServiceId", id);
-    localStorage.setItem("planServiceName", productName);
-    localStorage.setItem("planPriceId", priceId);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -180,41 +207,72 @@ export const PriceCard = ({
     }
   };
 
+  const hasDiscount = basicPrice && basicPrice !== price && parseFloat(basicPrice) > parseFloat(price);
+
   return (
     <div
       style={{ display: isMobile ? (priceTabe === index ? "block" : "none") : "block" }}
-      className={`min-w-full bg-white p-2.5 rounded-5xl shadow-[rgba(100,100,111,0.2)_0px_7px_29px_0px] relative transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:shadow-[rgba(100,100,111,0.3)_0px_10px_35px_0px] ${MostPopular ? 'border border-[#fa8a05] shadow-[#fa8a0524_0px_7px_29px_0px]' : ''} ${className} md:min-w-89.75 md:p-5`}
+      className={`w-full max-w-sm bg-white rounded-2xl shadow-lg relative transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:shadow-xl overflow-hidden flex flex-col ${className}`}
     >
-      {MostPopular && (
-        <div className="absolute -top-3.25 right-5 w-27.5 h-6.5 bg-[#ff9361] rounded-1 flex justify-center items-center">
-          <p className="text-3.5xl text-white font-semibold">Most Popular</p>
+      {/* Most Popular Badge */}
+      {isMostPopular && (
+        <div className="absolute top-4 right-4 bg-orange-400 text-white px-3 py-1 rounded-md text-xs font-semibold z-10">
+          Most Popular
         </div>
       )}
-      <div className={`w-full min-h-60 bg-green-100/10 flex flex-col items-center justify-between p-2.5 rounded-5xl ${MostPopular ? 'bg-green-100/41 border border-[#fa8c05]' : ''} md:p-5 md:min-h-75`}>
-        <p className="text-center text-6xl font-semibold text-gray-800 md:text-7.5xl">{title}</p>
-        <p className="text-3.5xl font-medium text-gray-400 my-1 relative md:text-4.5xl md:my-4">
-          Market Price : ₹{basicPrice}
-          <span className="w-7.25 block border-t border-gray-500 absolute right-0 top-2.5 md:w-12.5 md:top-3.5"></span>
-        </p>
-        <p className="text-7.5xl font-semibold text-[#fa8a05] md:text-9.5xl">
-          ₹ {price} <span className="text-3.75 text-gray-500 md:text-6xl">/{plan}</span>
-        </p>
-        <p className="text-4xl text-gray-600 text-center my-2.5 md:text-4xl md:my-5">{summary}</p>
-        {MostPopular ? (
-          <AppHoloBtn btnText="Get started Now" width="100%" onClick={handleBuyClick} />
-        ) : (
-          <AppOrangeBtn btnText="Get started Now" width="100%" onClick={handleBuyClick} />
+
+      {/* Header Section */}
+      <div className="w-full bg-gradient-to-br from-green-50 to-green-100 flex flex-col items-center justify-center p-8 pb-10">
+        {/* Plan Title */}
+        <h3 className="text-2xl font-bold text-gray-900 mb-4 text-center">{title}</h3>
+        
+        {/* Pricing Section */}
+        <div className="w-full flex flex-col items-center mb-4">
+          {/* Basic Price */}
+          {basicPrice && (
+            <p className="text-sm text-gray-500 mb-1">
+              Basic Price: {hasDiscount && <span className="line-through">₹{basicPrice}</span>}
+              {!hasDiscount && <span>₹{basicPrice}</span>}
+            </p>
+          )}
+          
+          {/* Current Price */}
+          <p className="text-5xl font-bold text-orange-500 mb-2">
+            ₹{price} <span className="text-xl font-normal text-gray-600">/{plan}</span>
+          </p>
+        </div>
+        
+        {/* Description */}
+        {summary && (
+          <p className="text-sm text-gray-700 text-center mb-6 px-2 leading-relaxed">
+            {summary}
+          </p>
         )}
-      </div>
-      <div className="flex flex-col gap-2.5 mt-5 md:gap-5">
-        {fetures?.map((el, i) => (
-          <div key={i} className="flex items-center gap-5">
-            <Image src={GreenTik} alt="Feature included" width={20} height={20} />
-            <p className="text-4xl text-gray-600 md:text-4xl">{el}</p>
-          </div>
-        ))}
+        
+        {/* Get Started Button */}
+        <button
+          onClick={handleBuyClick}
+          onKeyDown={handleKeyDown}
+          className="w-full bg-[#1a2942] hover:bg-[#0f1929] text-white font-semibold py-3.5 px-6 rounded-xl transition-all duration-300 ease-in-out hover:shadow-lg"
+          aria-label="Get Started Now"
+        >
+          Get Started Now
+        </button>
       </div>
 
+      {/* Features Section */}
+      <div className="flex flex-col gap-3 p-6 bg-white flex-1">
+        {featuresList && featuresList.length > 0 ? (
+          featuresList.map((feature, i) => (
+            <div key={i} className="flex items-start gap-3">
+              <Check className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" strokeWidth={3} />
+              <p className="text-sm text-gray-700 leading-relaxed">{feature}</p>
+            </div>
+          ))
+        ) : (
+          <p className="text-sm text-gray-500">No features listed</p>
+        )}
+      </div>
     </div>
   );
 };
@@ -390,10 +448,36 @@ interface JobCardProps {
   experience: string;
   salary: string;
   type: string;
+  skills?: string[];
+  postedDate?: number;
+  jobLocation?: string;
   className?: string;
 }
 
 // removed duplicate import of parse; already imported at top
+
+// Helper function to format posted date
+const formatPostedDate = (timestamp?: number): string => {
+  if (!timestamp) return "";
+  
+  const postedDate = new Date(timestamp);
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - postedDate.getTime());
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) return "Posted today";
+  if (diffDays === 1) return "Posted yesterday";
+  if (diffDays < 7) return `Posted ${diffDays} days ago`;
+  if (diffDays < 30) {
+    const weeks = Math.floor(diffDays / 7);
+    return `Posted ${weeks} ${weeks === 1 ? "week" : "weeks"} ago`;
+  }
+  if (diffDays < 365) {
+    const months = Math.floor(diffDays / 30);
+    return `Posted ${months} ${months === 1 ? "month" : "months"} ago`;
+  }
+  return `Posted ${postedDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
+};
 
 export const JobCard = ({ 
   _id,
@@ -403,6 +487,9 @@ export const JobCard = ({
   experience,
   salary,
   type,
+  skills,
+  postedDate,
+  jobLocation,
   className = "" 
 }: JobCardProps) => {
   const router = useRouter();
@@ -423,6 +510,12 @@ export const JobCard = ({
           <div className="flex items-center gap-2">
             <Image src={locationIcon} alt="Location" width={16} height={16} />
             <span className="text-sm text-gray-600">{location}</span>
+            {jobLocation && (
+              <>
+                <span className="text-sm text-gray-500">•</span>
+                <span className="text-sm text-gray-600">{jobLocation}</span>
+              </>
+            )}
           </div>
           <div className="flex items-start gap-2">
             <Image src={watchYIcom} alt="Experience" width={16} height={16} className="mt-0.5" />
@@ -433,7 +526,33 @@ export const JobCard = ({
             <span className="text-sm text-gray-500">•</span>
             <span className="text-sm text-gray-600">{type}</span>
           </div>
+          {postedDate && (
+            <div className="flex items-center gap-2">
+              <Image src={watchIcom} alt="Posted Date" width={16} height={16} />
+              <span className="text-sm text-gray-600">{formatPostedDate(postedDate)}</span>
+            </div>
+          )}
         </div>
+        
+        {skills && skills.length > 0 && (
+          <div className="mb-4">
+            <div className="flex flex-wrap gap-2">
+              {skills.slice(0, 4).map((skill, index) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                >
+                  {skill}
+                </span>
+              ))}
+              {skills.length > 4 && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                  +{skills.length - 4} more
+                </span>
+              )}
+            </div>
+          </div>
+        )}
         
         <div className="flex justify-end">
           <AppBtn

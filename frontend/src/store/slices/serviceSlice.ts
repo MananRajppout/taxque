@@ -200,9 +200,15 @@ export const FetchService = createAsyncThunk<ServiceDataType[]>(
 
 export const FetchServiceById = createAsyncThunk<ServiceDataType, { slug: string }>(
   "serviceById/fetch",
-  async ({ slug }) => {
-    const response = await Axios.get(`${baseURL}/service/${slug}`);
-    return response.data;
+  async ({ slug }, { rejectWithValue }) => {
+    try {
+      const response = await Axios.get(`${baseURL}/service/${slug}`);
+      // Backend returns the service directly, or wrapped in a data property
+      return response.data?.data || response.data;
+    } catch (error: any) {
+      // Return error message for handling in the reducer
+      return rejectWithValue(error.response?.data?.message || "Failed to fetch service");
+    }
   }
 );
 
@@ -378,6 +384,7 @@ const serviceSlice = createSlice({
     builder
       .addCase(FetchServiceById.pending, (state) => {
         state.status = STATUSES.LOADING;
+        state.Service = null; // Clear previous service when starting new fetch
       })
       .addCase(FetchServiceById.fulfilled, (state, action) => {
         state.Service = action.payload; 
@@ -385,6 +392,7 @@ const serviceSlice = createSlice({
       })
       .addCase(FetchServiceById.rejected, (state) => {
         state.status = STATUSES.ERROR;
+        state.Service = null; // Clear service on error
       });
 
     

@@ -241,7 +241,7 @@ export default function BlogCategories() {
           </div>
           <div>
             <p className="text-sm font-medium text-gray-700 mb-1">Icon</p>
-            <div className="w-full h-32 p-0.5 bg-blue-500 rounded-lg">
+            <div className="w-48 h-16 p-0.5 bg-blue-500 rounded-lg">
               <SingleImageUploadProps
                 id="CategoryIcon"
                 image={iconImage}

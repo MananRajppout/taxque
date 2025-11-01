@@ -18,21 +18,57 @@ import { ServiceCard } from "@/components/Tools";
 
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "@/store/slices/store";
-import { FetchBlogBySlug } from "@/store/slices/blogSlice";
+import { FetchBlogBySlug, FetchBlogComments, AddBlogComment } from "@/store/slices/blogSlice";
 
 export default function BlogDetailsPage() {
   const router = useRouter();
   const params = useParams();
   const slug = params?.slug as string;
   const dispatch = useDispatch<AppDispatch>();
-  const { Blog } = useSelector((state: RootState) => state.blog);
+  const { Blog, comments } = useSelector((state: RootState) => state.blog);
   const categoryData = useSelector((state: RootState) => state.category);
   const [currentNav, setCurrentNav] = React.useState("Blog");
+  const [commentForm, setCommentForm] = React.useState({
+    name: "",
+    comment: "",
+  });
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [expandedFAQ, setExpandedFAQ] = React.useState<number | null>(null);
+  const [showCommentForm, setShowCommentForm] = React.useState(false);
+  const [addName, setAddName] = React.useState(false);
 
   useEffect(() => {
     if (!slug) return;
     dispatch(FetchBlogBySlug({ slug }));
+    dispatch(FetchBlogComments({ slug }));
   }, [slug, dispatch]);
+
+  const handleCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!Blog?._id) return;
+
+    setIsSubmitting(true);
+    try {
+      await dispatch(AddBlogComment({
+        blogId: Blog._id,
+        name: addName ? commentForm.name : "",
+        email: "",
+        comment: commentForm.comment,
+      })).unwrap();
+      
+      // Reset form and hide form
+      setCommentForm({ name: "", comment: "" });
+      setAddName(false);
+      setShowCommentForm(false);
+      
+      // Refresh comments to show the new comment
+      dispatch(FetchBlogComments({ slug }));
+    } catch (error) {
+      console.error("Error submitting comment:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const goTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -99,7 +135,7 @@ export default function BlogDetailsPage() {
                   ))}
                 </div>
               ))}
-                <hr className="my-8 border-gray-200" />
+  <hr className="my-8 border-gray-200" />
             {Array.isArray(Blog?.tags) && Blog!.tags!.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-8">
                   <span className="text-sm font-medium text-gray-700 mr-2">Tags:</span>
@@ -125,6 +161,168 @@ export default function BlogDetailsPage() {
                       </span>
                     );
                   })}
+                </div>
+              )}
+              {/* FAQ Section */}
+              {Blog?.FAQ && Blog.FAQ.length > 0 && (
+                <div className="mb-8">
+                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
+                  <div className="space-y-0 border-t border-gray-200">
+                    {Blog.FAQ.map((faq, i) => {
+                      const isExpanded = expandedFAQ === i;
+                      return (
+                        <div key={i} className="border-b border-gray-200">
+                          <button
+                            onClick={() => setExpandedFAQ(isExpanded ? null : i)}
+                            className={`w-full flex items-center justify-between py-4 px-0 text-left transition-colors duration-300 ${
+                              isExpanded ? "text-orange-500" : "text-gray-900"
+                            }`}
+                          >
+                            <h3 className="text-base md:text-lg font-medium pr-4 flex-1">
+                              {faq.question}
+                            </h3>
+                            <div
+                              className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-300 border ${
+                                isExpanded
+                                  ? "bg-orange-500 border-orange-500"
+                                  : "bg-gray-300 border-gray-300"
+                              }`}
+                            >
+                              <span className={`text-white font-bold text-xl ${isExpanded ? "" : ""}`}>
+                                {isExpanded ? "−" : "+"}
+                              </span>
+                            </div>
+                          </button>
+                          {isExpanded && (
+                            <div className="pb-4 text-gray-600 text-sm md:text-base leading-relaxed">
+                              <div className="pr-12">{parse(faq.answer)}</div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              
+
+              {/* Comments Section */}
+              {Blog?.allowComments !== false && (
+                <div className="mb-8">
+                  <hr className="my-8 border-gray-200" />
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Comments</h2>
+                    {!showCommentForm && (
+                      <button
+                        onClick={() => setShowCommentForm(true)}
+                        className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors duration-300"
+                      >
+                        Leave a Comment
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Comment Form */}
+                  {showCommentForm && (
+                    <div className="bg-gray-50 rounded-lg p-6 mb-8 border border-gray-200">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Leave a Comment</h3>
+                      <form onSubmit={handleCommentSubmit} className="space-y-4">
+                      <div className="flex items-center gap-2 mb-4">
+                        <input
+                          type="checkbox"
+                          id="addName"
+                          checked={addName}
+                          onChange={(e) => {
+                            setAddName(e.target.checked);
+                            if (!e.target.checked) {
+                              setCommentForm({ ...commentForm, name: "" });
+                            }
+                          }}
+                          className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                        />
+                        <label htmlFor="addName" className="text-sm font-medium text-gray-700 cursor-pointer">
+                          Add your name
+                        </label>
+                      </div>
+                      {addName && (
+                        <div>
+                          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                            Name *
+                          </label>
+                          <input
+                            type="text"
+                            id="name"
+                            required
+                            value={commentForm.name}
+                            onChange={(e) => setCommentForm({ ...commentForm, name: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
+                            placeholder="Your Name"
+                          />
+                        </div>
+                      )}
+                      <div>
+                        <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
+                          Comment *
+                        </label>
+                        <textarea
+                          id="comment"
+                          required
+                          rows={5}
+                          value={commentForm.comment}
+                          onChange={(e) => setCommentForm({ ...commentForm, comment: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none resize-none"
+                          placeholder="Write your comment here..."
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      >
+                        {isSubmitting ? "Submitting..." : "Submit Comment"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowCommentForm(false);
+                          setCommentForm({ name: "", comment: "" });
+                          setAddName(false);
+                        }}
+                        className="ml-3 px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors duration-300"
+                      >
+                        Cancel
+                      </button>
+                    </form>
+                  </div>
+                  )}
+
+                  {/* Comments List */}
+                  <div className="space-y-6">
+                    {comments.length > 0 ? (
+                      comments.map((comment, i) => (
+                        <div key={i} className="bg-white rounded-lg p-6 border border-gray-200">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="text-lg font-semibold text-gray-900">{comment.name || "Guest"}</h4>
+                            <p className="text-sm text-gray-500">
+                              {comment.date 
+                                ? new Date(comment.date).toLocaleDateString('en-US', { 
+                                    year: 'numeric', 
+                                    month: 'long', 
+                                    day: 'numeric' 
+                                  })
+                                : ''}
+                            </p>
+                          </div>
+                          <p className="text-base text-gray-700 leading-relaxed whitespace-pre-wrap">
+                            {comment.comment}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 text-center py-8">No comments yet. Be the first to comment!</p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

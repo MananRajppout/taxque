@@ -10,6 +10,12 @@ export interface blogTextType {
   summarys: { summary: string }[];
 }
 
+export interface FAQType {
+  question: string;
+  answer: string;
+  _id?: string;
+}
+
 export interface BlogDataType {
   title: string;
   Slug: string;
@@ -22,6 +28,8 @@ export interface BlogDataType {
   category?: string;
   status?: string;
   tags?: string[];
+  FAQ?: FAQType[];
+  allowComments?: boolean;
   _id?: string;
 }
 
@@ -37,6 +45,8 @@ interface BlogUpdateDataType {
   category?: string;
   status?: string;
   tags?: string[];
+  FAQ?: FAQType[];
+  allowComments?: boolean;
   _id?: string;
 }
 

@@ -416,19 +416,18 @@ export default function NavBar({ currentNav }: NavProps) {
   };
 
   useEffect(() => {
-    dispatch(FetchService());
-    dispatch(FetchCategory());
-    dispatch(FetchBlog());
-    if (Service.data?.length < 0) {
+    // Only fetch if data is not already loaded
+    if (!Service?.data?.length) {
       dispatch(FetchService());
     }
-    if (Category?.data?.length < 0) {
+    if (!Category?.data?.length) {
       dispatch(FetchCategory());
     }
-    if (Blog?.data?.length < 0) {
+    if (!Blog?.data?.length) {
       dispatch(FetchBlog());
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
 
   const GoTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });

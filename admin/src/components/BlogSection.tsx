@@ -38,6 +38,7 @@ import {
   CreateBlog,
   DeleteBlog,
   UpdateBlog,
+  FAQType,
 } from "@/store/blogSlice";
 import { FetchBlogCategories, CreateBlogCategory } from "@/store/blogCategorySlice";
 import { FetchBlogTags, CreateBlogTag } from "@/store/blogTagSlice";
@@ -127,6 +128,10 @@ export default function BlogSection() {
       summarys: [{ summary: "" }],
     },
   ]);
+
+  // FAQ states
+  const [faqs, setFaqs] = useState<FAQType[]>([]);
+  const [faqsUpdate, setFaqsUpdate] = useState<FAQType[]>([]);
 
 
   const generateSlug = (title: string) => {
@@ -483,6 +488,50 @@ export default function BlogSection() {
     }
   };
 
+  // FAQ handlers
+  const handleAddFAQ = (isUpdate: boolean = false) => {
+    if (isUpdate) {
+      setFaqsUpdate((prev) => [
+        ...prev,
+        { question: "", answer: "" },
+      ]);
+    } else {
+      setFaqs((prev) => [
+        ...prev,
+        { question: "", answer: "" },
+      ]);
+    }
+  };
+
+  const handleRemoveFAQ = (index: number, isUpdate: boolean = false) => {
+    if (isUpdate) {
+      setFaqsUpdate((prev) => prev.filter((_, i) => i !== index));
+    } else {
+      setFaqs((prev) => prev.filter((_, i) => i !== index));
+    }
+  };
+
+  const handleFAQChange = (
+    index: number,
+    field: "question" | "answer",
+    value: string,
+    isUpdate: boolean = false
+  ) => {
+    if (isUpdate) {
+      setFaqsUpdate((prev) =>
+        prev.map((faq, i) =>
+          i === index ? { ...faq, [field]: value } : faq
+        )
+      );
+    } else {
+      setFaqs((prev) =>
+        prev.map((faq, i) =>
+          i === index ? { ...faq, [field]: value } : faq
+        )
+      );
+    }
+  };
+
 
   const postBlogData = async () => {
     GoTop();
@@ -526,6 +575,9 @@ export default function BlogSection() {
     // Create new tags in database before saving blog
     await createNewTagsInDB(tags);
     
+    // Filter out empty FAQs
+    const validFaqs = faqs.filter(faq => faq.question.trim() && faq.answer.trim());
+    
     dispatch(
       CreateBlog({
         title: bloglocVal.title,
@@ -539,6 +591,8 @@ export default function BlogSection() {
         tags: tags,
         date: new Date().toLocaleDateString("en-GB"),
         category: categoryDropVal,
+        FAQ: validFaqs,
+        allowComments: allowComments,
       })
     );
   };
@@ -567,12 +621,17 @@ export default function BlogSection() {
     setUpdatePreviewURL(blogData?.imageUrl || null);
     setUpdateImgAltText("");
     
+    // Set FAQs
+    setFaqsUpdate(blogData?.FAQ && blogData.FAQ.length > 0 
+      ? blogData.FAQ 
+      : []);
+    
     // Set additional UI fields (use defaults if not in data)
     setIsFeaturedUpdate(false);
     setStatusValueUpdate(blogData?.status || "Published");
     setTagsUpdate(blogData?.tags || []);
     setTagInputUpdate("");
-    setAllowCommentsUpdate(true);
+    setAllowCommentsUpdate(blogData?.allowComments !== undefined ? blogData.allowComments : true);
     setCategorySearchUpdate("");
     setShowAddCategoryUpdate(false);
     setNewCategoryInputUpdate("");
@@ -621,6 +680,9 @@ export default function BlogSection() {
     // Create new tags in database before updating blog
     await createNewTagsInDB(tagsUpdate);
 
+    // Filter out empty FAQs
+    const validFaqsUpdate = faqsUpdate.filter(faq => faq.question.trim() && faq.answer.trim());
+
     dispatch(
       UpdateBlog({
         data: {
@@ -634,6 +696,8 @@ export default function BlogSection() {
           imageUrl: imageUrl,
           tags: tagsUpdate,
           category: categoryDropValUpdate,
+          FAQ: validFaqsUpdate,
+          allowComments: allowCommentsUpdate,
         },
         id: data[updateIndex]?._id,
       })
@@ -722,6 +786,7 @@ export default function BlogSection() {
                   <button className="p-2 px-8 rounded-3xl bg-[#5ab15b] !text-white text-sm font-medium cursor-pointer" onClick={() => {
                     setCreateBlogPop(false);
                     setSlugManuallyEdited(false); // Reset flag when closing create form
+                    setFaqs([]); // Reset FAQs
                   }}>
                     Cancel
                   </button>
@@ -893,11 +958,59 @@ export default function BlogSection() {
                         </div>
 
                         <div className="border border-gray-200 rounded-lg p-5">
-                          <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-gray-800">FAQ schema configuration (Learn more)</p>
-                            <button className="px-3 py-1 text-sm rounded-md bg-gray-100">Add new</button>
+                          <div className="flex items-center justify-between mb-3">
+                            <p className="text-sm font-medium text-gray-800">FAQ schema configuration <a href="#" className="text-blue-600 hover:underline">(Learn more)</a></p>
+                            <button 
+                              className="px-3 py-1 text-sm rounded-md bg-gray-100 hover:bg-gray-200 transition-colors" 
+                              onClick={() => handleAddFAQ(false)}
+                            >
+                              Add new
+                            </button>
                           </div>
-                          <button className="mt-3 text-xs text-blue-600">or Select from existing FAQs</button>
+                          {faqs.map((faq, index) => (
+                            <div key={index} className="mb-4 p-4 border border-gray-200 rounded-lg bg-white relative">
+                              <button
+                                onClick={() => handleRemoveFAQ(index, false)}
+                                className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center text-gray-500 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                                title="Remove FAQ"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                              <div className="mb-3">
+                                <label className="text-sm font-medium text-gray-700 mb-1 block">Question</label>
+                                <textarea
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+                                  placeholder="Enter your question"
+                                  value={faq.question}
+                                  onChange={(e) => handleFAQChange(index, "question", e.target.value, false)}
+                                  rows={2}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium text-gray-700 mb-1 block">Answer</label>
+                                <textarea
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+                                  placeholder="Enter your answer"
+                                  value={faq.answer}
+                                  onChange={(e) => handleFAQChange(index, "answer", e.target.value, false)}
+                                  rows={4}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                          {faqs.length === 0 && (
+                            <div className="text-center py-4">
+                              <p className="text-sm text-gray-500 italic">No FAQs added yet.</p>
+                              <button 
+                                className="mt-2 text-xs text-blue-600 hover:underline"
+                                onClick={() => handleAddFAQ(false)}
+                              >
+                                Click here to add one
+                              </button>
+                            </div>
+                          )}
                         </div>
 
                         <div className="border border-gray-200 rounded-lg p-5">
@@ -1245,11 +1358,59 @@ export default function BlogSection() {
                         </div>
 
                         <div className="border border-gray-200 rounded-lg p-5">
-                          <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-gray-800">FAQ schema configuration (Learn more)</p>
-                            <button className="px-3 py-1 text-sm rounded-md bg-gray-100">Add new</button>
+                          <div className="flex items-center justify-between mb-3">
+                            <p className="text-sm font-medium text-gray-800">FAQ schema configuration <a href="#" className="text-blue-600 hover:underline">(Learn more)</a></p>
+                            <button 
+                              className="px-3 py-1 text-sm rounded-md bg-gray-100 hover:bg-gray-200 transition-colors" 
+                              onClick={() => handleAddFAQ(true)}
+                            >
+                              Add new
+                            </button>
                           </div>
-                          <button className="mt-3 text-xs text-blue-600">or Select from existing FAQs</button>
+                          {faqsUpdate.map((faq, index) => (
+                            <div key={index} className="mb-4 p-4 border border-gray-200 rounded-lg bg-white relative">
+                              <button
+                                onClick={() => handleRemoveFAQ(index, true)}
+                                className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center text-gray-500 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                                title="Remove FAQ"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                              <div className="mb-3">
+                                <label className="text-sm font-medium text-gray-700 mb-1 block">Question</label>
+                                <textarea
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+                                  placeholder="Enter your question"
+                                  value={faq.question}
+                                  onChange={(e) => handleFAQChange(index, "question", e.target.value, true)}
+                                  rows={2}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium text-gray-700 mb-1 block">Answer</label>
+                                <textarea
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+                                  placeholder="Enter your answer"
+                                  value={faq.answer}
+                                  onChange={(e) => handleFAQChange(index, "answer", e.target.value, true)}
+                                  rows={4}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                          {faqsUpdate.length === 0 && (
+                            <div className="text-center py-4">
+                              <p className="text-sm text-gray-500 italic">No FAQs added yet.</p>
+                              <button 
+                                className="mt-2 text-xs text-blue-600 hover:underline"
+                                onClick={() => handleAddFAQ(true)}
+                              >
+                                Click here to add one
+                              </button>
+                            </div>
+                          )}
                         </div>
 
                         <div className="border border-gray-200 rounded-lg p-5">

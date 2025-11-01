@@ -210,11 +210,28 @@ export default function CreateJobSection() {
 
   
   const addSkill = () => {
-    const normalized = (inputSkill || "").trim();
-    if (!normalized) return;
-    const hasDuplicate = skills.some((s) => s.toLowerCase() === normalized.toLowerCase());
-    if (hasDuplicate) return;
-    setSkills([...skills, normalized]);
+    const input = (inputSkill || "").trim();
+    if (!input) return;
+    
+    // Split by comma and process each skill
+    const skillEntries = input
+      .split(',')
+      .map(skill => skill.trim())
+      .filter(skill => skill.length > 0);
+    
+    if (skillEntries.length === 0) return;
+    
+    // Filter out duplicates (case-insensitive) and skills already in the list
+    const existingSkillsLower = skills.map(s => s.toLowerCase());
+    const newSkills = skillEntries.filter(
+      skill => !existingSkillsLower.includes(skill.toLowerCase())
+    );
+    
+    // Add all new unique skills
+    if (newSkills.length > 0) {
+      setSkills([...skills, ...newSkills]);
+    }
+    
     setInputSkill("");
   };
 
@@ -275,11 +292,11 @@ export default function CreateJobSection() {
               className="w-full p-5 relative bg-[#5ab15b1a] border border-green-500 mb-5 rounded-[20px] pr-24"
             >
             
-              <div className="w-full flex justify-end items-center gap-5 mb-5">
+              <div className="w-full flex justify-end items-center gap-3 mb-5 pr-2">
                 <AppBtn btnText="Save" height="32px" onClick={postJobData} />
                 <img
                   src={Images.crossIcon}
-                  className="w-10 h-10 cursor-pointer"
+                  className="w-4 h-4 cursor-pointer"
                   alt=""
                   onClick={() => setCreateJobPop(false)}
                 />
@@ -368,7 +385,7 @@ export default function CreateJobSection() {
                           addSkill();
                         }
                       }}
-                      placeholder="Enter Skill"
+                      placeholder="Enter Skills (comma-separated)"
                     />
                     <img
                       src={Images.AddIcon}
@@ -438,84 +455,100 @@ export default function CreateJobSection() {
 
         
 
-            <div className="w-full h-full flex flex-col">
+            <div className="w-full h-full">
               {data?.length === 0 ? (
                 <div className="w-full h-full flex justify-center items-center">
                   <img src={Images.NODataImg} alt="" />
                 </div>
               ) : (
-                <>
-                  {data?.map((el, i) => (
-                    <div key={i} className="w-full p-5 relative bg-[#5ab15b1a] border border-green-500 mb-5 rounded-[20px] pr-24">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {data?.map((el, i) => {
+                    const colorSchemes = [
+                      { bg: 'bg-gradient-to-br from-green-50 via-green-100 to-emerald-50', border: 'border-green-400', accent: 'text-green-700', skillBg: 'bg-green-500' },
+                      { bg: 'bg-gradient-to-br from-blue-50 via-blue-100 to-cyan-50', border: 'border-blue-400', accent: 'text-blue-700', skillBg: 'bg-blue-500' },
+                      { bg: 'bg-gradient-to-br from-purple-50 via-purple-100 to-violet-50', border: 'border-purple-400', accent: 'text-purple-700', skillBg: 'bg-purple-500' },
+                      { bg: 'bg-gradient-to-br from-orange-50 via-orange-100 to-amber-50', border: 'border-orange-400', accent: 'text-orange-700', skillBg: 'bg-orange-500' },
+                      { bg: 'bg-gradient-to-br from-pink-50 via-pink-100 to-rose-50', border: 'border-pink-400', accent: 'text-pink-700', skillBg: 'bg-pink-500' },
+                      { bg: 'bg-gradient-to-br from-indigo-50 via-indigo-100 to-blue-50', border: 'border-indigo-400', accent: 'text-indigo-700', skillBg: 'bg-indigo-500' },
+                    ];
+                    const colorScheme = colorSchemes[i % colorSchemes.length];
+                    return (
+                    <div key={i} className={`w-full p-5 relative ${colorScheme.bg} border-2 ${colorScheme.border} rounded-[20px] shadow-md hover:shadow-lg transition-all duration-300`}>
                      
-                      <div className="w-full flex justify-end items-center gap-5 mb-5">
+                      <div className="w-full flex justify-between items-center gap-3 mb-5">
                         {i != updateIndex ? (
                           <>
-                            <img
-                              src={Images.editIcon}
-                              className="w-10 h-10 cursor-pointer"
-                              alt=""
-                              onClick={() => handleActiveEdit(i)}
-                            />
-                            <img
-                              src={Images.deleteIcon}
-                              className="w-10 h-10 cursor-pointer"
-                              alt=""
-                              onClick={() => DeletePopOpen(el?._id)}
-                            />
+                            <h2 className="text-lg font-bold text-gray-800 flex-1">{el?.title}</h2>
+                            <div className="flex items-center gap-3">
+                              <img
+                                src={Images.editIcon}
+                                className="w-4 h-4 cursor-pointer"
+                                alt=""
+                                onClick={() => handleActiveEdit(i)}
+                              />
+                              <img
+                                src={Images.deleteIcon}
+                                className="w-4 h-4 cursor-pointer"
+                                alt=""
+                                onClick={() => DeletePopOpen(el?._id)}
+                              />
+                            </div>
                           </>
                         ) : (
                           <>
-                            <AppBtn
-                              btnText="Save"
-                              height="32px"
-                              onClick={updateJob}
-                            />
-                            <img
-                              style={{ width: "27px" }}
-                              src={Images.crossIconV2}
-                              className="w-10 h-10 cursor-pointer"
-                              alt=""
-                              onClick={() => {
-                                setUpdateIndex(9999);
-                                setSkills([]);
-                                setInputSkill("");
-                              }}
-                            />
-                            <img
-                              src={Images.deleteIcon}
-                              className="w-10 h-10 cursor-pointer"
-                              alt=""
-                              onClick={() => DeletePopOpen(el?._id)}
-                            />
+                            <h2 className="text-lg font-bold text-gray-800 flex-1">Edit Job</h2>
+                            <div className="flex items-center gap-3">
+                              <AppBtn
+                                btnText="Save"
+                                height="32px"
+                                onClick={updateJob}
+                              />
+                              <img
+                                src={Images.crossIconV2}
+                                className="w-4 h-4 cursor-pointer"
+                                alt=""
+                                onClick={() => {
+                                  setUpdateIndex(9999);
+                                  setSkills([]);
+                                  setInputSkill("");
+                                }}
+                              />
+                              <img
+                                src={Images.deleteIcon}
+                                className="w-4 h-4 cursor-pointer"
+                                alt=""
+                                onClick={() => DeletePopOpen(el?._id)}
+                              />
+                            </div>
                           </>
                         )}
                       </div>
 
                       {i != updateIndex ? (
-                        <div className="w-full flex flex-col gap-4">
-                          <h2 className="text-2xl font-bold text-gray-800">{el?.title}</h2>
-                          <div className="flex flex-row gap-4">
-                            <span className="text-lg text-gray-700">Location: {el?.location}</span>
-                            <span className="text-lg text-gray-700">Salary: {el?.salary}</span>
+                        <div className="w-full flex flex-col gap-3">
+                          <div className="flex flex-row gap-3 flex-wrap">
+                            <span className="text-sm text-gray-700"><span className="font-medium">Location:</span> {el?.location}</span>
+                            <span className="text-sm text-gray-700"><span className="font-medium">Salary:</span> {el?.salary}</span>
+                            {el?.type && <span className="text-sm text-gray-700"><span className="font-medium">Job Type:</span> {el?.type}</span>}
+                            {el?.jobLocation && <span className="text-sm text-gray-700"><span className="font-medium">Work Arrangement:</span> {el?.jobLocation}</span>}
                           </div>
                           <div className="w-full">
-                            <h3 className="text-lg font-semibold mb-2 text-gray-800">Experience Required:</h3>
-                            <div className="prose max-w-none">{parse(el?.experience)}</div>
+                            <h3 className="text-sm font-semibold mb-1 text-gray-800">Experience Required:</h3>
+                            <div className="prose prose-sm max-w-none text-sm">{parse(el?.experience)}</div>
                           </div>
                           <div className="w-full">
-                            <h3 className="text-lg font-semibold mb-2 text-gray-800">Job Description:</h3>
-                            <div className="prose max-w-none">{parse(el?.description)}</div>
+                            <h3 className="text-sm font-semibold mb-1 text-gray-800">Job Description:</h3>
+                            <div className="prose prose-sm max-w-none text-sm">{parse(el?.description)}</div>
                           </div>
                           <div className="w-full">
-                            <h3 className="text-lg font-semibold mb-2 text-gray-800">Required Skills:</h3>
+                            <h3 className="text-sm font-semibold mb-1 text-gray-800">Required Skills:</h3>
                             <div className="flex flex-row gap-2 flex-wrap">
                               {el?.skills?.map((skill: string, j: number) => (
                                 <div
                                   key={j}
-                                  className="h-8 px-5 rounded-[14px] flex justify-center items-center bg-[#5ab15b]"
+                                  className={`h-6 px-3 rounded-[12px] flex justify-center items-center ${colorScheme.skillBg} shadow-sm`}
                                 >
-                                  <p className="text-white">{skill}</p>
+                                  <p className="text-white text-xs font-medium">{skill}</p>
                                 </div>
                               ))}
                             </div>
@@ -617,7 +650,7 @@ export default function CreateJobSection() {
                                     addSkill();
                                   }
                                 }}
-                                placeholder="Enter Skill"
+                                placeholder="Enter Skills (comma-separated)"
                               />
                               <img
                                 src={Images.AddIcon}
@@ -693,8 +726,9 @@ export default function CreateJobSection() {
                         </div>
                       )}
                     </div>
-                  ))}
-                </>
+                    );
+                  })}
+                </div>
               )}
             </div>
           </div>

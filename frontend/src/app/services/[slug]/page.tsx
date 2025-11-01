@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 import parse from "html-react-parser";
@@ -31,11 +31,34 @@ export default function ServiceDetailPage() {
   const [currentNav, setCurrentNav] = useState("Services");
   const [priceTab, setPriceTab] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const hasFetchedRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!slug) return;
-    dispatch(FetchServiceById({ slug }));
-    dispatch(FetchCategory());
+    
+    // Skip if already loading this slug or if we already have the correct service
+    if (status === "loading" && hasFetchedRef.current === slug) {
+      return;
+    }
+    
+    // Skip if we already have this service loaded (unless it's an error state)
+    if (Service?.Slug === slug && status !== "error") {
+      hasFetchedRef.current = slug;
+      return;
+    }
+    
+    // Mark that we're fetching this slug
+    hasFetchedRef.current = slug;
+    
+    // Fetch the service
+    if (Service?.Slug !== slug) {
+      dispatch(FetchServiceById({ slug }));
+    }
+    
+    // Fetch categories only once if not already loaded
+    if (!categoryData?.data?.length && categoryData?.status !== "loading") {
+      dispatch(FetchCategory());
+    }
     
     // Check if mobile
     const checkMobile = () => {
@@ -44,7 +67,8 @@ export default function ServiceDetailPage() {
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
-  }, [slug, dispatch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug]); // Only re-run when slug changes
 
   const goTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -59,7 +83,8 @@ export default function ServiceDetailPage() {
     goTop();
   };
 
-  if (status === "loading" || !Service) {
+  // Show loading when status is loading, or when we don't have service data yet (initial load)
+  if (status === "loading" || (!Service && status !== "error")) {
     return (
       <div className="w-full min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
@@ -105,7 +130,12 @@ export default function ServiceDetailPage() {
             {Service?.category && (
               <>
                 <span className="mx-2">&gt;</span>
-                <span className="text-gray-600">{Service.category.title}</span>
+                <span 
+                  onClick={() => router.push("/our-services")} 
+                  className="cursor-pointer hover:text-orange-500 transition-colors duration-300"
+                >
+                  {Service.category.title}
+                </span>
               </>
             )}
             <span className="mx-2">&gt;</span>
@@ -388,86 +418,73 @@ export default function ServiceDetailPage() {
                   </div>
                 </div>
               )}
-
-              {/* Pricing Section */}
-              {Service.priceData && Service.priceData.length > 0 && (
-                <div className="mb-8">
-                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 text-center">Choose Your Plan</h2>
-                  {isMobile && (
-                    <div className="mb-6">
-                      <DropBox
-                        setDropVal={(val) => setPriceTab(parseInt(val))}
-                        list={Service.priceData.map((_, i) => i)}
-                        defaultVal={`Select Plan ${priceTab + 1}`}
-                        width="100%"
-                      />
-                    </div>
-                  )}
-                  <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'} gap-6`}>
-                    {Service.priceData.map((price, i) => {
-                      // Extract period from price data if available (may not be in TypeScript type)
-                      const plan = (price as any).plan || (price as any).period || "month";
-                      return (
-                        <PriceCard
-                          key={i}
-                          title={price.title}
-                          basicPrice={price.basicPrice}
-                          price={price.price}
-                          plan={plan}
-                          summary={price.summary}
-                          fetures={price.fetures || []}
-                          MostPopular={price.MostPopular || false}
-                          priceTabe={priceTab}
-                          index={i}
-                          isMobile={isMobile}
-                          productName={Service.title}
-                          id={Service._id || ""}
-                          priceId={price._id || ""}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Sidebar - Right Side */}
             <div className="w-full lg:w-1/3">
-              {/* Contact Section */}
-              <div className="mb-8 sticky top-24">
+              <div className="mb-8">
                 <ContactSection subjectList={categoryData.data} section="Service" />
               </div>
-
-              {/* Related Services */}
-              {categoryData?.data?.length > 0 && (
-                <div className="bg-gray-50 rounded-xl p-6 mb-8">
-                  <h3 className="text-xl font-semibold text-gray-900 text-center mb-6">Related Services</h3>
+              {categoryData?.data?.length && (
+                <div className="bg-gray-50 rounded-xl p-6">
+                  <h3 className="text-xl font-semibold text-gray-900 text-center mb-6">Our Services</h3>
                   <div className="space-y-4 mb-6">
-                    {categoryData.data
-                      .filter((el) => el._id !== Service.category?.id)
-                      .slice(0, 3)
-                      .map((el, i) => (
-                        <ServiceCard {...el} key={i} />
-                      ))}
+                    {categoryData?.data?.slice(0, 2).map((el, i) => (
+                      <ServiceCard {...el} key={i} />
+                    ))}
                   </div>
-                  <AppBtn 
-                    btnText="Explore All Services" 
-                    onClick={() => { 
-                      router.push("/our-services"); 
-                      goTop(); 
-                    }} 
-                    width="100%" 
-                    height="50px" 
-                  />
+                  <AppBtn btnText="Explore All Services" onClick={() => { router.push("/our-services"); goTop(); }} width="100%" height="50px" />
                 </div>
               )}
             </div>
           </div>
         </div>
+
+        {/* Pricing Section - Full Width */}
+        {Service.priceData && Service.priceData.length > 0 && (
+          <div className="w-full mt-12 mb-8">
+            <div className="w-full max-w-7xl mx-auto px-4 md:px-8 lg:px-16">
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 text-center">Choose Your Plan</h2>
+              {isMobile && (
+                <div className="mb-6">
+                  <DropBox
+                    setDropVal={(val) => setPriceTab(parseInt(val))}
+                    list={Service.priceData.map((_, i) => i)}
+                    defaultVal={`Select Plan ${priceTab + 1}`}
+                    width="100%"
+                  />
+                </div>
+              )}
+              <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'} gap-6`}>
+                {Service.priceData.map((price, i) => {
+                  // Extract period from price data if available (may not be in TypeScript type)
+                  const plan = (price as any).plan || (price as any).period || "Month";
+                  return (
+                    <PriceCard
+                      key={i}
+                      title={price.title}
+                      basicPrice={price.basicPrice}
+                      price={price.price}
+                      plan={plan}
+                      summary={price.summary}
+                      fetures={price.fetures || []}
+                      MostPopular={price.MostPopular || false}
+                      priceTabe={priceTab}
+                      index={i}
+                      isMobile={isMobile}
+                      productName={Service.title}
+                      id={Service._id || ""}
+                      priceId={price._id || ""}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Subscribe Section */}
-      <div className="w-full py-12 px-4 md:px-8 lg:px-16 bg-gray-50">
+      <div className="w-full py-12 px-4 md:px-8 lg:px-16">
         <Subscribe />
       </div>
 

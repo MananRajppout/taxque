@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -10,208 +10,31 @@ import Footer from "@/components/Footer";
 import Subscribe from "@/components/Subscribe";
 
 // Redux
-import { useSelector } from "react-redux";
-import { RootState } from "@/store/slices/store";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState, AppDispatch } from "@/store/slices/store";
+import { FetchService } from "@/store/slices/serviceSlice";
+import { FetchCategory } from "@/store/slices/categorySlice";
+import type { ServiceDataType } from "@/store/slices/serviceSlice";
 
-// Service data matching the images
-const serviceData = [
-  {
-    category: "Income Tax Services",
-    services: [
-      {
-        title: "ITR Filing",
-        description: "Complete income tax return filing services for individuals and businesses",
-        icon: "/assests/images/ITNIcon.svg"
-      },
-      {
-        title: "Notice",
-        description: "Handle income tax notices and compliance requirements",
-        icon: "/assests/images/ITNIcon.svg"
-      },
-      {
-        title: "TDS Return Filling",
-        description: "Tax Deducted at Source return filing and compliance",
-        icon: "/assests/images/ITNIcon.svg"
-      }
-    ]
-  },
-  {
-    category: "Goods and Services Tax (GST)",
-    services: [
-      {
-        title: "GST Annual Return",
-        description: "Annual GST return filing and compliance services",
-        icon: "/assests/images/ITNIcon.svg"
-      },
-      {
-        title: "GST Registration",
-        description: "New GST registration and modification services",
-        icon: "/assests/images/ITNIcon.svg"
-      },
-      {
-        title: "Gst Return",
-        description: "Monthly and quarterly GST return filing",
-        icon: "/assests/images/ITNIcon.svg"
-      },
-      {
-        title: "LUT Filing",
-        description: "Letter of Undertaking filing for export services",
-        icon: "/assests/images/ITNIcon.svg"
-      },
-      {
-        title: "GST Notice",
-        description: "GST notice handling and compliance",
-        icon: "/assests/images/ITNIcon.svg"
-      }
-    ]
-  },
-  {
-    category: "Startup Services",
-    services: [
-      {
-        title: "Individual",
-        description: "Individual startup registration and compliance services",
-        icon: "/assests/images/ITNIcon.svg"
-      },
-      {
-        title: "Non-Individual",
-        description: "Corporate startup registration and compliance services",
-        icon: "/assests/images/ITNIcon.svg"
-      }
-    ]
-  },
-  {
-    category: "Compliance Services",
-    services: [
-      {
-        title: "HR compliance",
-        description: "Human resource compliance and documentation services",
-        icon: "/assests/images/ITNIcon.svg"
-      },
-      {
-        title: "Individual and small business",
-        description: "Compliance services for individual and small business entities",
-        icon: "/assests/images/ITNIcon.svg"
-      },
-      {
-        title: "Non-Individual and small business",
-        description: "Compliance services for corporate and large business entities",
-        icon: "/assests/images/ITNIcon.svg"
-      },
-      {
-        title: "Other Compliance",
-        description: "Other regulatory compliance and documentation services",
-        icon: "/assests/images/ITNIcon.svg"
-      }
-    ]
-  },
-  {
-    category: "Intellectual Property Rights (IPR)",
-    services: [
-      {
-        title: "Trademarks",
-        description: "Trademark registration, protection, and renewal services",
-        icon: "/assests/images/ITNIcon.svg"
-      },
-      {
-        title: "Copyright",
-        description: "Copyright registration and protection services",
-        icon: "/assests/images/ITNIcon.svg"
-      },
-      {
-        title: "Patent",
-        description: "Patent filing, registration, and protection services",
-        icon: "/assests/images/ITNIcon.svg"
-      }
-    ]
-  },
-  {
-    category: "Accounting",
-    services: [
-      {
-        title: "Bookkeeping",
-        description: "Professional bookkeeping and accounting services",
-        icon: "/assests/images/ITNIcon.svg"
-      },
-      {
-        title: "Report",
-        description: "Financial reporting and analysis services",
-        icon: "/assests/images/ITNIcon.svg"
-      }
-    ]
-  }
-];
-
-const ServiceCard = ({ title, description, icon }: { title: string; description: string; icon: string }) => {
+const ServiceCard = ({ 
+  service 
+}: { 
+  service: ServiceDataType 
+}) => {
   const router = useRouter();
   
+  // Get description from overview or displayName
+  const description = service.overView?.summarys?.[0] 
+    || service.displayName 
+    || `${service.title} service`;
+  
   const handleClick = () => {
-    // Navigate to specific service page based on title
-    switch (title) {
-      case "ITR Filing":
-        router.push('/services/itr-filing');
-        break;
-      case "Notice":
-        router.push('/our-services/notice');
-        break;
-      case "GST Notice":
-        router.push('/services/gst-notice');
-        break;
-      case "TDS Return Filling":
-        router.push('/services/tds-return-filing');
-        break;
-      case "GST Annual Return":
-        router.push('/services/gst-annual-return');
-        break;
-      case "GST Registration":
-        router.push('/services/gst-registration');
-        break;
-      case "Gst Return":
-        router.push('/services/gst-return');
-        break;
-      case "LUT Filing":
-        router.push('/services/lut-filing');
-        break;
-      case "Individual":
-        router.push('/services/individual-startup');
-        break;
-      case "Non-Individual":
-        router.push('/services/non-individual-startup');
-        break;
-      case "HR compliance":
-        router.push('/services/hr-compliance');
-        break;
-      case "Individual and small business":
-        router.push('/services/individual-small-business');
-        break;
-      case "Non-Individual and small business":
-        router.push('/services/non-individual-small-business');
-        break;
-      case "Other Compliance":
-        router.push('/services/other-compliance');
-        break;
-      case "Trademarks":
-        router.push('/services/trademarks');
-        break;
-      case "Copyright":
-        router.push('/services/copyright');
-        break;
-      case "Patent":
-        router.push('/services/patent');
-        break;
-      case "Bookkeeping":
-        router.push('/services/bookkeeping');
-        break;
-      case "Report":
-        router.push('/services/report');
-        break;
-      default:
-        router.push('/contact-us');
-        break;
+    if (service.Slug) {
+      router.push(`/services/${service.Slug}`);
     }
   };
 
-      return (
+  return (
     <div 
       className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-green-200 hover:-translate-y-1 cursor-pointer"
       onClick={handleClick}
@@ -221,7 +44,7 @@ const ServiceCard = ({ title, description, icon }: { title: string; description:
         <div className="flex items-start gap-3 md:gap-4 mb-4">
           <div className="w-10 h-10 md:w-12 md:h-12 bg-green-200 rounded-lg flex items-center justify-center flex-shrink-0">
             <Image
-              src={icon}
+              src="/assests/images/ITNIcon.svg"
               alt="Service Icon"
               width={24}
               height={24}
@@ -229,8 +52,8 @@ const ServiceCard = ({ title, description, icon }: { title: string; description:
             />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2 leading-tight">{title}</h3>
-            <p className="text-xs md:text-sm text-gray-600 leading-relaxed">{description}</p>
+            <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2 leading-tight">{service.title}</h3>
+            <p className="text-xs md:text-sm text-gray-600 leading-relaxed line-clamp-3">{description}</p>
           </div>
         </div>
         
@@ -300,20 +123,65 @@ const FloatingButtons = () => {
 
 export default function OurServicesPage() {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
   const [currentNav, setCurrentNav] = useState("Services");
+  
+  // Get data from Redux store
+  const { data: services, status: serviceStatus } = useSelector((state: RootState) => state.service);
+  const { data: categories, status: categoryStatus } = useSelector((state: RootState) => state.category);
+
+  // Fetch data on component mount
+  useEffect(() => {
+    dispatch(FetchService());
+    dispatch(FetchCategory());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
+
+  // Group services by category
+  const servicesByCategory = useMemo(() => {
+    if (!services.length || !categories.length) return [];
+
+    return categories
+      .map((category) => {
+        const categoryServices = services.filter(
+          (service) => service.category?.id === category._id && (service as any).status !== "draft"
+        );
+        
+        if (categoryServices.length === 0) return null;
+        
+        return {
+          category: category.title || category.category || "Other Services",
+          categoryId: category._id,
+          services: categoryServices,
+        };
+      })
+      .filter(Boolean) as Array<{
+        category: string;
+        categoryId?: string;
+        services: ServiceDataType[];
+      }>;
+  }, [services, categories]);
+
+  const isLoading = serviceStatus === "loading" || categoryStatus === "loading";
+  const hasError = serviceStatus === "error" || categoryStatus === "error";
 
   return (
     <div className="w-full min-h-screen bg-white">
       {/* Header */}
       <div className="bg-white shadow-sm">
         <NavBar currentNav={currentNav} setCurrentNav={setCurrentNav} />
-        </div>
+      </div>
 
       {/* Breadcrumb */}
       <div className="px-4 md:px-8 lg:px-16 pt-20 pb-4">
         <div className="max-w-7xl mx-auto">
           <nav className="text-sm text-orange-500 mb-6">
-            <span className="hover:text-orange-600 cursor-pointer">Home</span>
+            <span 
+              onClick={() => router.push("/")}
+              className="hover:text-orange-600 cursor-pointer"
+            >
+              Home
+            </span>
             <span className="mx-2">&gt;</span>
             <span className="text-gray-600">Services</span>
           </nav>
@@ -322,33 +190,67 @@ export default function OurServicesPage() {
 
       <div className="px-4 md:px-8 lg:px-16 pb-16">
         <div className="max-w-7xl mx-auto">
-
           <h1 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-center text-gray-900 mb-8 md:mb-12">
             Our Comprehensive Services
           </h1>
         
-          <div className="space-y-12 md:space-y-16">
-            {serviceData.map((section, sectionIndex) => (
-              <div key={sectionIndex} className="w-full">
-                {/* Section Title */}
-                <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-6 md:mb-8 text-left">
-                  {section.category}
-                  </h2>
-
-                {/* Service Cards Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                  {section.services.map((service, serviceIndex) => (
-                    <ServiceCard
-                      key={serviceIndex}
-                      title={service.title}
-                      description={service.description}
-                      icon={service.icon}
-                    />
-                  ))}
-                </div>
+          {/* Loading State */}
+          {isLoading && (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading services...</p>
               </div>
-            ))}
-          </div>
+            </div>
+          )}
+
+          {/* Error State */}
+          {hasError && !isLoading && (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center">
+                <p className="text-red-600 text-xl mb-4">Failed to load services</p>
+                <button
+                  onClick={() => {
+                    dispatch(FetchService());
+                    dispatch(FetchCategory());
+                  }}
+                  className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Services by Category */}
+          {!isLoading && !hasError && (
+            <div className="space-y-12 md:space-y-16">
+              {servicesByCategory.length > 0 ? (
+                servicesByCategory.map((section, sectionIndex) => (
+                  <div key={section.categoryId || sectionIndex} className="w-full">
+                    {/* Section Title */}
+                    <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-6 md:mb-8 text-left">
+                      {section.category}
+                    </h2>
+
+                    {/* Service Cards Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                      {section.services.map((service) => (
+                        <ServiceCard
+                          key={service._id}
+                          service={service}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-20">
+                  <p className="text-gray-600 text-lg">No services available at the moment.</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
