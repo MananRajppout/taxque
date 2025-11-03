@@ -39,6 +39,7 @@ import {
   UpdateService,
   DeleteService,
 } from "@/store/serviceSlice";
+import { FetchCategory } from "@/store/categorySlice";
 
 //data types
 import type {
@@ -46,12 +47,15 @@ import type {
   ServiceInfoValType,
   featureDataType,
   TableState,
+  stepDataType,
+  ELGBTBulletType,
 } from "@/store/serviceSlice";
 
 export default function ServiceSection() {
   const ActivePage = typeof window !== 'undefined' ? localStorage.getItem("ActivePage") : null;
   const dispatch = useDispatch<AppDispatch>();
   const { data, status } = useSelector((state: RootState) => state.service);
+  const { data: categories } = useSelector((state: RootState) => state.category);
   const [loding, setLoading] = useState(false);
   const [createProductSection, setCreateProductSection] = useState<boolean>(false);
 
@@ -78,6 +82,13 @@ export default function ServiceSection() {
   const [whatIsSmmaryData, setWhatIsSmmaryData] = useState<{ summary: string }[]>([
     { summary: "" }
   ]);
+  const [LiData, setLiData] = useState<{ title: string; summary: string }[]>([
+    { title: "", summary: "" },
+  ]);
+  const [whatIsNoticeVal, setWhatIsNoticeVal] = useState({
+    noticeTitle: "",
+    noticeSummary: "",
+  });
 
   //Key Features
   const [keyFeatureTitle, setKeyFeatureTitle] = useState<string>("");
@@ -97,6 +108,16 @@ export default function ServiceSection() {
     { title: "", summary: "" }
   ]);
 
+  //Difference
+  const [differencTitle, setDifferencTitle] = useState<string>("");
+  const [differencSummary, setDifferencSummary] = useState<{ summary: string }[]>([
+    { summary: "" }
+  ]);
+  const [differencTableData, setDifferencTableData] = useState<TableState>({
+    headers: ["Name"],
+    rows: [{ Name: "" }],
+  });
+
   //Documents Required
   const [docRTitle, setDocRTitle] = useState<string>("");
   const [docRSummary, setDocRSummary] = useState<{ summary: string }[]>([
@@ -106,6 +127,53 @@ export default function ServiceSection() {
     headers: ["Name"],
     rows: [{ Name: "" }],
   });
+
+  //MCA Compliance
+  const [MCATitle, setMCATitle] = useState<string>("");
+  const [MCASummary, setMCASummary] = useState<{ summary: string }[]>([
+    { summary: "" }
+  ]);
+  const [MCATable, setMCATable] = useState<TableState>({
+    headers: ["Name"],
+    rows: [{ Name: "" }],
+  });
+
+  //Eligibility
+  const [eligibilityTitle, setEligibilityTitle] = useState<string>("");
+  const [eligibilitySummary, setEligibilitySummary] = useState<{ summary: string }[]>([
+    { summary: "" }
+  ]);
+  const [eligibilityBullet, setEligibilityBullet] = useState<ELGBTBulletType[]>([
+    {
+      title: "",
+      bulletPoints: [{ bullet: "" }],
+    },
+  ]);
+
+  //Threshold Limits
+  const [thresholdTitle, setThresholdTitle] = useState<string>("");
+  const [thresholdSummary, setThresholdSummary] = useState<{ summary: string }[]>([
+    { summary: "" }
+  ]);
+
+  //Due Date
+  const [DueDateTitle, setDueDateTitle] = useState<string>("");
+  const [DueDateSummary, setDueDateSummary] = useState<{ summary: string }[]>([
+    { summary: "" }
+  ]);
+  const [DueDateTable, setDueDateTable] = useState<TableState>({
+    headers: ["Name"],
+    rows: [{ Name: "" }],
+  });
+
+  //Steps
+  const [stepData, setStepData] = useState<stepDataType[]>([
+    {
+      title: "",
+      summary: [{ summary: "" }],
+      steps: [{ step: "" }],
+    },
+  ]);
 
   //Delete state
   const [deleteProductId, setDeleteProductId] = useState<string>();
@@ -128,6 +196,11 @@ export default function ServiceSection() {
   const [overViewUpdateData, setOverViewUpdateData] = useState<{ summary: string }[]>([]);
 
   const [whatIsSmmaryUpdateData, setWhatIsSmmaryUpdateData] = useState<{ summary: string }[]>([]);
+  const [LiUpdateData, setLiUpdateData] = useState<{ title: string; summary: string }[]>([]);
+  const [whatIsNoticeUpdateVal, setWhatIsNoticeUpdateVal] = useState({
+    noticeTitle: "",
+    noticeSummary: "",
+  });
 
   const [keyFeatureUpdateTitle, setKeyFeatureUpdateTitle] = useState<string>("");
   const [keyFeaturesUpdateSammary, setKeyFeaturesUpdateSammary] = useState<{ summary: string }[]>([]);
@@ -138,12 +211,53 @@ export default function ServiceSection() {
   const [benefitUpdateData, setBenefitUpdateData] = useState<{ summary: string }[]>([]);
   const [benefitCardUpdateData, setBenefitCardUpdateData] = useState<featureDataType[]>([]);
 
+  //Difference Update
+  const [differencUpdateTitle, setDifferencUpdateTitle] = useState<string>("");
+  const [differencUpdateSummary, setDifferencUpdateSummary] = useState<{ summary: string }[]>([]);
+  const [differencTableUpdateData, setDifferencTableUpdateData] = useState<TableState>({
+    headers: [],
+    rows: [],
+  });
+
   const [docRUpdateTitle, setDocRUpdateTitle] = useState<string>("");
   const [docRUpdateSummary, setDocRUpdateSummary] = useState<{ summary: string }[]>([]);
   const [docRUpdateTable, setDocRUpdateTable] = useState<TableState>({
     headers: [],
     rows: [],
   });
+
+  //MCA Compliance Update
+  const [MCAUpdateTitle, setMCAUpdateTitle] = useState<string>("");
+  const [MCAUpdateSummary, setMCAUpdateSummary] = useState<{ summary: string }[]>([]);
+  const [MCAUpdateTable, setMCAUpdateTable] = useState<TableState>({
+    headers: [],
+    rows: [],
+  });
+
+  //Eligibility Update
+  const [eligibilityUpdateTitle, setEligibilityUpdateTitle] = useState<string>("");
+  const [eligibilityUpdateSummary, setEligibilityUpdateSummary] = useState<{ summary: string }[]>([]);
+  const [eligibilityUpdateBullet, setEligibilityUpdateBullet] = useState<ELGBTBulletType[]>([
+    {
+      title: "",
+      bulletPoints: [{ bullet: "" }],
+    },
+  ]);
+
+  //Threshold Limits Update
+  const [thresholdUpdateTitle, setThresholdUpdateTitle] = useState<string>("");
+  const [thresholdUpdateSummary, setThresholdUpdateSummary] = useState<{ summary: string }[]>([]);
+
+  //Due Date Update
+  const [DueDateUpdateTitle, setDueDateUpdateTitle] = useState<string>("");
+  const [DueDateUpdateSummary, setDueDateUpdateSummary] = useState<{ summary: string }[]>([]);
+  const [DueDateUpdateTable, setDueDateUpdateTable] = useState<TableState>({
+    headers: [],
+    rows: [],
+  });
+
+  //Steps Update
+  const [stepUpdateData, setStepUpdateData] = useState<stepDataType[]>([]);
 
   
   const handleProductVal = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -278,6 +392,210 @@ export default function ServiceSection() {
     setDocRSummary((prevData) => prevData.slice(0, -1));
   };
 
+  // What Is - LiList handlers
+  const handleAddWhatIsLi = () => {
+    setLiData((prevData) => [
+      ...prevData,
+      { title: "", summary: "" },
+    ]);
+  };
+
+  const handleRemoveWhatIsLi = () => {
+    setLiData((prevData) => prevData.slice(0, -1));
+  };
+
+  const handleWhatIsLiChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    index: number
+  ) => {
+    const { name, value } = e.target;
+    setLiData((prevData) =>
+      prevData.map((item, i) =>
+        i === index ? { ...item, [name]: value } : item
+      )
+    );
+  };
+
+  // Difference handlers
+  const handleAddDifference = () => {
+    setDifferencSummary((prevData) => [
+      ...prevData,
+      { summary: "" },
+    ]);
+  };
+
+  const handleRemoveDifference = () => {
+    setDifferencSummary((prevData) => prevData.slice(0, -1));
+  };
+
+  // MCA Compliance handlers
+  const handleAddMCA = () => {
+    setMCASummary((prevData) => [
+      ...prevData,
+      { summary: "" },
+    ]);
+  };
+
+  const handleRemoveMCA = () => {
+    setMCASummary((prevData) => prevData.slice(0, -1));
+  };
+
+  // Eligibility handlers
+  const handleAddEligibility = () => {
+    setEligibilitySummary((prevData) => [
+      ...prevData,
+      { summary: "" },
+    ]);
+  };
+
+  const handleRemoveEligibility = () => {
+    setEligibilitySummary((prevData) => prevData.slice(0, -1));
+  };
+
+  const handleAddEligibilityBullet = () => {
+    setEligibilityBullet((prevData) => [
+      ...prevData,
+      {
+        title: "",
+        bulletPoints: [{ bullet: "" }],
+      },
+    ]);
+  };
+
+  const handleRemoveEligibilityBullet = () => {
+    setEligibilityBullet((prevData) => prevData.slice(0, -1));
+  };
+
+  const handleAddEligibilityBulletPoint = (index: number) => {
+    setEligibilityBullet((prevData) =>
+      prevData.map((item, i) =>
+        i === index
+          ? { ...item, bulletPoints: [...item.bulletPoints, { bullet: "" }] }
+          : item
+      )
+    );
+  };
+
+  const handleEligibilityBulletChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    bulletIndex: number,
+    itemIndex: number
+  ) => {
+    const { value } = e.target;
+    setEligibilityBullet((prevData) =>
+      prevData.map((item, i) =>
+        i === itemIndex
+          ? {
+              ...item,
+              bulletPoints: item.bulletPoints.map((bp, bi) =>
+                bi === bulletIndex ? { bullet: value } : bp
+              ),
+            }
+          : item
+      )
+    );
+  };
+
+  const handleEligibilityBulletTitleChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    const { value } = e.target;
+    setEligibilityBullet((prevData) =>
+      prevData.map((item, i) =>
+        i === index ? { ...item, title: value } : item
+      )
+    );
+  };
+
+  // Threshold Limits handlers
+  const handleAddThreshold = () => {
+    setThresholdSummary((prevData) => [
+      ...prevData,
+      { summary: "" },
+    ]);
+  };
+
+  const handleRemoveThreshold = () => {
+    setThresholdSummary((prevData) => prevData.slice(0, -1));
+  };
+
+  // Due Date handlers
+  const handleAddDueDate = () => {
+    setDueDateSummary((prevData) => [
+      ...prevData,
+      { summary: "" },
+    ]);
+  };
+
+  const handleRemoveDueDate = () => {
+    setDueDateSummary((prevData) => prevData.slice(0, -1));
+  };
+
+  // Steps handlers
+  const handleAddStep = () => {
+    setStepData((prevData) => [
+      ...prevData,
+      {
+        title: "",
+        summary: [{ summary: "" }],
+        steps: [{ step: "" }],
+      },
+    ]);
+  };
+
+  const handleRemoveStep = () => {
+    setStepData((prevData) => prevData.slice(0, -1));
+  };
+
+  const handleAddStepSummary = (index: number) => {
+    setStepData((prevData) =>
+      prevData.map((item, i) =>
+        i === index
+          ? { ...item, summary: [...item.summary, { summary: "" }] }
+          : item
+      )
+    );
+  };
+
+  const handleAddStepItem = (index: number) => {
+    setStepData((prevData) =>
+      prevData.map((item, i) =>
+        i === index
+          ? { ...item, steps: [...item.steps, { step: "" }] }
+          : item
+      )
+    );
+  };
+
+  const handleStepChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    stepIndex: number,
+    field: "title" | "summary" | "step",
+    summaryIndex?: number
+  ) => {
+    const { value } = e.target;
+    setStepData((prevData) =>
+      prevData.map((item, i) => {
+        if (i !== stepIndex) return item;
+        if (field === "title") {
+          return { ...item, title: value };
+        }
+        if (field === "summary" && summaryIndex !== undefined) {
+          const newSummary = [...item.summary];
+          newSummary[summaryIndex] = { summary: value };
+          return { ...item, summary: newSummary };
+        }
+        if (field === "step" && summaryIndex !== undefined) {
+          const newSteps = [...item.steps];
+          newSteps[summaryIndex] = { step: value };
+          return { ...item, steps: newSteps };
+        }
+        return item;
+      })
+    );
+  };
+
   
   const postServiceData = async () => {
     GoTop();
@@ -304,7 +622,12 @@ export default function ServiceSection() {
         displayName: productVal?.displayName,
         metaTitle: productVal?.metaTitle,
         metaDescription: productVal?.metaDescription,
-        category: { title: categoryDropVal || "General", id: categoryDropVal || "general" },
+        category: (() => {
+          const selectedCategory = categories.find(cat => cat.title === categoryDropVal);
+          return selectedCategory 
+            ? { title: selectedCategory.title, id: selectedCategory._id || selectedCategory.Slug || selectedCategory.title }
+            : { title: categoryDropVal || "General", id: categoryDropVal || "general" };
+        })(),
         feturePoints: featureData,
         overView: {
           title: overViewTitle,
@@ -312,8 +635,8 @@ export default function ServiceSection() {
         },
         whatIs: {
           summarys: whatIsSmmaryData.map(item => item.summary),
-          liList: [],
-          Notice: { noticeTitle: "", noticeSummary: "" },
+          liList: LiData,
+          Notice: whatIsNoticeVal,
         },
         keyFeature: {
           title: keyFeatureTitle,
@@ -330,6 +653,31 @@ export default function ServiceSection() {
           summarys: docRSummary.map(item => item.summary),
           tableData: docRTable,
         },
+        difference: {
+          title: differencTitle,
+          summarys: differencSummary.map(item => item.summary),
+          tableData: differencTableData,
+        },
+        MCACompliance: {
+          title: MCATitle,
+          summarys: MCASummary.map(item => item.summary),
+          tableData: MCATable,
+        },
+        Eligibility: {
+          title: eligibilityTitle,
+          summarys: eligibilitySummary.map(item => item.summary),
+          eligibilityPoints: eligibilityBullet,
+        },
+        ThresholdLimits: {
+          title: thresholdTitle,
+          summarys: thresholdSummary.map(item => item.summary),
+        },
+        DueDate: {
+          title: DueDateTitle,
+          summarys: DueDateSummary.map(item => item.summary),
+          tableData: DueDateTable,
+        },
+        Steps: stepData,
       })  
     );
   };
@@ -351,6 +699,8 @@ export default function ServiceSection() {
     setOverViewUpdateData(data[index]?.overView?.summarys?.map(s => ({ summary: s })) || []);
     
     setWhatIsSmmaryUpdateData(data[index]?.whatIs?.summarys?.map(s => ({ summary: s })) || []);
+    setLiUpdateData(data[index]?.whatIs?.liList || []);
+    setWhatIsNoticeUpdateVal(data[index]?.whatIs?.Notice || { noticeTitle: "", noticeSummary: "" });
     
     setKeyFeatureUpdateTitle(data[index]?.keyFeature?.title || "");
     setKeyFeaturesUpdateSammary(data[index]?.keyFeature?.summarys?.map(s => ({ summary: s })) || []);
@@ -363,6 +713,30 @@ export default function ServiceSection() {
     setDocRUpdateTitle(data[index]?.documentsRequired?.title || "");
     setDocRUpdateSummary(data[index]?.documentsRequired?.summarys?.map(s => ({ summary: s })) || []);
     setDocRUpdateTable(data[index]?.documentsRequired?.tableData || { headers: [], rows: [] } as TableState);
+    
+    setDifferencUpdateTitle(data[index]?.difference?.title || "");
+    setDifferencUpdateSummary(data[index]?.difference?.summarys?.map(s => ({ summary: s })) || []);
+    setDifferencTableUpdateData(data[index]?.difference?.tableData || { headers: [], rows: [] } as TableState);
+    
+    setMCAUpdateTitle(data[index]?.MCACompliance?.title || "");
+    setMCAUpdateSummary(data[index]?.MCACompliance?.summarys?.map(s => ({ summary: s })) || []);
+    setMCAUpdateTable(data[index]?.MCACompliance?.tableData || { headers: [], rows: [] } as TableState);
+    
+    setEligibilityUpdateTitle(data[index]?.Eligibility?.title || "");
+    setEligibilityUpdateSummary(data[index]?.Eligibility?.summarys?.map(s => ({ summary: s })) || []);
+    setEligibilityUpdateBullet(data[index]?.Eligibility?.eligibilityPoints || [{
+      title: "",
+      bulletPoints: [{ bullet: "" }],
+    }]);
+    
+    setThresholdUpdateTitle(data[index]?.ThresholdLimits?.title || "");
+    setThresholdUpdateSummary(data[index]?.ThresholdLimits?.summarys?.map(s => ({ summary: s })) || []);
+    
+    setDueDateUpdateTitle(data[index]?.DueDate?.title || "");
+    setDueDateUpdateSummary(data[index]?.DueDate?.summarys?.map(s => ({ summary: s })) || []);
+    setDueDateUpdateTable(data[index]?.DueDate?.tableData || { headers: [], rows: [] } as TableState);
+    
+    setStepUpdateData(data[index]?.Steps || []);
     
     setFeatureUpdateData(data[index]?.feturePoints || []);
   };
@@ -405,6 +779,31 @@ export default function ServiceSection() {
             summarys: docRUpdateSummary.map(item => item.summary),
             tableData: docRUpdateTable,
           },
+          difference: {
+            title: differencUpdateTitle,
+            summarys: differencUpdateSummary.map(item => item.summary),
+            tableData: differencTableUpdateData,
+          },
+          MCACompliance: {
+            title: MCAUpdateTitle,
+            summarys: MCAUpdateSummary.map(item => item.summary),
+            tableData: MCAUpdateTable,
+          },
+          Eligibility: {
+            title: eligibilityUpdateTitle,
+            summarys: eligibilityUpdateSummary.map(item => item.summary),
+            eligibilityPoints: eligibilityUpdateBullet,
+          },
+          ThresholdLimits: {
+            title: thresholdUpdateTitle,
+            summarys: thresholdUpdateSummary.map(item => item.summary),
+          },
+          DueDate: {
+            title: DueDateUpdateTitle,
+            summarys: DueDateUpdateSummary.map(item => item.summary),
+            tableData: DueDateUpdateTable,
+          },
+          Steps: stepUpdateData,
         },
         id: data[updateIndex]?._id,
       })
@@ -426,6 +825,7 @@ export default function ServiceSection() {
 
   useEffect(() => {
     dispatch(FetchService());
+    dispatch(FetchCategory());
     if (data?.length < 0) {
       dispatch(FetchService());
     }
@@ -435,7 +835,7 @@ export default function ServiceSection() {
     <>
       <div
         className={`p-6 bg-white rounded-lg shadow-sm ${
-          ActivePage === "Service List" ? "border-l-4 border-blue-500" : ""
+          (ActivePage === "Published Services" || ActivePage === "Services") ? "border-l-4 border-blue-500" : ""
         }`}
       >
         {/* Loader */}
@@ -530,7 +930,7 @@ export default function ServiceSection() {
                     <p className="text-lg mb-2">Category</p>
                     <DropBox
                       setDropVal={setCategoryDropVal}
-                      list={["Tax Services", "Business Services", "Legal Services", "General"]}
+                      list={categories.length > 0 ? categories.map(cat => cat.title) : ["Tax Services", "Business Services", "Legal Services", "General"]}
                       defaultVal="Select Category"
                     />
                   </div>
@@ -673,6 +1073,64 @@ export default function ServiceSection() {
                         onClick={handleRemoveWhatIs}
                       />
                     )}
+                  </div>
+
+                  {/* What Is LiList */}
+                  <div className="w-full mt-4">
+                    <p className="text-lg mb-2">What Is List Items</p>
+                    <div className="w-full flex flex-row flex-wrap gap-4">
+                      {LiData?.map((item, i) => (
+                        <div key={i} className="w-full sm:w-48 border border-blue-400 p-4 rounded-2xl">
+                          <input
+                            className="w-full h-8 border border-gray-300 rounded pl-2 mb-2"
+                            type="text"
+                            name="title"
+                            value={item.title}
+                            onChange={(e) => handleWhatIsLiChange(e, i)}
+                            placeholder="List Item Title"
+                          />
+                          <textarea
+                            className="w-full h-20 border border-gray-300 rounded pl-2"
+                            name="summary"
+                            value={item.summary}
+                            onChange={(e) => handleWhatIsLiChange(e, i)}
+                            placeholder="List Item Description"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <div className="w-full flex flex-row gap-4 mt-4">
+                      <AddMoreBtn
+                        icon={Images.addIconV2}
+                        btnText="Add List Item"
+                        onClick={handleAddWhatIsLi}
+                      />
+                      {LiData.length > 1 && (
+                        <RemoveBtn
+                          icon={Images.removeIcon}
+                          btnText="Remove"
+                          onClick={handleRemoveWhatIsLi}
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* What Is Notice */}
+                  <div className="w-full mt-4">
+                    <p className="text-lg mb-2">What Is Notice</p>
+                    <input
+                      className="w-full h-11 border border-gray-300 rounded overflow-hidden pl-2 mb-2"
+                      type="text"
+                      value={whatIsNoticeVal.noticeTitle}
+                      onChange={(e) => setWhatIsNoticeVal({ ...whatIsNoticeVal, noticeTitle: e.target.value })}
+                      placeholder="Notice Title"
+                    />
+                    <textarea
+                      className="w-full h-20 border border-gray-300 rounded pl-2"
+                      value={whatIsNoticeVal.noticeSummary}
+                      onChange={(e) => setWhatIsNoticeVal({ ...whatIsNoticeVal, noticeSummary: e.target.value })}
+                      placeholder="Notice Summary"
+                    />
                   </div>
                 </div>
 
@@ -881,6 +1339,355 @@ export default function ServiceSection() {
                       tableData={docRTable}
                       setTableData={setDocRTable}
                     />
+                  </div>
+                </div>
+
+                {/* Difference */}
+                <div className="w-full">
+                  <p className="text-lg mb-2">Difference Title</p>
+                  <input
+                    className="w-full h-11 border border-gray-300 rounded overflow-hidden pl-2 mb-2"
+                    type="text"
+                    value={differencTitle}
+                    onChange={(e) => setDifferencTitle(e.target.value)}
+                    placeholder="Enter Difference Title"
+                  />
+                  
+                  <div className="w-full flex flex-col gap-2 mb-4">
+                    {differencSummary?.map((item, i) => (
+                      <textarea
+                        key={i}
+                        className="w-full h-20 border border-gray-300 rounded pl-2"
+                        value={item.summary}
+                        onChange={(e) => {
+                          const newData = [...differencSummary];
+                          newData[i].summary = e.target.value;
+                          setDifferencSummary(newData);
+                        }}
+                        placeholder="Difference Description"
+                      />
+                    ))}
+                  </div>
+                  
+                  <div className="w-full flex flex-row gap-4 mb-4">
+                    <AddMoreBtn
+                      icon={Images.addIconV2}
+                      btnText="Add Difference Info"
+                      onClick={handleAddDifference}
+                    />
+                    {differencSummary.length > 1 && (
+                      <RemoveBtn
+                        icon={Images.removeIcon}
+                        btnText="Remove"
+                        onClick={handleRemoveDifference}
+                      />
+                    )}
+                  </div>
+
+                  <div className="w-full flex flex-col overflow-y-scroll mt-5">
+                    <DynamicTable
+                      tableData={differencTableData}
+                      setTableData={setDifferencTableData}
+                    />
+                  </div>
+                </div>
+
+                {/* MCA Compliance */}
+                <div className="w-full">
+                  <p className="text-lg mb-2">MCA Compliance Title</p>
+                  <input
+                    className="w-full h-11 border border-gray-300 rounded overflow-hidden pl-2 mb-2"
+                    type="text"
+                    value={MCATitle}
+                    onChange={(e) => setMCATitle(e.target.value)}
+                    placeholder="Enter MCA Compliance Title"
+                  />
+                  
+                  <div className="w-full flex flex-col gap-2 mb-4">
+                    {MCASummary?.map((item, i) => (
+                      <textarea
+                        key={i}
+                        className="w-full h-20 border border-gray-300 rounded pl-2"
+                        value={item.summary}
+                        onChange={(e) => {
+                          const newData = [...MCASummary];
+                          newData[i].summary = e.target.value;
+                          setMCASummary(newData);
+                        }}
+                        placeholder="MCA Compliance Description"
+                      />
+                    ))}
+                  </div>
+                  
+                  <div className="w-full flex flex-row gap-4 mb-4">
+                    <AddMoreBtn
+                      icon={Images.addIconV2}
+                      btnText="Add MCA Info"
+                      onClick={handleAddMCA}
+                    />
+                    {MCASummary.length > 1 && (
+                      <RemoveBtn
+                        icon={Images.removeIcon}
+                        btnText="Remove"
+                        onClick={handleRemoveMCA}
+                      />
+                    )}
+                  </div>
+
+                  <div className="w-full flex flex-col overflow-y-scroll mt-5">
+                    <DynamicTable
+                      tableData={MCATable}
+                      setTableData={setMCATable}
+                    />
+                  </div>
+                </div>
+
+                {/* Eligibility */}
+                <div className="w-full">
+                  <p className="text-lg mb-2">Eligibility Title</p>
+                  <input
+                    className="w-full h-11 border border-gray-300 rounded overflow-hidden pl-2 mb-2"
+                    type="text"
+                    value={eligibilityTitle}
+                    onChange={(e) => setEligibilityTitle(e.target.value)}
+                    placeholder="Enter Eligibility Title"
+                  />
+                  
+                  <div className="w-full flex flex-col gap-2 mb-4">
+                    {eligibilitySummary?.map((item, i) => (
+                      <textarea
+                        key={i}
+                        className="w-full h-20 border border-gray-300 rounded pl-2"
+                        value={item.summary}
+                        onChange={(e) => {
+                          const newData = [...eligibilitySummary];
+                          newData[i].summary = e.target.value;
+                          setEligibilitySummary(newData);
+                        }}
+                        placeholder="Eligibility Description"
+                      />
+                    ))}
+                  </div>
+                  
+                  <div className="w-full flex flex-row gap-4 mb-4">
+                    <AddMoreBtn
+                      icon={Images.addIconV2}
+                      btnText="Add Eligibility Info"
+                      onClick={handleAddEligibility}
+                    />
+                    {eligibilitySummary.length > 1 && (
+                      <RemoveBtn
+                        icon={Images.removeIcon}
+                        btnText="Remove"
+                        onClick={handleRemoveEligibility}
+                      />
+                    )}
+                  </div>
+
+                  {/* Eligibility Bullet Points */}
+                  <div className="w-full mt-4">
+                    <p className="text-lg mb-2">Eligibility Bullet Points</p>
+                    {eligibilityBullet?.map((item, itemIndex) => (
+                      <div key={itemIndex} className="w-full border border-purple-400 p-4 rounded-2xl mb-4">
+                        <input
+                          className="w-full h-8 border border-gray-300 rounded pl-2 mb-2"
+                          type="text"
+                          value={item.title}
+                          onChange={(e) => handleEligibilityBulletTitleChange(e, itemIndex)}
+                          placeholder="Bullet Point Title"
+                        />
+                        {item.bulletPoints?.map((bullet, bulletIndex) => (
+                          <input
+                            key={bulletIndex}
+                            className="w-full h-8 border border-gray-300 rounded pl-2 mb-2"
+                            type="text"
+                            value={bullet.bullet}
+                            onChange={(e) => handleEligibilityBulletChange(e, bulletIndex, itemIndex)}
+                            placeholder="Bullet Point"
+                          />
+                        ))}
+                        <div className="flex gap-2 mt-2">
+                          <AddMoreBtn
+                            icon={Images.addIconV2}
+                            btnText="Add Bullet"
+                            onClick={() => handleAddEligibilityBulletPoint(itemIndex)}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    <div className="w-full flex flex-row gap-4 mt-4">
+                      <AddMoreBtn
+                        icon={Images.addIconV2}
+                        btnText="Add Bullet Group"
+                        onClick={handleAddEligibilityBullet}
+                      />
+                      {eligibilityBullet.length > 1 && (
+                        <RemoveBtn
+                          icon={Images.removeIcon}
+                          btnText="Remove"
+                          onClick={handleRemoveEligibilityBullet}
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Threshold Limits */}
+                <div className="w-full">
+                  <p className="text-lg mb-2">Threshold Limits Title</p>
+                  <input
+                    className="w-full h-11 border border-gray-300 rounded overflow-hidden pl-2 mb-2"
+                    type="text"
+                    value={thresholdTitle}
+                    onChange={(e) => setThresholdTitle(e.target.value)}
+                    placeholder="Enter Threshold Limits Title"
+                  />
+                  
+                  <div className="w-full flex flex-col gap-2 mb-4">
+                    {thresholdSummary?.map((item, i) => (
+                      <textarea
+                        key={i}
+                        className="w-full h-20 border border-gray-300 rounded pl-2"
+                        value={item.summary}
+                        onChange={(e) => {
+                          const newData = [...thresholdSummary];
+                          newData[i].summary = e.target.value;
+                          setThresholdSummary(newData);
+                        }}
+                        placeholder="Threshold Limits Description"
+                      />
+                    ))}
+                  </div>
+                  
+                  <div className="w-full flex flex-row gap-4 mb-4">
+                    <AddMoreBtn
+                      icon={Images.addIconV2}
+                      btnText="Add Threshold Info"
+                      onClick={handleAddThreshold}
+                    />
+                    {thresholdSummary.length > 1 && (
+                      <RemoveBtn
+                        icon={Images.removeIcon}
+                        btnText="Remove"
+                        onClick={handleRemoveThreshold}
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* Due Date */}
+                <div className="w-full">
+                  <p className="text-lg mb-2">Due Date Title</p>
+                  <input
+                    className="w-full h-11 border border-gray-300 rounded overflow-hidden pl-2 mb-2"
+                    type="text"
+                    value={DueDateTitle}
+                    onChange={(e) => setDueDateTitle(e.target.value)}
+                    placeholder="Enter Due Date Title"
+                  />
+                  
+                  <div className="w-full flex flex-col gap-2 mb-4">
+                    {DueDateSummary?.map((item, i) => (
+                      <textarea
+                        key={i}
+                        className="w-full h-20 border border-gray-300 rounded pl-2"
+                        value={item.summary}
+                        onChange={(e) => {
+                          const newData = [...DueDateSummary];
+                          newData[i].summary = e.target.value;
+                          setDueDateSummary(newData);
+                        }}
+                        placeholder="Due Date Description"
+                      />
+                    ))}
+                  </div>
+                  
+                  <div className="w-full flex flex-row gap-4 mb-4">
+                    <AddMoreBtn
+                      icon={Images.addIconV2}
+                      btnText="Add Due Date Info"
+                      onClick={handleAddDueDate}
+                    />
+                    {DueDateSummary.length > 1 && (
+                      <RemoveBtn
+                        icon={Images.removeIcon}
+                        btnText="Remove"
+                        onClick={handleRemoveDueDate}
+                      />
+                    )}
+                  </div>
+
+                  <div className="w-full flex flex-col overflow-y-scroll mt-5">
+                    <DynamicTable
+                      tableData={DueDateTable}
+                      setTableData={setDueDateTable}
+                    />
+                  </div>
+                </div>
+
+                {/* Steps */}
+                <div className="w-full">
+                  <p className="text-lg mb-2">Steps</p>
+                  {stepData?.map((step, stepIndex) => (
+                    <div key={stepIndex} className="w-full border border-indigo-400 p-4 rounded-2xl mb-4">
+                      <input
+                        className="w-full h-8 border border-gray-300 rounded pl-2 mb-2"
+                        type="text"
+                        value={step.title}
+                        onChange={(e) => handleStepChange(e, stepIndex, "title")}
+                        placeholder="Step Title"
+                      />
+                      
+                      <div className="w-full flex flex-col gap-2 mb-2">
+                        {step.summary?.map((sum, sumIndex) => (
+                          <textarea
+                            key={sumIndex}
+                            className="w-full h-20 border border-gray-300 rounded pl-2"
+                            value={sum.summary}
+                            onChange={(e) => handleStepChange(e, stepIndex, "summary", sumIndex)}
+                            placeholder="Step Summary"
+                          />
+                        ))}
+                        <AddMoreBtn
+                          icon={Images.addIconV2}
+                          btnText="Add Summary"
+                          onClick={() => handleAddStepSummary(stepIndex)}
+                        />
+                      </div>
+
+                      <div className="w-full flex flex-col gap-2 mb-2">
+                        {step.steps?.map((stepItem, stepItemIndex) => (
+                          <input
+                            key={stepItemIndex}
+                            className="w-full h-8 border border-gray-300 rounded pl-2"
+                            type="text"
+                            value={stepItem.step}
+                            onChange={(e) => handleStepChange(e, stepIndex, "step", stepItemIndex)}
+                            placeholder="Step Item"
+                          />
+                        ))}
+                        <AddMoreBtn
+                          icon={Images.addIconV2}
+                          btnText="Add Step Item"
+                          onClick={() => handleAddStepItem(stepIndex)}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <div className="w-full flex flex-row gap-4 mt-4">
+                    <AddMoreBtn
+                      icon={Images.addIconV2}
+                      btnText="Add Step"
+                      onClick={handleAddStep}
+                    />
+                    {stepData.length > 1 && (
+                      <RemoveBtn
+                        icon={Images.removeIcon}
+                        btnText="Remove"
+                        onClick={handleRemoveStep}
+                      />
+                    )}
                   </div>
                 </div>
               </div>

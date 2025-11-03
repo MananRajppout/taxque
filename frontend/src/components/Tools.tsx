@@ -567,6 +567,30 @@ export const JobCard = ({
   );
 };
 
+// Features Card Component
+export const FeaturesCard = ({ title, summary, className = "" }: FeaturesProps) => {
+  return (
+    <div className={`bg-white rounded-xl p-6 shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300 ${className}`}>
+      <Image src={featuresIcon} alt="Feature" width={40} height={40} className="mb-4" />
+      <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+      <div className="w-full h-px bg-gray-200 mb-3"></div>
+      <p className="text-sm text-gray-600 leading-relaxed">{summary}</p>
+    </div>
+  );
+};
+
+// Benefits Card Component
+export const BenefitsCard = ({ title, summary, index, className = "" }: BenefitsProps) => {
+  return (
+    <div className={`bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-5 border border-green-200 hover:shadow-md transition-shadow duration-300 ${className}`}>
+      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        {index + 1}. {title}
+      </h3>
+      <p className="text-sm text-gray-600 leading-relaxed">{summary}</p>
+    </div>
+  );
+};
+
 // GoTop component
 interface GoTopProps {
   className?: string;

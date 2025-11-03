@@ -90,6 +90,10 @@ export default function SideMenu({ setActivePage }: SidebarProps) {
       subTitle: [{ title: "Posts" }, { title: "Categories" }, { title: "Tags" }],
     },
     {
+      title: "Chats",
+      subTitle: [{ title: "Chats" }],
+    },
+    {
       title: "Payment",
       subTitle: [{ title: "Payment List" }],
     },
@@ -101,6 +105,7 @@ export default function SideMenu({ setActivePage }: SidebarProps) {
       title: "Product",
       subTitle: [
         { title: "Category" },
+        { title: "Services" },
         { title: "Published Services" },
         { title: "Draft Services" },
       ],

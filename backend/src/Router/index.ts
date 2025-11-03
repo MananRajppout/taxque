@@ -106,6 +106,15 @@ const {
 
 } = require("../Controller/Application")
 
+//Chat
+const {
+  getAllChats,
+  getChatById,
+  getChatByUserEmail,
+  createChat,
+  updateChatStatus,
+} = require("../Controller/chat");
+
 //review
 // const { getAccounts } = require("../Controller/GoogleReview")
 
@@ -237,5 +246,12 @@ router.post("/application/delete/:id", deleteApplication);
 
 //file
 router.post("/blob", express.raw({ type: "*/*", limit: "50mb" }), HandleFile);
+
+//Chat routes
+router.get("/chats", getAllChats);
+router.get("/chat/:id", getChatById);
+router.post("/chat/get-by-email", getChatByUserEmail);
+router.post("/chat/create", createChat);
+router.post("/chat/update-status/:id", updateChatStatus);
 
 export default router;

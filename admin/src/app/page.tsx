@@ -18,6 +18,7 @@ import Users from "@/components/Users";
 import ContactUs from "@/components/ContactUser/ContactUs";
 import BlogLead from "@/components/ContactUser/Blog";
 import ServiceLead from "@/components/ContactUser/Service";
+import ChatsSection from "@/components/ChatsSection";
 import { toast } from "react-toastify";
 
 import { ToastContainer } from "react-toastify";
@@ -154,7 +155,7 @@ export default function Home() {
         <div className="w-full min-h-screen bg-white relative">
           <SideMenu setActivePage={setActivePage} />
           <div className="w-[calc(100%-250px)] ml-0 lg:ml-[250px] min-h-screen bg-gray-50 transition-all duration-300">
-            <div className="w-full h-screen p-3 overflow-y-auto">
+            <div className={`w-full h-screen ${activePage === "Chats" ? "p-0" : "p-3"} overflow-y-auto`}>
              
               {activePage === "View Analytics" && (
                 <div className="p-6 bg-white rounded-lg shadow-sm">
@@ -224,6 +225,7 @@ export default function Home() {
 
              
               {activePage === "Category" && <CategorySection />}
+              {activePage === "Services" && <ServiceSection />}
               {activePage === "Published Services" && <ServiceSection />}
               {activePage === "Draft Services" && (
                 <div className="p-6 bg-white rounded-lg shadow-sm">
@@ -273,6 +275,8 @@ export default function Home() {
                   <p className="text-gray-600">Active referral users will be displayed here.</p>
                 </div>
               )}
+
+              {activePage === "Chats" && <ChatsSection />}
             </div>
           </div>
         </div>
