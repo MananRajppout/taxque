@@ -45,7 +45,7 @@ const ChatsSection = () => {
 
   // Get API URL
   const getAPIURL = () => {
-    return process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/taxque/api";
+    return process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000/taxque/api";
   };
 
   // Get Socket URL

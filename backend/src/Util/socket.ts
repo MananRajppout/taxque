@@ -13,6 +13,8 @@ export const initializeSocket = (server: HttpServer) => {
         "https://f.taxque.in",
         "https://b.taxque.in",
         "https://server.taxque.in",
+        "https://taxquee.rafikyconnect.net",
+        "https://taxquee.rafikyconnect.net/",
       ],
       credentials: true,
     },

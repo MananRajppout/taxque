@@ -49,7 +49,10 @@ const allowedOrigins = [
   "http://localhost:5174",
   // ✅ ADD: EB domain to allowed origins
   "http://taxqueserver-env.eba-zhia3ukp.ap-south-1.elasticbeanstalk.com",
-  "https://taxqueserver-env.eba-zhia3ukp.ap-south-1.elasticbeanstalk.com"
+  "https://taxqueserver-env.eba-zhia3ukp.ap-south-1.elasticbeanstalk.com",
+  // ✅ ADD: Frontend deployed domain
+  "https://taxquee.rafikyconnect.net",
+  "https://taxquee.rafikyconnect.net/",
 ];
 
 mongoose
