@@ -3,12 +3,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 interface Message {
   _id?: string;
   sender: "user" | "admin";
   message: string;
   timestamp: Date | string;
+  readAt?: Date | string | null;
 }
 
 interface ChatUser {
@@ -19,6 +21,7 @@ interface ChatUser {
   lastMessage: string;
   date: string;
   status: string;
+  escalated?: boolean;
   unreadCount?: number;
 }
 
@@ -38,10 +41,13 @@ const ChatsSection = () => {
   const [currentChat, setCurrentChat] = useState<ChatData | null>(null);
   const [replyMessage, setReplyMessage] = useState("");
   const [isConnected, setIsConnected] = useState(false);
+  const [isUserTyping, setIsUserTyping] = useState(false);
   const socketRef = useRef<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const selectedChatRef = useRef<string | null>(null);
   const currentChatRef = useRef<ChatData | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastTypingEmitRef = useRef<number>(0);
 
   // Get API URL
   const getAPIURL = () => {
@@ -72,6 +78,21 @@ const ChatsSection = () => {
       const response = await axios.get(`${getAPIURL()}/chat/${chatId}`);
       if (response.data.success) {
         setCurrentChat(response.data.chat);
+        
+        // Mark user messages as read when chat is opened
+        const userMessageIds = response.data.chat.messages
+          .filter((msg: Message) => msg.sender === "user" && !msg.readAt)
+          .map((msg: Message) => msg._id);
+        
+        if (userMessageIds.length > 0 && socketRef.current) {
+          setTimeout(() => {
+            socketRef.current?.emit("message-read", {
+              chatId,
+              messageIds: userMessageIds,
+              reader: "admin",
+            });
+          }, 500);
+        }
       }
     } catch (error) {
       console.error("Error fetching chat:", error);
@@ -117,9 +138,26 @@ const ChatsSection = () => {
         setCurrentChat((prev) => {
           // If currentChat exists and matches, append the message
           if (prev && prev._id === data.chatId) {
+            const updatedMessages = [...prev.messages, data.message];
+            
+            // Mark user messages as read when they arrive (admin sees them immediately)
+            const userMessageIds = updatedMessages
+              .filter((msg) => msg.sender === "user" && !msg.readAt && msg._id)
+              .map((msg) => msg._id!);
+            
+            if (userMessageIds.length > 0) {
+              setTimeout(() => {
+                socketRef.current?.emit("message-read", {
+                  chatId: data.chatId,
+                  messageIds: userMessageIds,
+                  reader: "admin",
+                });
+              }, 100);
+            }
+            
             return {
               ...prev,
-              messages: [...prev.messages, data.message],
+              messages: updatedMessages,
             };
           }
           // If currentChat doesn't exist yet, fetch the full chat
@@ -155,6 +193,43 @@ const ChatsSection = () => {
       // Use ref to get latest value (not closure value)
       if (selectedChatRef.current === chat._id) {
         setCurrentChat(chat);
+      }
+    });
+
+    socket.on("chat-escalated", (data: { chatId: string; reason: string }) => {
+      // Update chat list to show escalated status
+      setChats((prev) =>
+        prev.map((chat) =>
+          chat.id === data.chatId ? { ...chat, escalated: true } : chat
+        )
+      );
+      
+      // Show notification
+      toast.warning(`Chat escalated: ${data.reason}`);
+    });
+
+    socket.on("user-typing", (data: { chatId: string; isTyping: boolean }) => {
+      // Only show typing indicator if this is the selected chat
+      if (selectedChatRef.current === data.chatId) {
+        setIsUserTyping(data.isTyping);
+      }
+    });
+
+    socket.on("messages-read", (data: { chatId: string; messageIds: string[] }) => {
+      // Update read status for admin messages
+      if (selectedChatRef.current === data.chatId && currentChatRef.current) {
+        setCurrentChat((prev) => {
+          if (!prev || prev._id !== data.chatId) return prev;
+          return {
+            ...prev,
+            messages: prev.messages.map((msg) => {
+              if (msg.sender === "admin" && msg._id && data.messageIds.includes(msg._id)) {
+                return { ...msg, readAt: new Date() };
+              }
+              return msg;
+            }),
+          };
+        });
       }
     });
 
@@ -194,9 +269,52 @@ const ChatsSection = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [currentChat?.messages]);
 
+  const handleTyping = () => {
+    if (!socketRef.current || !isConnected || !selectedChat) return;
+
+    const now = Date.now();
+    // Throttle typing events (emit max once per 2 seconds)
+    if (now - lastTypingEmitRef.current < 2000) {
+      return;
+    }
+
+    lastTypingEmitRef.current = now;
+    socketRef.current.emit("typing-start", {
+      chatId: selectedChat,
+      sender: "admin",
+    });
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Stop typing indicator after 3 seconds of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      if (socketRef.current && selectedChat) {
+        socketRef.current.emit("typing-stop", {
+          chatId: selectedChat,
+          sender: "admin",
+        });
+      }
+    }, 3000);
+  };
+
   // Handle send reply
   const handleSendReply = () => {
     if (!replyMessage.trim() || !selectedChat || !socketRef.current) return;
+
+    // Stop typing indicator
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+    if (socketRef.current && selectedChat) {
+      socketRef.current.emit("typing-stop", {
+        chatId: selectedChat,
+        sender: "admin",
+      });
+    }
 
     socketRef.current.emit("admin-reply", {
       chatId: selectedChat,
@@ -315,7 +433,10 @@ const ChatsSection = () => {
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-white font-semibold">
                           {chat.name.charAt(0)}
                         </div>
-                        {chat.status === "open" && (
+                        {chat.escalated && (
+                          <span className="absolute bottom-0 right-0 w-3 h-3 bg-orange-500 border-2 border-white rounded-full" title="Escalated"></span>
+                        )}
+                        {!chat.escalated && chat.status === "open" && (
                           <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
                         )}
                       </div>
@@ -331,9 +452,16 @@ const ChatsSection = () => {
                         <p className={`text-xs mb-1 ${selectedChat === chat.id ? "text-white/80" : "text-gray-500"}`}>
                           {chat.email}
                         </p>
-                        <p className={`text-xs truncate ${selectedChat === chat.id ? "text-white/90" : "text-gray-600"}`}>
-                          {chat.lastMessage}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className={`text-xs truncate ${selectedChat === chat.id ? "text-white/90" : "text-gray-600"}`}>
+                            {chat.lastMessage}
+                          </p>
+                          {chat.escalated && (
+                            <span className="text-xs px-2 py-0.5 bg-orange-500 text-white rounded-full flex-shrink-0" title="Escalated to human agent">
+                              ⚠️
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -372,7 +500,14 @@ const ChatsSection = () => {
               <div className="bg-white border-b border-gray-200 px-6 py-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{currentChat?.userName || "User"}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-semibold text-gray-900">{currentChat?.userName || "User"}</h3>
+                      {chats.find(c => c.id === selectedChat)?.escalated && (
+                        <span className="text-xs px-2 py-1 bg-orange-500 text-white rounded-full" title="Escalated to human agent">
+                          ⚠️ Escalated
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-gray-500">{currentChat?.userEmail}</p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -385,32 +520,64 @@ const ChatsSection = () => {
               {/* Messages Area */}
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 {currentChat?.messages && currentChat.messages.length > 0 ? (
-                  currentChat.messages.map((msg, index) => (
-                    <div
-                      key={index}
-                      className={`flex ${msg.sender === "admin" ? "justify-end" : "justify-start"}`}
-                    >
+                  <>
+                    {currentChat.messages.map((msg, index) => (
                       <div
-                        className={`max-w-[70%] rounded-lg px-4 py-2 ${
-                          msg.sender === "admin"
-                            ? "bg-[#5ab15b] text-white"
-                            : "bg-white border border-gray-200 text-gray-800"
-                        }`}
+                        key={msg._id || index}
+                        className={`flex ${msg.sender === "admin" ? "justify-end" : "justify-start"}`}
                       >
-                        <p className="text-sm">{msg.message}</p>
-                        <p className={`text-xs mt-1 ${
-                          msg.sender === "admin" ? "text-white/80" : "text-gray-500"
-                        }`}>
-                          {new Date(msg.timestamp).toLocaleString([], {
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </p>
+                        <div
+                          className={`max-w-[70%] rounded-lg px-4 py-2 ${
+                            msg.sender === "admin"
+                              ? "bg-[#5ab15b] text-white"
+                              : "bg-white border border-gray-200 text-gray-800"
+                          }`}
+                        >
+                          <p className="text-sm">{msg.message}</p>
+                          <div className={`flex items-center gap-1 mt-1 ${
+                            msg.sender === "admin" ? "text-white/80" : "text-gray-500"
+                          }`}>
+                            <p className="text-xs">
+                              {new Date(msg.timestamp).toLocaleString([], {
+                                month: "short",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </p>
+                            {msg.sender === "admin" && (
+                              <span className="text-xs">
+                                {msg.readAt ? (
+                                  <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                                    <path d="M15.854 1.146a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L8.5 7.793l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+                                    <path d="M.5 9a.5.5 0 0 1 .5.5v5a.5.5 0 0 0 .5.5h5a.5.5 0 0 1 0 1h-5A1.5 1.5 0 0 1 0 14.5v-5a.5.5 0 0 1 .5-.5zm5 1a.5.5 0 0 0 0 1h5a.5.5 0 0 0 .5-.5v-5a.5.5 0 0 0-1 0v5a.5.5 0 0 1-.5.5h-5z"/>
+                                  </svg>
+                                ) : (
+                                  <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                                    <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+                                  </svg>
+                                )}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    ))}
+                    {isUserTyping && (
+                      <div className="flex justify-start">
+                        <div className="bg-white border border-gray-200 text-gray-800 rounded-lg px-4 py-2 max-w-[70%]">
+                          <div className="flex items-center gap-1">
+                            <div className="flex gap-1">
+                              <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+                              <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
+                              <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+                            </div>
+                            <span className="text-xs text-gray-500 ml-2">{currentChat?.userName || "User"} is typing...</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="flex items-center justify-center h-full">
                     <p className="text-gray-400 text-sm">No messages yet</p>
@@ -425,7 +592,10 @@ const ChatsSection = () => {
                   <input
                     type="text"
                     value={replyMessage}
-                    onChange={(e) => setReplyMessage(e.target.value)}
+                    onChange={(e) => {
+                      setReplyMessage(e.target.value);
+                      handleTyping();
+                    }}
                     placeholder="Type your reply..."
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5ab15b]"
                     onKeyPress={(e) => {

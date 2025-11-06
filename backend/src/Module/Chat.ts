@@ -14,6 +14,10 @@ const messageSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  readAt: {
+    type: Date,
+    default: null,
+  },
 });
 
 const ChatSchema = new mongoose.Schema({
@@ -34,6 +38,21 @@ const ChatSchema = new mongoose.Schema({
     type: String,
     enum: ["open", "closed", "pending"],
     default: "open",
+  },
+  escalated: {
+    type: Boolean,
+    default: false,
+  },
+  escalatedAt: {
+    type: Date,
+  },
+  rating: {
+    type: Number,
+    min: 1,
+    max: 5,
+  },
+  feedback: {
+    type: String,
   },
   lastMessageAt: {
     type: Date,

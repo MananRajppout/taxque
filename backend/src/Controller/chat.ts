@@ -22,6 +22,7 @@ export const getAllChats = async (req: Request, res: Response) => {
         lastMessage: lastMessage?.message || "No messages yet",
         date: new Date(chat.lastMessageAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
         status: chat.status,
+        escalated: chat.escalated || false,
         unreadCount: chat.messages.filter((msg: any) => msg.sender === "user" && !msg.read).length,
         createdAt: chat.createdAt,
       };

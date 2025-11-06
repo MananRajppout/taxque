@@ -19,6 +19,8 @@ import ContactUs from "@/components/ContactUser/ContactUs";
 import BlogLead from "@/components/ContactUser/Blog";
 import ServiceLead from "@/components/ContactUser/Service";
 import ChatsSection from "@/components/ChatsSection";
+import ConfigurationSection from "@/components/ConfigurationSection";
+import AnalyticsSection from "@/components/AnalyticsSection";
 import { toast } from "react-toastify";
 
 import { ToastContainer } from "react-toastify";
@@ -157,12 +159,7 @@ export default function Home() {
           <div className="w-[calc(100%-250px)] ml-0 lg:ml-[250px] min-h-screen bg-gray-50 transition-all duration-300">
             <div className={`w-full h-screen ${activePage === "Chats" ? "p-0" : "p-3"} overflow-y-auto`}>
              
-              {activePage === "View Analytics" && (
-                <div className="p-6 bg-white rounded-lg shadow-sm">
-                  <h2 className="text-2xl font-bold mb-4">Analytics Dashboard</h2>
-                  <p className="text-gray-600">Analytics data will be displayed here.</p>
-                </div>
-              )}
+              {activePage === "View Analytics" && <AnalyticsSection />}
 
               {activePage === "Report" && (
                 <div className="p-6 bg-white rounded-lg shadow-sm">
@@ -277,6 +274,7 @@ export default function Home() {
               )}
 
               {activePage === "Chats" && <ChatsSection />}
+              {activePage === "Configuration" && <ConfigurationSection />}
             </div>
           </div>
         </div>

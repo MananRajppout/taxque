@@ -91,7 +91,7 @@ export default function SideMenu({ setActivePage }: SidebarProps) {
     },
     {
       title: "Chats",
-      subTitle: [{ title: "Chats" }],
+      subTitle: [{ title: "Chats" }, { title: "Configuration" }],
     },
     {
       title: "Payment",

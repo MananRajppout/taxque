@@ -254,4 +254,18 @@ router.post("/chat/get-by-email", getChatByUserEmail);
 router.post("/chat/create", createChat);
 router.post("/chat/update-status/:id", updateChatStatus);
 
+//Configuration routes
+const {
+  getConfiguration,
+  updateConfiguration,
+} = require("../Controller/configuration");
+
+router.get("/configuration", getConfiguration);
+router.post("/configuration/update", updateConfiguration);
+
+//Analytics routes
+const { getAnalytics } = require("../Controller/analytics");
+
+router.get("/analytics", getAnalytics);
+
 export default router;

@@ -8,6 +8,7 @@ interface Message {
   sender: "user" | "admin";
   message: string;
   timestamp: Date;
+  readAt?: Date | null;
 }
 
 export default function ChatBot() {
@@ -21,8 +22,14 @@ export default function ChatBot() {
   const [showForm, setShowForm] = useState(true);
   const [chatId, setChatId] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [isAdminTyping, setIsAdminTyping] = useState(false);
+  const [isAIGenerating, setIsAIGenerating] = useState(false);
+  const [greetingMessage, setGreetingMessage] = useState<string | null>(null);
+  const [hasShownGreeting, setHasShownGreeting] = useState(false);
   const socketRef = useRef<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastTypingEmitRef = useRef<number>(0);
 
   // Get WebSocket URL
   const getSocketURL = () => {
@@ -32,8 +39,34 @@ export default function ChatBot() {
     return baseURL;
   };
 
+  // Get API URL
+  const getAPIURL = () => {
+    return process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/taxque/api";
+  };
+
+  // Fetch greeting message from configuration
+  useEffect(() => {
+    const fetchGreeting = async () => {
+      try {
+        const response = await fetch(`${getAPIURL()}/configuration`);
+        const result = await response.json();
+        if (result.success && result.config?.greetingMessage) {
+          setGreetingMessage(result.config.greetingMessage);
+        }
+      } catch (error) {
+        console.error("Error fetching greeting message:", error);
+      }
+    };
+    fetchGreeting();
+  }, []);
+
   useEffect(() => {
     setIsMounted(true);
+    // Auto-open chat widget after a short delay
+    const timer = setTimeout(() => {
+      setIsOpen(true);
+    }, 1000); // Open after 1 second
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -44,6 +77,9 @@ export default function ChatBot() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isMounted]);
+
+  // Note: Greeting message is now handled in the WebSocket connect handler
+  // to ensure it only shows for new chats (when no existing chat is found)
 
   // Connect to WebSocket when chat opens
   useEffect(() => {
@@ -73,14 +109,101 @@ export default function ChatBot() {
             
             // Load existing messages
             setMessages(result.chat.messages.map((msg: any) => ({
-              id: msg._id || Date.now().toString(),
+              id: msg._id?.toString() || Date.now().toString(),
               sender: msg.sender,
               message: msg.message,
               timestamp: new Date(msg.timestamp),
+              readAt: msg.readAt ? new Date(msg.readAt) : null,
             })));
+            
+            // Mark admin messages as read when chat loads
+            const adminMessageIds = result.chat.messages
+              .filter((msg: any) => msg.sender === "admin" && !msg.readAt)
+              .map((msg: any) => msg._id?.toString());
+            
+            if (adminMessageIds.length > 0) {
+              setTimeout(() => {
+                socket.emit("message-read", {
+                  chatId: existingChatId,
+                  messageIds: adminMessageIds,
+                  reader: "user",
+                });
+              }, 500);
+            }
+            
+            // Mark greeting as shown since we have existing messages
+            setHasShownGreeting(true);
+          } else {
+            // No existing chat - show greeting message
+            // Fetch greeting message from config if not already in state
+            const showGreeting = async () => {
+              let greeting = greetingMessage;
+              if (!greeting) {
+                try {
+                  const configResponse = await fetch(`${apiURL}/configuration`);
+                  const configResult = await configResponse.json();
+                  if (configResult.success && configResult.config?.greetingMessage) {
+                    greeting = configResult.config.greetingMessage;
+                    setGreetingMessage(greeting);
+                  }
+                } catch (err) {
+                  console.error("Error fetching greeting:", err);
+                }
+              }
+              
+              if (greeting && !hasShownGreeting) {
+                setMessages([
+                  {
+                    id: "greeting-" + Date.now(),
+                    sender: "admin",
+                    message: greeting,
+                    timestamp: new Date(),
+                    readAt: null,
+                  },
+                ]);
+                setHasShownGreeting(true);
+              }
+            };
+            showGreeting();
           }
         } catch (error) {
           console.error("Error checking existing chat:", error);
+          // On error, try to show greeting
+          const showGreetingOnError = async () => {
+            let greeting = greetingMessage;
+            if (!greeting) {
+              try {
+                const apiURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/taxque/api";
+                const configResponse = await fetch(`${apiURL}/configuration`);
+                const configResult = await configResponse.json();
+                if (configResult.success && configResult.config?.greetingMessage) {
+                  greeting = configResult.config.greetingMessage;
+                  setGreetingMessage(greeting);
+                }
+              } catch (err) {
+                console.error("Error fetching greeting:", err);
+              }
+            }
+            
+            if (greeting && !hasShownGreeting) {
+              setMessages((prev) => {
+                if (prev.length === 0) {
+                  return [
+                    {
+                      id: "greeting-" + Date.now(),
+                      sender: "admin",
+                      message: greeting!,
+                      timestamp: new Date(),
+                      readAt: null,
+                    },
+                  ];
+                }
+                return prev;
+              });
+              setHasShownGreeting(true);
+            }
+          };
+          showGreetingOnError();
         }
       });
 
@@ -105,11 +228,27 @@ export default function ChatBot() {
             const result = await response.json();
             if (result.success && result.chat) {
               setMessages(result.chat.messages.map((msg: any) => ({
-                id: msg._id || Date.now().toString(),
+                id: msg._id?.toString() || Date.now().toString(),
                 sender: msg.sender,
                 message: msg.message,
                 timestamp: new Date(msg.timestamp),
+                readAt: msg.readAt ? new Date(msg.readAt) : null,
               })));
+              
+              // Mark admin messages as read when chat loads
+              const adminMessageIds = result.chat.messages
+                .filter((msg: any) => msg.sender === "admin" && !msg.readAt)
+                .map((msg: any) => msg._id?.toString());
+              
+              if (adminMessageIds.length > 0 && chatId) {
+                setTimeout(() => {
+                  socket.emit("message-read", {
+                    chatId,
+                    messageIds: adminMessageIds,
+                    reader: "user",
+                  });
+                }, 500);
+              }
             }
           } catch (error) {
             console.error("Error fetching chat history:", error);
@@ -117,21 +256,51 @@ export default function ChatBot() {
         }
       });
 
-      socket.on("admin-reply", (data: { chatId: string; message: string; timestamp: Date }) => {
+      socket.on("admin-reply", (data: { chatId: string; message: string; timestamp: Date; messageId?: string }) => {
         console.log("Received admin reply:", data);
+        setIsAIGenerating(false); // Stop loading indicator
+        const messageId = data.messageId || Date.now().toString();
         setMessages((prev) => [
           ...prev,
           {
-            id: Date.now().toString(),
+            id: messageId,
             sender: "admin",
             message: data.message,
             timestamp: new Date(data.timestamp),
+            readAt: null,
           },
         ]);
+        // Mark admin messages as read when they arrive (user sees them immediately)
+        if (chatId && messageId) {
+          setTimeout(() => {
+            socket.emit("message-read", {
+              chatId,
+              messageIds: [messageId],
+              reader: "user",
+            });
+          }, 100);
+        }
+      });
+
+      socket.on("admin-typing", (data: { isTyping: boolean }) => {
+        setIsAdminTyping(data.isTyping);
+      });
+
+      socket.on("messages-read", (data: { chatId: string; messageIds: string[] }) => {
+        // Update read status for user messages
+        setMessages((prev) =>
+          prev.map((msg) => {
+            if (msg.sender === "user" && data.messageIds.includes(msg.id)) {
+              return { ...msg, readAt: new Date() };
+            }
+            return msg;
+          })
+        );
       });
 
       socket.on("message-error", (data: { error: string }) => {
         console.error("Message error:", data.error);
+        setIsAIGenerating(false); // Stop loading indicator on error
       });
 
       socketRef.current = socket;
@@ -158,17 +327,62 @@ export default function ChatBot() {
     }
   };
 
+  const handleTyping = () => {
+    if (!socketRef.current || !isConnected || !chatId) return;
+
+    const now = Date.now();
+    // Throttle typing events (emit max once per 2 seconds)
+    if (now - lastTypingEmitRef.current < 2000) {
+      return;
+    }
+
+    lastTypingEmitRef.current = now;
+    socketRef.current.emit("typing-start", {
+      chatId,
+      sender: "user",
+    });
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Stop typing indicator after 3 seconds of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      if (socketRef.current && chatId) {
+        socketRef.current.emit("typing-stop", {
+          chatId,
+          sender: "user",
+        });
+      }
+    }, 3000);
+  };
+
   const handleSendMessage = () => {
     if (!message.trim() || !socketRef.current || !isConnected) return;
+
+    // Stop typing indicator
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+    if (socketRef.current && chatId) {
+      socketRef.current.emit("typing-stop", {
+        chatId,
+        sender: "user",
+      });
+    }
 
     const newMessage: Message = {
       id: Date.now().toString(),
       sender: "user",
       message: message.trim(),
       timestamp: new Date(),
+      readAt: null,
     };
 
     setMessages((prev) => [...prev, newMessage]);
+    setIsAIGenerating(true); // Show loading indicator
 
     // Send via WebSocket
     socketRef.current.emit("user-message", {
@@ -303,7 +517,7 @@ export default function ChatBot() {
                     value={userName}
                     onChange={(e) => setUserName(e.target.value)}
                     placeholder="Enter your name"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
                   />
                 </div>
                 <div>
@@ -313,7 +527,7 @@ export default function ChatBot() {
                     value={userEmail}
                     onChange={(e) => setUserEmail(e.target.value)}
                     placeholder="Enter your email"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
                   />
                 </div>
                 <button
@@ -334,25 +548,70 @@ export default function ChatBot() {
                     <p className="text-gray-400 text-sm">Start a conversation</p>
                   </div>
                 ) : (
-                  messages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
-                    >
+                  <>
+                    {messages.map((msg) => (
                       <div
-                        className={`max-w-[80%] rounded-lg px-3 py-2 ${
-                          msg.sender === "user"
-                            ? "bg-orange-500 text-white"
-                            : "bg-gray-200 text-gray-800"
-                        }`}
+                        key={msg.id}
+                        className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
                       >
-                        <p className="text-sm">{msg.message}</p>
-                        <p className={`text-xs mt-1 ${msg.sender === "user" ? "text-orange-100" : "text-gray-500"}`}>
-                          {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                        </p>
+                        <div
+                          className={`max-w-[80%] rounded-lg px-3 py-2 ${
+                            msg.sender === "user"
+                              ? "bg-orange-500 text-white"
+                              : "bg-gray-200 text-gray-800"
+                          }`}
+                        >
+                          <p className="text-sm">{msg.message}</p>
+                          <div className={`flex items-center gap-1 mt-1 ${msg.sender === "user" ? "text-orange-100" : "text-gray-500"}`}>
+                            <p className="text-xs">
+                              {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            </p>
+                            {msg.sender === "user" && (
+                              <span className="text-xs">
+                                {msg.readAt ? (
+                                  <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                                    <path d="M15.854 1.146a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L8.5 7.793l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+                                    <path d="M.5 9a.5.5 0 0 1 .5.5v5a.5.5 0 0 0 .5.5h5a.5.5 0 0 1 0 1h-5A1.5 1.5 0 0 1 0 14.5v-5a.5.5 0 0 1 .5-.5zm5 1a.5.5 0 0 0 0 1h5a.5.5 0 0 0 .5-.5v-5a.5.5 0 0 0-1 0v5a.5.5 0 0 1-.5.5h-5z"/>
+                                  </svg>
+                                ) : (
+                                  <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                                    <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+                                  </svg>
+                                )}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    ))}
+                    {isAIGenerating && (
+                      <div className="flex justify-start">
+                        <div className="bg-gray-200 text-gray-800 rounded-lg px-3 py-2 max-w-[80%]">
+                          <div className="flex items-center gap-2">
+                            <div className="flex gap-1">
+                              <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+                              <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
+                              <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {isAdminTyping && (
+                      <div className="flex justify-start">
+                        <div className="bg-gray-200 text-gray-800 rounded-lg px-3 py-2 max-w-[80%]">
+                          <div className="flex items-center gap-1">
+                            <div className="flex gap-1">
+                              <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+                              <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
+                              <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+                            </div>
+                            <span className="text-xs text-gray-500 ml-2">TaxQue Team is typing...</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
                 <div ref={messagesEndRef} />
               </div>
@@ -364,7 +623,10 @@ export default function ChatBot() {
                 <input
                   type="text"
                   value={message}
-                  onChange={(e) => setMessage(e.target.value)}
+                  onChange={(e) => {
+                    setMessage(e.target.value);
+                    handleTyping();
+                  }}
                   placeholder="Type your message..."
                   className="w-full bg-orange-500 text-white placeholder-white/80 rounded-xl px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-orange-600"
                   onKeyPress={(e) => {
