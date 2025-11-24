@@ -138,7 +138,7 @@ import type {
                   </FocusLayoutContainer>
                 </div>
               )}
-              <ControlBar controls={{ chat: false, settings: !!SettingsComponent, screenShare: isAdmin}} />
+              <ControlBar controls={{ chat: true, settings: !!SettingsComponent, screenShare: isAdmin}} />
             </div>
             <Chat
               style={{ display: widgetState.showChat ? 'grid' : 'none' }}
