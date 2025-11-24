@@ -53,6 +53,7 @@ const allowedOrigins = [
   // ✅ ADD: Frontend deployed domain
   "https://taxquee.rafikyconnect.net",
   "https://taxquee.rafikyconnect.net/",
+  process.env.FRONTEND_URL
 ];
 
 mongoose
