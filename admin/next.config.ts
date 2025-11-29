@@ -17,6 +17,18 @@ const nextConfig: NextConfig = {
         port: '5000',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'taxque.in',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
   experimental: {
