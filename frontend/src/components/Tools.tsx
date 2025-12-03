@@ -500,70 +500,89 @@ export const JobCard = ({
     }
   };
 
+  // Get initials for job icon
+  const getInitials = (text: string) => {
+    return text
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  // Extract plain text from HTML description
+  const getPlainText = (html: string) => {
+    if (!html) return "";
+    const text = html.replace(/<[^>]+>/g, "");
+    return text.length > 100 ? text.slice(0, 100) + "..." : text;
+  };
+
+  // Format location string
+  const locationStr = jobLocation 
+    ? `${location} · ${jobLocation} · ${type}`
+    : `${location} · ${type}`;
+
   return (
-    <div className={`w-full bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer ${className}`} onClick={handleClick}>
-      <div className="p-6">
-        <h3 className="text-xl font-semibold text-gray-900 mb-3">{title}</h3>
-        <div className="text-gray-600 mb-4 max-h-20 overflow-hidden">{description ? parse(description) : null}</div>
-        
-        <div className="space-y-2 mb-4">
-          <div className="flex items-center gap-2">
-            <Image src={locationIcon} alt="Location" width={16} height={16} />
-            <span className="text-sm text-gray-600">{location}</span>
-            {jobLocation && (
-              <>
-                <span className="text-sm text-gray-500">•</span>
-                <span className="text-sm text-gray-600">{jobLocation}</span>
-              </>
-            )}
-          </div>
-          <div className="flex items-start gap-2">
-            <Image src={watchYIcom} alt="Experience" width={16} height={16} className="mt-0.5" />
-            <div className="text-sm text-gray-600 max-h-20 overflow-hidden flex-1">{experience ? parse(experience) : null}</div>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-green-600">{salary}</span>
-            <span className="text-sm text-gray-500">•</span>
-            <span className="text-sm text-gray-600">{type}</span>
-          </div>
-          {postedDate && (
-            <div className="flex items-center gap-2">
-              <Image src={watchIcom} alt="Posted Date" width={16} height={16} />
-              <span className="text-sm text-gray-600">{formatPostedDate(postedDate)}</span>
-            </div>
-          )}
+    <article 
+      className={`group relative bg-white rounded-[18px] p-[14px_13px_13px] border border-[#e5e7eb] shadow-[0_8px_20px_rgba(15,23,42,0.04)] flex flex-col gap-2 transition-all duration-200 cursor-pointer hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(15,23,42,0.12)] hover:border-[rgba(254,137,3,0.3)] hover:bg-gradient-to-br hover:from-[rgba(254,137,3,0.04)] hover:to-white ${className}`}
+      onClick={handleClick}
+    >
+      {/* Badge - Optional, can be added based on job priority */}
+      {/* <div className="absolute top-[9px] right-[10px] text-[10px] px-2 py-1 rounded-full bg-[#ecfdf3] text-[#166534] border border-[rgba(22,163,74,0.35)]">
+        New
+      </div> */}
+
+      {/* Top Row - Icon and Meta */}
+      <div className="flex items-center gap-2">
+        <div className="w-[30px] h-[30px] rounded-xl flex items-center justify-center bg-[rgba(254,137,3,0.08)] text-[#fe8903] text-[15px] font-semibold flex-shrink-0">
+          {getInitials(title)}
         </div>
-        
-        {skills && skills.length > 0 && (
-          <div className="mb-4">
-            <div className="flex flex-wrap gap-2">
-              {skills.slice(0, 4).map((skill, index) => (
-                <span
-                  key={index}
-                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                >
-                  {skill}
-                </span>
-              ))}
-              {skills.length > 4 && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                  +{skills.length - 4} more
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-        
-        <div className="flex justify-end">
-          <AppBtn
-            btnText="Apply Now"
-            icon={blackArrowIcon}
-            width="120px"
-            height="40px"
-          />
+        <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+          <h3 className="text-[13px] font-semibold text-gray-900 truncate">{title}</h3>
+          <div className="text-[11px] text-[#6b7280] truncate">{locationStr}</div>
         </div>
       </div>
-    </div>
+
+      {/* Tags */}
+      <div className="flex flex-wrap gap-1.5 text-[10px]">
+        {experience && (
+          <span className="px-2 py-1 rounded-full bg-[rgba(254,137,3,0.08)] text-[#fe8903] border border-[rgba(254,137,3,0.2)]">
+            {experience.replace(/<[^>]+>/g, "").slice(0, 20)}
+          </span>
+        )}
+        {skills && skills.slice(0, 2).map((skill, index) => (
+          <span
+            key={index}
+            className="px-2 py-1 rounded-full bg-[#f3f4f6] text-[#4b5563]"
+          >
+            {skill}
+          </span>
+        ))}
+      </div>
+
+      {/* Description */}
+      {description && (
+        <p className="text-[11px] text-[#6b7280] mt-0.5 line-clamp-2">
+          {getPlainText(description)}
+        </p>
+      )}
+
+      {/* Footer */}
+      <div className="flex items-center justify-between mt-auto pt-1.5 text-[11px] text-[#4b5563]">
+        <div className="flex flex-col gap-0.5">
+          {salary && (
+            <span className="font-semibold text-gray-900">{salary}</span>
+          )}
+          {postedDate && (
+            <span className="text-[10px] text-[#6b7280]">{formatPostedDate(postedDate)}</span>
+          )}
+        </div>
+        <div className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-full border border-[#e5e7eb] bg-[#f9fafb] transition-all duration-200 group-hover:bg-gray-900 group-hover:text-gray-50 group-hover:border-gray-900">
+          Apply now
+          <span className="text-[15px] leading-none">→</span>
+        </div>
+      </div>
+    </article>
   );
 };
 

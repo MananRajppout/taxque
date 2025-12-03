@@ -324,6 +324,66 @@ export default function CareerDetails() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Extract related jobs (exclude current job)
+  const relatedJobs = Array.isArray(data) 
+    ? data.filter((job: any) => job?._id !== id).slice(0, 3)
+    : [];
+
+  // Helper function to extract first paragraph from description
+  const extractFirstParagraph = (html: string) => {
+    if (!html) return "";
+    const match = html.match(/<p>([\s\S]*?)<\/p>/);
+    if (match) {
+      return match[1].replace(/<[^>]*>/g, "").trim();
+    }
+    // Fallback: extract first 200 characters of plain text
+    const plainText = html.replace(/<[^>]*>/g, "").trim();
+    return plainText.substring(0, 200) + (plainText.length > 200 ? "..." : "");
+  };
+
+  // Helper function to extract list items from HTML
+  const extractListItems = (html: string) => {
+    if (!html) return [];
+    const matches = html.matchAll(/<li>([\s\S]*?)<\/li>/g);
+    return Array.from(matches, m => {
+      const text = m[1].replace(/<[^>]*>/g, "").trim();
+      return text;
+    }).filter(item => item.length > 0);
+  };
+
+  // Helper function to strip HTML and get plain text preview
+  const stripHtml = (html: string, maxLength: number = 100) => {
+    if (!html) return "";
+    const plainText = html.replace(/<[^>]*>/g, "").trim();
+    if (plainText.length <= maxLength) return plainText;
+    return plainText.substring(0, maxLength) + "...";
+  };
+
+  // Parse description to extract sections
+  const descriptionHtml = jobData?.description || "";
+  const experienceHtml = jobData?.experience || "";
+  
+  // Extract "About this Role" - first paragraph
+  const aboutText = extractFirstParagraph(descriptionHtml);
+  
+  // Extract "Key Responsibilities" - from description
+  const responsibilitiesMatch = descriptionHtml.match(/<h4>Key Responsibilities:<\/h4>\s*<ul>([\s\S]*?)<\/ul>/);
+  const responsibilities = responsibilitiesMatch 
+    ? extractListItems(responsibilitiesMatch[1])
+    : extractListItems(descriptionHtml).slice(0, 5);
+  
+  // Extract "What We Offer" - from description
+  const benefitsMatch = descriptionHtml.match(/<h4>What We Offer:<\/h4>\s*<ul>([\s\S]*?)<\/ul>/);
+  const benefits = benefitsMatch 
+    ? extractListItems(benefitsMatch[1])
+    : [];
+  
+  // Extract "Skills Required" - from experience
+  const skillsMatch = experienceHtml.match(/<h4>Required Qualifications:<\/h4>\s*<ul>([\s\S]*?)<\/ul>/);
+  const skills = skillsMatch 
+    ? extractListItems(skillsMatch[1])
+    : extractListItems(experienceHtml).slice(0, 5);
+
   return (
     <>
       <style jsx global>{`
@@ -333,8 +393,11 @@ export default function CareerDetails() {
         .navbar-container * {
           background-color: white !important;
         }
+        body {
+          background: radial-gradient(circle at top left, #fff5e6, #fef3e2 45%, #fef9f3 100%);
+        }
       `}</style>
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen" style={{ background: 'radial-gradient(circle at top left, #fff5e6, #fef3e2 45%, #fef9f3 100%)' }}>
       <div className="navbar-container bg-white fixed top-0 left-0 right-0 z-40 shadow-sm" style={{backgroundColor: 'white !important'}}>
         <div className="navbar-container bg-white" style={{backgroundColor: 'white !important'}}>
           <NavBar currentNav={currentNav} setCurrentNav={setCurrentNav} />
@@ -543,224 +606,161 @@ export default function CareerDetails() {
       </div>
 
       {/* Main Content Section */}
-      <div className="w-full px-4 md:px-8 lg:px-16 pt-8 pb-0 bg-white mt-20 min-h-screen">
-        <div className="w-full max-w-7xl mx-auto">
-          {/* Navigation Breadcrumb */}
-          <nav className="flex items-center space-x-2 text-sm md:text-base mb-8">
-            <span 
-              onClick={() => router.push("/")} 
-              className="cursor-pointer text-gray-600 hover:text-orange-500 transition-colors duration-300 font-medium"
-            >
-              Home
-            </span>
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-            <span 
-              onClick={() => router.push("/careers")} 
-              className="cursor-pointer text-gray-600 hover:text-orange-500 transition-colors duration-300 font-medium"
-            >
-              Careers
-            </span>
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-            <span className="text-gray-800 font-semibold">{jobData?.metaTitle || "Job Details"}</span>
-          </nav>
+      <div className="w-full max-w-[1160px] mx-auto px-4 pt-28 pb-10">
+      
 
-          <div className="flex flex-col lg:flex-row gap-8">
-            {/* Main Job Content */}
-            <div className="w-full lg:w-2/3">
-              {/* Job Header */}
-              <div className="mb-8">
-                <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-100">
-                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-                    {jobData?.title}
-                  </h1>
-                  
-                  {/* Job Info Cards */}
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
-                    <div className="flex flex-wrap gap-3">
-                      <div className="h-10 flex items-center gap-2 px-3 bg-orange-50 border border-orange-200 rounded-md hover:bg-orange-100 transition-all duration-300">
-                        <Image src={locationIcon} alt="Location" width={18} height={18} />
-                        <p className="text-sm font-medium text-gray-700">{jobData?.location}</p>
-                      </div>
-                      <div className="h-10 flex items-center gap-2 px-3 bg-orange-50 border border-orange-200 rounded-md hover:bg-orange-100 transition-all duration-300">
-                        <Image src={timeIcon} alt="Type" width={18} height={18} />
-                        <p className="text-sm font-medium text-gray-700">{jobData?.type}</p>
-                      </div>
-                      <div className="h-10 flex items-center gap-2 px-3 bg-orange-50 border border-orange-200 rounded-md hover:bg-orange-100 transition-all duration-300">
-                        <Image src={locationIcon} alt="Job Location" width={18} height={18} />
-                        <p className="text-sm font-medium text-gray-700">{jobData?.jobLocation}</p>
-                      </div>
-                    </div>
-                    
-                    <AppBtn 
-                      btnText="Apply Now" 
-                      onClick={() => {
-                        setApplyPop(true);
-                        goTop();
-                      }}
-                      width="160px"
-                      height="50px"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Job Description */}
-              <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-100">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Job Description</h2>
-                <div className="prose prose-lg max-w-none">
-                  <div className="text-gray-600 leading-relaxed mb-8">
-                    {parse(jobData?.description || "")}
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Experience Required</h3>
-                  <div className="text-gray-600 leading-relaxed">
-                    {parse(jobData?.experience || "")}
-                  </div>
-                </div>
-              </div>
+        {/* Hero Section */}
+        <section className="p-8 rounded-[26px] bg-gradient-to-br from-orange-50/80 to-yellow-50/50 border border-orange-200/40 shadow-[0_20px_40px_rgba(15,23,42,0.10)] mb-7">
+          <h1 className="text-black font-bold mb-2">
+            {jobData?.title || "Job Title"} <span className="bg-gradient-to-r from-orange-500 via-orange-500 to-yellow-500 bg-clip-text text-transparent">({jobData?.jobLocation || "Location"})</span>
+          </h1>
+          <p className="text-sm text-gray-600 max-w-[560px] mb-4">
+            {aboutText || "Join our team and help build innovative solutions that make a difference."}
+          </p>
+          <div className="flex flex-wrap gap-2.5 mt-4">
+            <div className="px-3 py-1.5 bg-white border border-gray-200 rounded-full text-xs text-orange-600 font-medium">
+              {jobData?.jobLocation || "Hybrid"} – {jobData?.location || "Location"}
             </div>
-
-            {/* Sidebar */}
-            <div className="w-full lg:w-1/3">
-              <div className="sticky top-8">
-                <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-2xl shadow-lg p-6 border border-orange-100">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-orange-200">
-                      <Image 
-                        src="/piv.jpg" 
-                        alt="Services" 
-                        width={48} 
-                        height={48} 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                      <svg className="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                      </svg>
-                      Our Services
-                    </h3>
-                  </div>
-                  <div className="space-y-4 mb-6">
-                    {/* Mock Service Cards */}
-                    <div 
-                      className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-green-200 hover:-translate-y-1 cursor-pointer"
-                    >
-                      {/* Top Section */}
-                      <div className="p-4 md:p-6">
-                        <div className="flex items-start gap-3 md:gap-4 mb-4">
-                          <div className="w-10 h-10 md:w-12 md:h-12 bg-green-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <Image
-                              src="/assests/images/ITNIcon.svg"
-                              alt="Service Icon"
-                              width={24}
-                              height={24}
-                              className="w-6 h-6 md:w-7 md:h-7"
-                            />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2 leading-tight">ITR Filing</h3>
-                            <p className="text-xs md:text-sm text-gray-600 leading-relaxed">Complete Income Tax Return filing services with expert guidance and support.</p>
-                          </div>
-                        </div>
-                        
-                        {/* Read More Button */}
-                        <button
-                          onClick={() => router.push('/our-services')}
-                          className="w-24 md:w-28 bg-white border-2 border-orange-500 hover:bg-orange-50 text-orange-500 hover:text-orange-600 font-semibold py-1.5 md:py-2 px-2 md:px-3 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 text-xs md:text-sm"
-                        >
-                          Read More
-                        </button>
-                      </div>
-                      
-                      {/* Bottom Image Section */}
-                      <div className="h-24 md:h-32 bg-gradient-to-r from-blue-900 to-blue-800 flex items-center justify-center">
-                        <Image
-                          src="/piv.jpg"
-                          alt="ELARA SPARES and Engineering"
-                          width={200}
-                          height={80}
-                          className="object-contain max-h-full max-w-full"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Second Service Card */}
-                    <div 
-                      className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-green-200 hover:-translate-y-1 cursor-pointer"
-                    >
-                      {/* Top Section */}
-                      <div className="p-4 md:p-6">
-                        <div className="flex items-start gap-3 md:gap-4 mb-4">
-                          <div className="w-10 h-10 md:w-12 md:h-12 bg-green-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <Image
-                              src="/assests/images/ITNIcon.svg"
-                              alt="Service Icon"
-                              width={24}
-                              height={24}
-                              className="w-6 h-6 md:w-7 md:h-7"
-                            />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2 leading-tight">GST Registration</h3>
-                            <p className="text-xs md:text-sm text-gray-600 leading-relaxed">Professional GST registration services for businesses of all sizes.</p>
-                          </div>
-                        </div>
-                        
-                        {/* Read More Button */}
-                        <button
-                          onClick={() => router.push('/our-services')}
-                          className="w-24 md:w-28 bg-white border-2 border-orange-500 hover:bg-orange-50 text-orange-500 hover:text-orange-600 font-semibold py-1.5 md:py-2 px-2 md:px-3 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 text-xs md:text-sm"
-                        >
-                          Read More
-                        </button>
-                      </div>
-                      
-                      {/* Bottom Image Section */}
-                      <div className="h-24 md:h-32 bg-gradient-to-r from-blue-900 to-blue-800 flex items-center justify-center">
-                        <Image
-                          src="/piv.jpg"
-                          alt="ELARA SPARES and Engineering"
-                          width={200}
-                          height={80}
-                          className="object-contain max-h-full max-w-full"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <AppBtn 
-                    btnText="Explore All Services" 
-                    onClick={() => {
-                      router.push("/services");
-                      goTop();
-                    }}
-                    width="100%"
-                    height="50px"
-                  />
-                </div>
-                
-                {/* Quick Apply Card */}
-                <div className="mt-6 bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Quick Apply</h4>
-                  <p className="text-gray-600 text-sm mb-4">
-                    Ready to join our team? Apply now and take the first step towards your new career.
-                  </p>
-                  <AppBtn 
-                    btnText="Apply Now" 
-                    onClick={() => {
-                      setApplyPop(true);
-                      goTop();
-                    }}
-                    width="100%"
-                    height="45px"
-                  />
-                </div>
-              </div>
+            <div className="px-3 py-1.5 bg-white border border-gray-200 rounded-full text-xs text-orange-600 font-medium">
+              {jobData?.type || "Full-time"}
             </div>
+            {jobData?.experience && (
+              <div className="px-3 py-1.5 bg-white border border-gray-200 rounded-full text-xs text-orange-600 font-medium">
+                {stripHtml(jobData.experience, 50)}
+              </div>
+            )}
+            {(jobData as any)?.salary && (
+              <div className="px-3 py-1.5 bg-white border border-gray-200 rounded-full text-xs text-orange-600 font-medium">
+                {(jobData as any).salary}
+              </div>
+            )}
           </div>
+        </section>
+
+        {/* About this Role */}
+        <h2 className="text-[17px] font-semibold text-gray-900 mb-3">About this Role</h2>
+        <div className="bg-white/80 p-5 rounded-[22px] border border-orange-200/35 shadow-[0_20px_40px_rgba(15,23,42,0.10)] mb-6 text-sm text-gray-600 leading-relaxed">
+          {aboutText || "We are looking for a talented individual to join our team."}
+        </div>
+
+        {/* Key Responsibilities */}
+        <h2 className="text-[17px] font-semibold text-gray-900 mb-3">Key Responsibilities</h2>
+        <div className="bg-white/80 p-5 rounded-[22px] border border-orange-200/35 shadow-[0_20px_40px_rgba(15,23,42,0.10)] mb-6 text-sm text-gray-600">
+          <ul className="pl-5 space-y-2.5">
+            {responsibilities.length > 0 ? (
+              responsibilities.map((item, idx) => (
+                <li key={idx}>{item}</li>
+              ))
+            ) : (
+              <li>No specific responsibilities listed</li>
+            )}
+          </ul>
+        </div>
+
+        {/* Skills Required */}
+        <h2 className="text-[17px] font-semibold text-gray-900 mb-3">Skills Required</h2>
+        <div className="bg-white/80 p-5 rounded-[22px] border border-orange-200/35 shadow-[0_20px_40px_rgba(15,23,42,0.10)] mb-6 text-sm text-gray-600">
+          <ul className="pl-5 space-y-2.5">
+            {skills.length > 0 ? (
+              skills.map((item, idx) => (
+                <li key={idx}>{item}</li>
+              ))
+            ) : (
+              <li>No specific skills listed</li>
+            )}
+          </ul>
+        </div>
+
+        {/* Benefits */}
+        {benefits.length > 0 && (
+          <>
+            <h2 className="text-[17px] font-semibold text-gray-900 mb-3">Benefits</h2>
+            <div className="bg-white/80 p-5 rounded-[22px] border border-orange-200/35 shadow-[0_20px_40px_rgba(15,23,42,0.10)] mb-6 text-sm text-gray-600">
+              <ul className="pl-5 space-y-2.5">
+                {benefits.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          </>
+        )}
+
+        {/* Related Roles Grid */}
+        {(relatedJobs.length > 0 || Object.keys(mockJobData).length > 1) && (
+          <>
+            <h2 className="text-[17px] font-semibold text-gray-900 mb-3 mt-8">Related Roles</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+              {relatedJobs.length > 0 ? (
+                relatedJobs.map((job: any) => (
+                  <div 
+                    key={job._id}
+                    className="bg-white p-4.5 rounded-[20px] border border-gray-200 shadow-[0_20px_40px_rgba(15,23,42,0.10)] cursor-pointer transition-all hover:bg-gradient-to-br hover:from-orange-50/50 hover:to-transparent hover:border-orange-300/35 hover:-translate-y-1"
+                    onClick={() => router.push(`/careerDetail/${job._id}`)}
+                  >
+                    <div className="text-[15px] font-semibold mb-1 text-gray-900">{job.title}</div>
+                    <div className="text-xs text-gray-600 mb-2.5">{job.jobLocation || "Remote"} · {job.type || "Full-time"}</div>
+                    <div className="text-xs text-gray-600 flex flex-col gap-1.5 mb-3.5">
+                      {job.experience && <div><strong className="text-gray-900">Experience: </strong>{stripHtml(job.experience, 80)}</div>}
+                      {job.salary && <div><strong className="text-gray-900">Salary: </strong>{job.salary}</div>}
+                      {job.postedDate && <div><strong className="text-gray-900">Posted: </strong>{new Date(job.postedDate).toLocaleDateString()}</div>}
+                    </div>
+                    <button 
+                      className="px-3 py-2 rounded-full text-xs border border-orange-500 bg-white text-orange-600 cursor-pointer transition-all hover:bg-orange-500 hover:text-white"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/careerDetail/${job._id}`);
+                      }}
+                    >
+                      View Role →
+                    </button>
+                  </div>
+                ))
+              ) : (
+                // Fallback to mock data if no related jobs
+                Object.entries(mockJobData)
+                  .filter(([key]) => key !== id)
+                  .slice(0, 3)
+                  .map(([key, job]: [string, any]) => (
+                    <div 
+                      key={key}
+                      className="bg-white p-4.5 rounded-[20px] border border-gray-200 shadow-[0_20px_40px_rgba(15,23,42,0.10)] cursor-pointer transition-all hover:bg-gradient-to-br hover:from-orange-50/50 hover:to-transparent hover:border-orange-300/35 hover:-translate-y-1"
+                      onClick={() => router.push(`/careerDetail/${key}`)}
+                    >
+                      <div className="text-[15px] font-semibold mb-1 text-gray-900">{job.title}</div>
+                      <div className="text-xs text-gray-600 mb-2.5">{job.jobLocation} · {job.type}</div>
+                      <div className="text-xs text-gray-600 flex flex-col gap-1.5 mb-3.5">
+                        <div><strong className="text-gray-900">Location: </strong>{job.location}</div>
+                      </div>
+                      <button 
+                        className="px-3 py-2 rounded-full text-xs border border-orange-500 bg-white text-orange-600 cursor-pointer transition-all hover:bg-orange-500 hover:text-white"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/careerDetail/${key}`);
+                        }}
+                      >
+                        View Role →
+                      </button>
+                    </div>
+                  ))
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Apply CTA Bottom */}
+        <div className="mt-8 p-4.5 rounded-[20px] bg-gray-900 text-white flex flex-wrap justify-between items-center gap-3">
+          <div className="text-sm">
+            Ready to join TaxQue and help build India's next-gen tax technology?
+          </div>
+          <button 
+            onClick={() => {
+              setApplyPop(true);
+              goTop();
+            }}
+            className="px-4.5 py-2.5 bg-white text-gray-900 rounded-full border-none cursor-pointer text-sm font-medium hover:bg-gray-100 transition-colors"
+          >
+            Apply Now →
+          </button>
         </div>
       </div>
 
