@@ -611,7 +611,7 @@ export default function CareerDetails() {
 
         {/* Hero Section */}
         <section className="p-8 rounded-[26px] bg-gradient-to-br from-orange-50/80 to-yellow-50/50 border border-orange-200/40 shadow-[0_20px_40px_rgba(15,23,42,0.10)] mb-7">
-          <h1 className="text-black font-bold mb-2">
+          <h1 className="text-black text-[28px] font-bold mb-2">
             {jobData?.title || "Job Title"} <span className="bg-gradient-to-r from-orange-500 via-orange-500 to-yellow-500 bg-clip-text text-transparent">({jobData?.jobLocation || "Location"})</span>
           </h1>
           <p className="text-sm text-gray-600 max-w-[560px] mb-4">
