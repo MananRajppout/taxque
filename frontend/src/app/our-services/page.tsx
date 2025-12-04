@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -17,78 +17,12 @@ import { FetchService } from "@/store/slices/serviceSlice";
 import type { CategoryDataType } from "@/store/slices/categorySlice";
 import type { ServiceDataType } from "@/store/slices/serviceSlice";
 
-// Category Card Component (similar to old ServiceCard)
-const CategoryCard = ({ 
-  category 
-}: { 
-  category: CategoryDataType 
-}) => {
-  const router = useRouter();
-  
-  const handleClick = () => {
-    if (category.Slug) {
-      router.push(`/category/${category.Slug}`);
-    }
-  };
-
-  // Truncate summary for display
-  const truncatedSummary = category.summary 
-    ? category.summary.slice(0, 150) + (category.summary.length > 150 ? "..." : "")
-    : "Explore our comprehensive services in this category.";
-
-  return (
-    <div 
-      className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-green-200 hover:-translate-y-1 cursor-pointer"
-      onClick={handleClick}
-    >
-      {/* Top Section */}
-      <div className="p-4 md:p-6">
-        <div className="flex items-start gap-3 md:gap-4 mb-4">
-          <div className="w-10 h-10 md:w-12 md:h-12 bg-green-200 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Image
-              src="/assests/images/ITNIcon.svg"
-              alt="Category Icon"
-              width={24}
-              height={24}
-              className="w-6 h-6 md:w-7 md:h-7"
-            />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2 leading-tight">{category.title}</h3>
-            <p className="text-xs md:text-sm text-gray-600 leading-relaxed line-clamp-3">{truncatedSummary}</p>
-          </div>
-        </div>
-        
-        {/* Read More Button */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleClick();
-          }}
-          className="w-24 md:w-28 bg-white border-2 border-orange-500 hover:bg-orange-50 text-orange-500 hover:text-orange-600 font-semibold py-1.5 md:py-2 px-2 md:px-3 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 text-xs md:text-sm"
-        >
-          Read More
-        </button>
-      </div>
-      
-      {/* Bottom Image Section */}
-      <div className="h-24 md:h-32 bg-gradient-to-r from-blue-900 to-blue-800 flex items-center justify-center">
-        {category.imageUrl ? (
-          <Image
-            src={category.imageUrl}
-            alt={category.imgAltTag || category.title}
-            width={200}
-            height={80}
-            className="object-contain max-h-full max-w-full"
-          />
-        ) : (
-          <div className="text-white text-sm font-semibold">{category.title}</div>
-        )}
-      </div>
-    </div>
-  );
+// Helper function to strip HTML tags from text
+const stripHtmlTags = (html: string): string => {
+  if (!html) return "";
+  // Remove HTML tags using regex
+  return html.replace(/<[^>]*>/g, '').trim();
 };
-
 
 // Main Category List - matches old MainCategoryList structure
 const MainCategoryList = [
@@ -102,10 +36,178 @@ const MainCategoryList = [
   { title: "Accounting" },
 ];
 
+// Service Card Component - New Layout
+const ServiceCard = ({ service }: { service: ServiceDataType }) => {
+  const router = useRouter();
+  
+  const handleClick = () => {
+    if (service.Slug) {
+      router.push(`/services/${service.Slug}`);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const ProductStanderPrice = service.priceData?.length ? service.priceData[0]?.price : "2999";
+  const categoryTitle = service.category?.title || "Service";
+
+  return (
+    <div 
+      className="bg-white p-5 md:p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1"
+      onClick={handleClick}
+    >
+      {/* Card Header */}
+      <div className="flex justify-between items-start gap-3 mb-3">
+        <h3 className="text-base md:text-lg font-bold text-gray-900 leading-tight flex-1">
+          {service.title || service.displayName}
+        </h3>
+        <span className="text-xs px-3 py-1 bg-blue-50 border border-blue-200 rounded-full text-blue-700 font-semibold whitespace-nowrap">
+          {categoryTitle}
+        </span>
+      </div>
+
+      {/* Description */}
+      <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+        {(() => {
+          const desc = service.overView?.summarys?.[0] || service.metaDescription || "";
+          const cleanDesc = desc ? stripHtmlTags(desc) : "";
+          return cleanDesc 
+            ? cleanDesc.slice(0, 120) + (cleanDesc.length > 120 ? "..." : "")
+            : "Professional service to help you with your needs.";
+        })()}
+      </p>
+
+      {/* Meta Grid */}
+      <div className="grid grid-cols-2 gap-3 mb-4 text-xs">
+        <div>
+          <span className="text-gray-500 block mb-1">Type</span>
+          <span className="text-gray-900 font-semibold">{categoryTitle}</span>
+        </div>
+        <div>
+          <span className="text-gray-500 block mb-1">Mode</span>
+          <span className="text-gray-900 font-semibold">Online</span>
+        </div>
+        {service.feturePoints && service.feturePoints.length > 0 && (
+          <>
+            <div>
+              <span className="text-gray-500 block mb-1">Includes</span>
+              <span className="text-gray-900 font-semibold line-clamp-1">
+                {service.feturePoints[0]?.title || "Features"}
+              </span>
+            </div>
+            <div>
+              <span className="text-gray-500 block mb-1">Benefits</span>
+              <span className="text-gray-900 font-semibold">Expert Support</span>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Card Footer */}
+      <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+        <div className="text-sm text-black">
+          From <strong className="text-orange-600 text-base">₹{ProductStanderPrice}</strong>
+        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleClick();
+          }}
+          className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-full transition-all duration-200"
+        >
+          View →
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Category Card Component - New Layout
+const CategoryCard = ({ 
+  category 
+}: { 
+  category: CategoryDataType 
+}) => {
+  const router = useRouter();
+  
+  const handleClick = () => {
+    if (category.Slug) {
+      router.push(`/category/${category.Slug}`);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  // Strip HTML tags and truncate
+  const cleanSummary = category.summary ? stripHtmlTags(category.summary) : "";
+  const truncatedSummary = cleanSummary 
+    ? cleanSummary.slice(0, 120) + (cleanSummary.length > 120 ? "..." : "")
+    : "Explore our comprehensive services in this category.";
+
+  return (
+    <div 
+      className="bg-white p-5 md:p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1"
+      onClick={handleClick}
+    >
+      {/* Card Header */}
+      <div className="flex justify-between items-start gap-3 mb-3">
+        <h3 className="text-base md:text-lg font-bold text-gray-900 leading-tight flex-1">
+          {category.title}
+        </h3>
+        <span className="text-xs px-3 py-1 bg-green-50 border border-green-200 rounded-full text-green-700 font-semibold whitespace-nowrap">
+          Category
+        </span>
+      </div>
+
+      {/* Description */}
+      <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+        {truncatedSummary}
+      </p>
+
+      {/* Meta Grid */}
+      <div className="grid grid-cols-2 gap-3 mb-4 text-xs">
+        <div>
+          <span className="text-gray-500 block mb-1">Type</span>
+          <span className="text-gray-900 font-semibold">Category</span>
+        </div>
+        <div>
+          <span className="text-gray-500 block mb-1">Services</span>
+          <span className="text-gray-900 font-semibold">Multiple</span>
+        </div>
+        <div>
+          <span className="text-gray-500 block mb-1">Mode</span>
+          <span className="text-gray-900 font-semibold">Online</span>
+        </div>
+        <div>
+          <span className="text-gray-500 block mb-1">Support</span>
+          <span className="text-gray-900 font-semibold">Expert Help</span>
+        </div>
+      </div>
+
+      {/* Card Footer */}
+      <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+        <div className="text-sm text-gray-600">
+          Explore Services
+        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleClick();
+          }}
+          className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-full transition-all duration-200"
+        >
+          View →
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export default function OurServicesPage() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const [currentNav, setCurrentNav] = useState("Services");
+  const [selectedFilter, setSelectedFilter] = useState<string>("All");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [sortBy, setSortBy] = useState<string>("Recommended");
   
   // Get data from Redux store
   const { data: categories, status: categoryStatus } = useSelector((state: RootState) => state.category);
@@ -116,194 +218,104 @@ export default function OurServicesPage() {
     dispatch(FetchCategory());
     dispatch(FetchService());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount
+  }, []);
 
-  // Service Card Component
-  const ServiceCard = ({ service }: { service: ServiceDataType }) => {
-    const router = useRouter();
-    
-    const handleClick = () => {
-      if (service.Slug) {
-        router.push(`/services/${service.Slug}`);
-      }
-    };
+  // Get unique category titles for filter chips
+  const availableCategories = useMemo(() => {
+    const categoryTitles = new Set<string>();
+    categories.forEach(cat => {
+      if (cat.category) categoryTitles.add(cat.category);
+    });
+    services.forEach(service => {
+      if (service.category?.title) categoryTitles.add(service.category.title);
+    });
+    return Array.from(categoryTitles).sort();
+  }, [categories, services]);
 
-    return (
-      <div 
-        className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-green-200 hover:-translate-y-1 cursor-pointer"
-        onClick={handleClick}
-      >
-        <div className="p-4 md:p-6">
-          <div className="flex items-start gap-3 md:gap-4 mb-4">
-            <div className="w-10 h-10 md:w-12 md:h-12 bg-green-200 rounded-lg flex items-center justify-center flex-shrink-0">
-              <Image
-                src="/assests/images/ITNIcon.svg"
-                alt="Service Icon"
-                width={24}
-                height={24}
-                className="w-6 h-6 md:w-7 md:h-7"
-              />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2 leading-tight">{service.title || service.displayName}</h3>
-              {service.overView?.summarys?.[0] && (
-                <p className="text-xs md:text-sm text-gray-600 leading-relaxed line-clamp-3">
-                  {service.overView.summarys[0].slice(0, 150)}{service.overView.summarys[0].length > 150 ? "..." : ""}
-                </p>
-              )}
-            </div>
-          </div>
-          
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleClick();
-            }}
-            className="w-24 md:w-28 bg-white border-2 border-orange-500 hover:bg-orange-50 text-orange-500 hover:text-orange-600 font-semibold py-1.5 md:py-2 px-2 md:px-3 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 text-xs md:text-sm"
-          >
-            Read More
-          </button>
-        </div>
-      </div>
-    );
-  };
-
-  // Group categories by main category sections
-  const renderCategoryCards = (mainCategoryTitle: string) => {
-    const filteredCategories = categories.filter(
-      (cat) => cat.category === mainCategoryTitle
-    );
+  // Combine categories and services for unified display
+  const allItems = useMemo(() => {
+    const items: Array<{ type: 'category' | 'service'; data: CategoryDataType | ServiceDataType }> = [];
     
-    if (filteredCategories.length === 0) return null;
-    
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-        {filteredCategories.map((category) => (
-          <CategoryCard key={category._id} category={category} />
-        ))}
-      </div>
-    );
-  };
-
-  // Group services by actual category sections (using service category field)
-  const renderServiceCards = (mainCategoryTitle: string) => {
-    // Find categories that belong to this main category
-    const mainCategoryIds = categories
-      .filter((cat) => cat.category === mainCategoryTitle)
-      .map((cat) => cat._id);
-    
-    // Filter services that match these categories OR have category title matching main category
-    const filteredServices = services.filter((service) => {
-      const serviceCategoryTitle = service.category?.title || "";
-      
-      // Check if service category matches any category ID
-      if (service.category?.id && mainCategoryIds.includes(service.category.id)) {
-        return true;
-      }
-      // Check if service category title matches main category title
-      if (serviceCategoryTitle === mainCategoryTitle) {
-        return true;
-      }
-      // Check if any category in this main group has matching title
-      const matchingCategory = categories.find(
-        (cat) => cat.category === mainCategoryTitle && 
-        (cat.title === serviceCategoryTitle || cat._id === service.category?.id)
-      );
-      return !!matchingCategory;
+    // Add categories
+    categories.forEach(cat => {
+      items.push({ type: 'category', data: cat });
     });
     
-    if (filteredServices.length === 0) return null;
+    // Add services
+    services.forEach(service => {
+      items.push({ type: 'service', data: service });
+    });
     
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-        {filteredServices.map((service) => (
-          <ServiceCard key={service._id} service={service} />
-        ))}
-      </div>
-    );
-  };
+    return items;
+  }, [categories, services]);
 
-  // Group services by their actual category titles
-  const renderServicesByActualCategory = () => {
-    // Get all unique category titles from services
-    const uniqueCategoryTitles = Array.from(
-      new Set(
-        services
-          .map((service) => service.category?.title)
-          .filter((title): title is string => !!title)
-      )
-    );
+  // Filter items based on selected filter and search
+  const filteredItems = useMemo(() => {
+    let filtered = allItems;
 
-    // Get services without category titles
-    const uncategorizedServices = services.filter(
-      (service) => !service.category?.title
-    );
+    // Filter by category
+    if (selectedFilter !== "All") {
+      filtered = filtered.filter(item => {
+        if (item.type === 'category') {
+          const cat = item.data as CategoryDataType;
+          return cat.category === selectedFilter;
+        } else {
+          const service = item.data as ServiceDataType;
+          return service.category?.title === selectedFilter;
+        }
+      });
+    }
 
-    if (uniqueCategoryTitles.length === 0 && uncategorizedServices.length === 0) return null;
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(item => {
+        const title = item.type === 'category' 
+          ? (item.data as CategoryDataType).title 
+          : (item.data as ServiceDataType).title || (item.data as ServiceDataType).displayName;
+        const summary = item.type === 'category'
+          ? (item.data as CategoryDataType).summary
+          : (item.data as ServiceDataType).overView?.summarys?.[0] || (item.data as ServiceDataType).metaDescription;
+        
+        return title?.toLowerCase().includes(query) || summary?.toLowerCase().includes(query);
+      });
+    }
 
-    return (
-      <div className="space-y-12 md:space-y-16">
-        {uniqueCategoryTitles.map((categoryTitle) => {
-          const categoryServices = services.filter(
-            (service) => service.category?.title === categoryTitle
-          );
+    // Sort items
+    if (sortBy === "Price: Low to High") {
+      filtered.sort((a, b) => {
+        if (a.type === 'category') return 1;
+        if (b.type === 'category') return -1;
+        const priceA = (a.data as ServiceDataType).priceData?.[0]?.price || "9999";
+        const priceB = (b.data as ServiceDataType).priceData?.[0]?.price || "9999";
+        return parseInt(priceA) - parseInt(priceB);
+      });
+    } else if (sortBy === "Price: High to Low") {
+      filtered.sort((a, b) => {
+        if (a.type === 'category') return 1;
+        if (b.type === 'category') return -1;
+        const priceA = (a.data as ServiceDataType).priceData?.[0]?.price || "0";
+        const priceB = (b.data as ServiceDataType).priceData?.[0]?.price || "0";
+        return parseInt(priceB) - parseInt(priceA);
+      });
+    }
 
-          if (categoryServices.length === 0) return null;
-
-          return (
-            <div
-              key={categoryTitle}
-              id={categoryTitle.replace(/\s+/g, "").toUpperCase()}
-              className="category-section"
-            >
-              {/* Section Title */}
-              <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-6 md:mb-8 text-left">
-                {categoryTitle}
-              </h2>
-              
-              {/* Service Cards Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                {categoryServices.map((service) => (
-                  <ServiceCard key={service._id} service={service} />
-                ))}
-              </div>
-            </div>
-          );
-        })}
-
-        {/* Services without category titles */}
-        {uncategorizedServices.length > 0 && (
-          <div
-            id="UNCATEGORIZED"
-            className="category-section"
-          >
-            <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-6 md:mb-8 text-left">
-              Other Services
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-              {uncategorizedServices.map((service) => (
-                <ServiceCard key={service._id} service={service} />
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
+    return filtered;
+  }, [allItems, selectedFilter, searchQuery, sortBy]);
 
   const isLoading = categoryStatus === "loading" || serviceStatus === "loading";
   const hasError = categoryStatus === "error" || serviceStatus === "error";
 
   return (
-    <div className="w-full min-h-screen bg-white">
+    <div className="w-full min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm">
+      <div className="bg-white shadow-sm sticky top-0 z-50">
         <NavBar currentNav={currentNav} setCurrentNav={setCurrentNav} />
       </div>
 
-      {/* Breadcrumb */}
-      <div className="px-4 md:px-8 lg:px-16 pt-20 pb-4">
+      <div className="px-4 md:px-8 lg:px-16 pt-24 pb-16">
         <div className="max-w-7xl mx-auto">
+          {/* Breadcrumb */}
           <nav className="text-sm text-orange-500 mb-6">
             <span 
               onClick={() => router.push("/")}
@@ -314,21 +326,93 @@ export default function OurServicesPage() {
             <span className="mx-2">&gt;</span>
             <span className="text-gray-600">Services</span>
           </nav>
-        </div>
-      </div>
 
-      <div className="px-4 md:px-8 lg:px-16 pb-16">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-center text-gray-900 mb-8 md:mb-12">
-            Our Comprehensive Services
-          </h1>
-        
+          {/* Hero Section */}
+          <section className="bg-gradient-to-br from-green-50 via-blue-50 to-green-50 rounded-2xl p-6 md:p-10 mb-10 border border-gray-200 shadow-md">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-gray-900 mb-3">
+              Our <span className="bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">Comprehensive Services</span>
+            </h1>
+            <p className="text-sm md:text-base text-gray-600 max-w-3xl mb-6">
+              Professional tax, compliance, and business services to help you stay compliant and grow your business. 
+              Expert guidance, online processing, and dedicated support for every service.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <div className="px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-full text-gray-700">
+                ✔ 100% Online Process
+              </div>
+              <div className="px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-full text-gray-700">
+                ✔ Expert Support
+              </div>
+              <div className="px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-full text-gray-700">
+                ✔ Fast Processing
+              </div>
+              <div className="px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-full text-gray-700">
+                ✔ Dedicated Help
+              </div>
+            </div>
+          </section>
+
+          {/* Filters Section */}
+          <section className="mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+              {/* Filter Chips */}
+              <div className="flex flex-wrap gap-2 flex-1">
+                <button
+                  onClick={() => setSelectedFilter("All")}
+                  className={`px-4 py-2 text-sm rounded-full border transition-all whitespace-nowrap ${
+                    selectedFilter === "All"
+                      ? "bg-orange-50 border-orange-500 text-orange-600 font-semibold"
+                      : "bg-white border-gray-300 text-gray-600 hover:border-gray-400"
+                  }`}
+                >
+                  All
+                </button>
+                {availableCategories.slice(0, 6).map((catTitle) => (
+                  <button
+                    key={catTitle}
+                    onClick={() => setSelectedFilter(catTitle)}
+                    className={`px-4 py-2 text-sm rounded-full border transition-all whitespace-nowrap ${
+                      selectedFilter === catTitle
+                        ? "bg-orange-50 border-orange-500 text-orange-600 font-semibold"
+                        : "bg-white border-gray-300 text-gray-600 hover:border-gray-400"
+                    }`}
+                  >
+                    {catTitle}
+                  </button>
+                ))}
+              </div>
+
+              {/* Search and Sort */}
+              <div className="flex items-center gap-3 flex-nowrap flex-shrink-0">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="px-4 py-2 text-sm rounded-full border border-gray-300 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 whitespace-nowrap"
+                >
+                  <option>Recommended</option>
+                  <option>Price: Low to High</option>
+                  <option>Price: High to Low</option>
+                </select>
+                <div className="relative flex-shrink-0">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</span>
+                  <input
+                    type="text"
+                    placeholder="Search services..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 pr-4 py-2 text-sm rounded-full border border-gray-300 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 w-64"
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* Loading State */}
           {isLoading && (
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading categories...</p>
+                <p className="text-gray-600">Loading services...</p>
               </div>
             </div>
           )}
@@ -337,10 +421,11 @@ export default function OurServicesPage() {
           {hasError && !isLoading && (
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
-                <p className="text-red-600 text-xl mb-4">Failed to load categories</p>
+                <p className="text-red-600 text-xl mb-4">Failed to load services</p>
                 <button
                   onClick={() => {
                     dispatch(FetchCategory());
+                    dispatch(FetchService());
                   }}
                   className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
                 >
@@ -350,52 +435,55 @@ export default function OurServicesPage() {
             </div>
           )}
 
-          {/* Categories and Services Grouped by Sections */}
+          {/* Services Grid */}
           {!isLoading && !hasError && (
-            <div className="space-y-12 md:space-y-16">
-              {MainCategoryList.map((mainCategory, index) => {
-                const categoryCards = renderCategoryCards(mainCategory.title);
-                
-                // Show section only if it has categories (services are shown separately by actual categories)
-                if (!categoryCards) return null;
-                
-                return (
-                  <div
-                    key={index}
-                    id={mainCategory.title.replace(/\s+/g, "").toUpperCase()}
-                    className="category-section"
-                  >
-                    {/* Section Title */}
-                    <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-6 md:mb-8 text-left">
-                      {mainCategory.title}
-                    </h2>
-                    
-                    {/* Category Cards Grid */}
-                    {categoryCards}
-                  </div>
-                );
-              })}
-              
-              {/* Show message if no categories or services found */}
-              {MainCategoryList.every((mainCat) => {
-                const categoryCards = renderCategoryCards(mainCat.title);
-                return !categoryCards;
-              }) && services.length === 0 && categories.length === 0 && (
+            <>
+              {filteredItems.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                  {filteredItems.map((item, index) => (
+                    item.type === 'category' ? (
+                      <CategoryCard key={`cat-${(item.data as CategoryDataType)._id || index}`} category={item.data as CategoryDataType} />
+                    ) : (
+                      <ServiceCard key={`service-${(item.data as ServiceDataType)._id || index}`} service={item.data as ServiceDataType} />
+                    )
+                  ))}
+                </div>
+              ) : (
                 <div className="text-center py-20">
-                  <p className="text-gray-600 text-lg">No categories or services available at the moment.</p>
+                  <p className="text-gray-600 text-lg">No services found matching your criteria.</p>
+                  <button
+                    onClick={() => {
+                      setSelectedFilter("All");
+                      setSearchQuery("");
+                    }}
+                    className="mt-4 px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
+                  >
+                    Clear Filters
+                  </button>
                 </div>
               )}
-
-              {/* Services Grouped by Actual Category Titles */}
-              {renderServicesByActualCategory()}
-            </div>
+            </>
           )}
+
+          {/* CTA Banner */}
+          <section className="mt-12 bg-gray-900 text-gray-100 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+              <h3 className="text-lg md:text-xl font-bold mb-2">Not sure which service you need?</h3>
+              <p className="text-sm md:text-base text-gray-300">Get expert guidance and find the right solution for your business.</p>
+            </div>
+            <button
+              onClick={() => router.push("/contact-us")}
+              className="px-6 py-3 bg-white text-gray-900 rounded-full font-semibold hover:bg-gray-100 transition-all whitespace-nowrap"
+            >
+              Talk to an Expert →
+            </button>
+          </section>
         </div>
       </div>
 
       {/* Subscribe Section */}
-      <div className="bg-gray-50 py-8 md:py-12">
-      <Subscribe />
+      <div className="bg-white py-8 md:py-12">
+        <Subscribe />
       </div>
 
       <Footer />
