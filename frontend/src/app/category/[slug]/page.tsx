@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import Image from "next/image";
 
 // Components
 import NavBar from "@/components/NavBar";
@@ -15,107 +14,94 @@ import { RootState, AppDispatch } from "@/store/slices/store";
 import { FetchService } from "@/store/slices/serviceSlice";
 import { FetchCategory } from "@/store/slices/categorySlice";
 import type { ServiceDataType } from "@/store/slices/serviceSlice";
+import type { CategoryDataType } from "@/store/slices/categorySlice";
 
-// Service Card Component (ProductCard from old version)
-const ProductCard = ({
-  title,
-  feturePoints,
-  priceData,
-  Slug,
-}: ServiceDataType) => {
+// Helper function to strip HTML tags from text
+const stripHtmlTags = (html: string): string => {
+  if (!html) return "";
+  // Remove HTML tags using regex
+  return html.replace(/<[^>]*>/g, '').trim();
+};
+
+// Service Card Component - Matching our-services page style
+const ServiceCard = ({ service }: { service: ServiceDataType }) => {
   const router = useRouter();
-  const ProductStanderPrice = priceData?.length ? priceData[0]?.price : "2999";
-  const ProductBasicPrice = priceData?.length
-    ? priceData[0]?.basicPrice
-    : "4599";
-
-  const handleClickProductCard = () => {
-    if (Slug) {
-      router.push(`/services/${Slug}`);
+  
+  const handleClick = () => {
+    if (service.Slug) {
+      router.push(`/services/${service.Slug}`);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
+  const ProductStanderPrice = service.priceData?.length ? service.priceData[0]?.price : "2999";
+  const categoryTitle = service.category?.title || "Service";
+
   return (
     <div 
-      className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-green-200 hover:-translate-y-1 cursor-pointer"
-      onClick={handleClickProductCard}
+      className="bg-white p-5 md:p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1"
+      onClick={handleClick}
     >
-      {/* Header Section */}
-      <div className="p-4 md:p-6">
-        <div className="flex items-start gap-3 md:gap-4 mb-4">
-          <div className="w-10 h-10 md:w-12 md:h-12 bg-green-200 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Image
-              src="/assests/images/ITNIcon.svg"
-              alt="Service Icon"
-              width={24}
-              height={24}
-              className="w-6 h-6 md:w-7 md:h-7"
-            />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 
-              className="text-base md:text-lg font-bold text-gray-900 mb-2 leading-tight cursor-pointer"
-              onClick={handleClickProductCard}
-            >
-              {title}
-            </h3>
-          </div>
-        </div>
-        <div className="border-t border-green-200 my-3"></div>
+      {/* Card Header */}
+      <div className="flex justify-between items-start gap-3 mb-3">
+        <h3 className="text-base md:text-lg font-bold text-gray-900 leading-tight flex-1">
+          {service.title || service.displayName}
+        </h3>
+        <span className="text-xs px-3 py-1 bg-blue-50 border border-blue-200 rounded-full text-blue-700 font-semibold whitespace-nowrap">
+          {categoryTitle}
+        </span>
+      </div>
 
-        {/* Price Section */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs md:text-sm text-gray-600">
-              Basic Price: <span className="line-through">₹{ProductBasicPrice}</span>
-            </p>
-            <div className="flex items-center gap-1">
-              <p className="text-xs font-semibold text-gray-700">4.8</p>
-              <div className="flex gap-0.5">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <svg
-                    key={star}
-                    className="w-3 h-3 text-yellow-400 fill-current"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                  </svg>
-                ))}
-              </div>
+      {/* Description */}
+      <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+        {(() => {
+          const desc = service.overView?.summarys?.[0] || service.metaDescription || "";
+          const cleanDesc = desc ? stripHtmlTags(desc) : "";
+          return cleanDesc 
+            ? cleanDesc.slice(0, 120) + (cleanDesc.length > 120 ? "..." : "")
+            : "Professional service to help you with your needs.";
+        })()}
+      </p>
+
+      {/* Meta Grid */}
+      <div className="grid grid-cols-2 gap-3 mb-4 text-xs">
+        <div>
+          <span className="text-gray-500 block mb-1">Type</span>
+          <span className="text-gray-900 font-semibold">{categoryTitle}</span>
+        </div>
+        <div>
+          <span className="text-gray-500 block mb-1">Mode</span>
+          <span className="text-gray-900 font-semibold">Online</span>
+        </div>
+        {service.feturePoints && service.feturePoints.length > 0 && (
+          <>
+            <div>
+              <span className="text-gray-500 block mb-1">Includes</span>
+              <span className="text-gray-900 font-semibold line-clamp-1">
+                {service.feturePoints[0]?.title || "Features"}
+              </span>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-600">Price: </span>
-            <p className="text-lg md:text-xl font-bold text-gray-900">
-              ₹{ProductStanderPrice} <span className="text-sm font-normal text-gray-600">/month</span>
-            </p>
-          </div>
-        </div>
-
-        {/* Feature Points */}
-        {feturePoints && feturePoints.length > 0 && (
-          <div className="mb-4 space-y-2">
-            {feturePoints.slice(0, 3).map((feature, i) => (
-              <div key={i} className="flex items-start gap-2">
-                <svg className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <p className="text-xs md:text-sm text-gray-600">{feature.summary}</p>
-              </div>
-            ))}
-          </div>
+            <div>
+              <span className="text-gray-500 block mb-1">Benefits</span>
+              <span className="text-gray-900 font-semibold">Expert Support</span>
+            </div>
+          </>
         )}
+      </div>
 
-        {/* Choose Plan Button */}
+      {/* Card Footer */}
+      <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+        <div className="text-sm text-black">
+          From <strong className="text-orange-600 text-base">₹{ProductStanderPrice}</strong>
+        </div>
         <button
           onClick={(e) => {
             e.stopPropagation();
-            handleClickProductCard();
+            handleClick();
           }}
-          className="w-full bg-white border-2 border-orange-500 hover:bg-orange-50 text-orange-500 hover:text-orange-600 font-semibold py-2 px-3 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 text-sm"
+          className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-full transition-all duration-200"
         >
-          Choose Plan
+          View →
         </button>
       </div>
     </div>
@@ -155,46 +141,86 @@ export default function CategoryServicesPage() {
   const hasError = serviceStatus === "error" || categoryStatus === "error";
 
   return (
-    <div className="w-full min-h-screen bg-white">
+    <div className="w-full min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm">
+      <div className="bg-white shadow-sm sticky top-0 z-50">
         <NavBar currentNav={currentNav} setCurrentNav={setCurrentNav} />
       </div>
 
-      {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-green-50 to-green-100 pt-20 pb-8">
-        <div className="px-4 md:px-8 lg:px-16">
-          <div className="max-w-7xl mx-auto">
-            {/* Breadcrumb */}
-            <nav className="text-sm text-orange-500 mb-6">
-              <span 
-                onClick={() => router.push("/")}
-                className="hover:text-orange-600 cursor-pointer"
-              >
-                Home
-              </span>
-              <span className="mx-2">&gt;</span>
-              <span 
-                onClick={() => router.push("/our-services")}
-                className="hover:text-orange-600 cursor-pointer"
-              >
-                Services
-              </span>
-              <span className="mx-2">&gt;</span>
-              <span className="text-gray-600">{currentCategory?.title || currentCategory?.category || "Category"}</span>
-            </nav>
-
-            {/* Page Title */}
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
-              Category Related Service
-            </h1>
-          </div>
-        </div>
-      </div>
-
-      {/* Services Section */}
-      <div className="px-4 md:px-8 lg:px-16 py-12">
+      <div className="px-4 md:px-8 lg:px-16 pt-24 pb-16">
         <div className="max-w-7xl mx-auto">
+          {/* Breadcrumb */}
+          <nav className="text-sm text-orange-500 mb-6">
+            <span 
+              onClick={() => router.push("/")}
+              className="hover:text-orange-600 cursor-pointer"
+            >
+              Home
+            </span>
+            <span className="mx-2">&gt;</span>
+            <span 
+              onClick={() => router.push("/our-services")}
+              className="hover:text-orange-600 cursor-pointer"
+            >
+              Services
+            </span>
+            <span className="mx-2">&gt;</span>
+            <span className="text-gray-600">{currentCategory?.title || currentCategory?.category || "Category"}</span>
+          </nav>
+
+          {/* Hero Section */}
+          <section className="bg-gradient-to-br from-green-50 via-blue-50 to-green-50 rounded-2xl p-6 md:p-10 mb-10 border border-gray-200 shadow-md">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-gray-900 mb-3">
+              {currentCategory?.title || "Category"} <span className="bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">Services</span>
+            </h1>
+            <p className="text-sm md:text-base text-gray-600 max-w-3xl mb-6">
+              {currentCategory?.summary ? stripHtmlTags(currentCategory.summary).slice(0, 200) + "..." : "Explore our comprehensive services in this category. Professional guidance, online processing, and dedicated support for every service."}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <div className="px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-full text-gray-700">
+                ✔ 100% Online Process
+              </div>
+              <div className="px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-full text-gray-700">
+                ✔ Expert Support
+              </div>
+              <div className="px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-full text-gray-700">
+                ✔ Fast Processing
+              </div>
+              <div className="px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-full text-gray-700">
+                ✔ Dedicated Help
+              </div>
+            </div>
+          </section>
+
+          {/* Category Filter Chips */}
+          {categories.length > 0 && (
+            <section className="mb-8">
+              <div className="flex flex-wrap gap-2">
+                {categories.map((category: CategoryDataType) => {
+                  const isActive = category.Slug === slug;
+                  return (
+                    <button
+                      key={category._id || category.Slug}
+                      onClick={() => {
+                        if (category.Slug) {
+                          router.push(`/category/${category.Slug}`);
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }
+                      }}
+                      className={`px-4 py-2 text-sm rounded-full border transition-all whitespace-nowrap ${
+                        isActive
+                          ? "bg-orange-50 border-orange-500 text-orange-600 font-semibold"
+                          : "bg-white border-gray-300 text-gray-600 hover:border-gray-400"
+                      }`}
+                    >
+                      {category.title}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
           {/* Loading State */}
           {isLoading && (
             <div className="flex items-center justify-center py-20">
@@ -229,7 +255,7 @@ export default function CategoryServicesPage() {
               {filteredServices.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                   {filteredServices.map((service) => (
-                    <ProductCard key={service._id} {...service} />
+                    <ServiceCard key={service._id} service={service} />
                   ))}
                 </div>
               ) : (
@@ -239,11 +265,25 @@ export default function CategoryServicesPage() {
               )}
             </>
           )}
+
+          {/* CTA Banner */}
+          <section className="mt-12 bg-gray-900 text-gray-100 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+              <h3 className="text-lg md:text-xl font-bold mb-2">Not sure which service you need?</h3>
+              <p className="text-sm md:text-base text-gray-300">Get expert guidance and find the right solution for your business.</p>
+            </div>
+            <button
+              onClick={() => router.push("/contact-us")}
+              className="px-6 py-3 bg-white text-gray-900 rounded-full font-semibold hover:bg-gray-100 transition-all whitespace-nowrap"
+            >
+              Talk to an Expert →
+            </button>
+          </section>
         </div>
       </div>
 
       {/* Subscribe Section */}
-      <div className="bg-gray-50 py-8 md:py-12">
+      <div className="bg-white py-8 md:py-12">
         <Subscribe />
       </div>
 

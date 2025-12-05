@@ -13,9 +13,7 @@ import Subscribe from "@/components/Subscribe";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "@/store/slices/store";
 import { FetchCategory } from "@/store/slices/categorySlice";
-import { FetchService } from "@/store/slices/serviceSlice";
 import type { CategoryDataType } from "@/store/slices/categorySlice";
-import type { ServiceDataType } from "@/store/slices/serviceSlice";
 
 // Helper function to strip HTML tags from text
 const stripHtmlTags = (html: string): string => {
@@ -24,104 +22,46 @@ const stripHtmlTags = (html: string): string => {
   return html.replace(/<[^>]*>/g, '').trim();
 };
 
-// Main Category List - matches old MainCategoryList structure
-const MainCategoryList = [
-  { title: "Income Tax Services" },
-  { title: "Goods and Services Tax (GST)" },
-  { title: "Startup Services" },
-  { title: "Compliance Services" },
-  { title: "MCA Services" },
-  { title: "Registrations" },
-  { title: "Intellectual Property Rights (IPR)" },
-  { title: "Accounting" },
-];
-
-// Service Card Component - New Layout
-const ServiceCard = ({ service }: { service: ServiceDataType }) => {
-  const router = useRouter();
-  
-  const handleClick = () => {
-    if (service.Slug) {
-      router.push(`/services/${service.Slug}`);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
-
-  const ProductStanderPrice = service.priceData?.length ? service.priceData[0]?.price : "2999";
-  const categoryTitle = service.category?.title || "Service";
-
+// Helper function to get icon based on category title
+const getCategoryIcon = (title: string) => {
+  const lowerTitle = title.toLowerCase();
+  if (lowerTitle.includes('gst')) {
+    return (
+      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
+        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd"/>
+      </svg>
+    );
+  } else if (lowerTitle.includes('tax') || lowerTitle.includes('income')) {
+    return (
+      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
+        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd"/>
+      </svg>
+    );
+  } else if (lowerTitle.includes('compliance') || lowerTitle.includes('roc')) {
+    return (
+      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+      </svg>
+    );
+  } else if (lowerTitle.includes('registration') || lowerTitle.includes('business')) {
+    return (
+      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clipRule="evenodd"/>
+      </svg>
+    );
+  }
+  // Default icon
   return (
-    <div 
-      className="bg-white p-5 md:p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1"
-      onClick={handleClick}
-    >
-      {/* Card Header */}
-      <div className="flex justify-between items-start gap-3 mb-3">
-        <h3 className="text-base md:text-lg font-bold text-gray-900 leading-tight flex-1">
-          {service.title || service.displayName}
-        </h3>
-        <span className="text-xs px-3 py-1 bg-blue-50 border border-blue-200 rounded-full text-blue-700 font-semibold whitespace-nowrap">
-          {categoryTitle}
-        </span>
-      </div>
-
-      {/* Description */}
-      <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-        {(() => {
-          const desc = service.overView?.summarys?.[0] || service.metaDescription || "";
-          const cleanDesc = desc ? stripHtmlTags(desc) : "";
-          return cleanDesc 
-            ? cleanDesc.slice(0, 120) + (cleanDesc.length > 120 ? "..." : "")
-            : "Professional service to help you with your needs.";
-        })()}
-      </p>
-
-      {/* Meta Grid */}
-      <div className="grid grid-cols-2 gap-3 mb-4 text-xs">
-        <div>
-          <span className="text-gray-500 block mb-1">Type</span>
-          <span className="text-gray-900 font-semibold">{categoryTitle}</span>
-        </div>
-        <div>
-          <span className="text-gray-500 block mb-1">Mode</span>
-          <span className="text-gray-900 font-semibold">Online</span>
-        </div>
-        {service.feturePoints && service.feturePoints.length > 0 && (
-          <>
-            <div>
-              <span className="text-gray-500 block mb-1">Includes</span>
-              <span className="text-gray-900 font-semibold line-clamp-1">
-                {service.feturePoints[0]?.title || "Features"}
-              </span>
-            </div>
-            <div>
-              <span className="text-gray-500 block mb-1">Benefits</span>
-              <span className="text-gray-900 font-semibold">Expert Support</span>
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* Card Footer */}
-      <div className="flex justify-between items-center pt-3 border-t border-gray-100">
-        <div className="text-sm text-black">
-          From <strong className="text-orange-600 text-base">₹{ProductStanderPrice}</strong>
-        </div>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleClick();
-          }}
-          className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-full transition-all duration-200"
-        >
-          View →
-        </button>
-      </div>
-    </div>
+    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+      <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+      <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd"/>
+    </svg>
   );
 };
 
-// Category Card Component - New Layout
+// Category Card Component - Matching image design
 const CategoryCard = ({ 
   category 
 }: { 
@@ -139,64 +79,59 @@ const CategoryCard = ({
   // Strip HTML tags and truncate
   const cleanSummary = category.summary ? stripHtmlTags(category.summary) : "";
   const truncatedSummary = cleanSummary 
-    ? cleanSummary.slice(0, 120) + (cleanSummary.length > 120 ? "..." : "")
+    ? cleanSummary.slice(0, 100) + (cleanSummary.length > 100 ? "..." : "")
     : "Explore our comprehensive services in this category.";
 
   return (
     <div 
-      className="bg-white p-5 md:p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1"
+      className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1 overflow-hidden"
       onClick={handleClick}
     >
-      {/* Card Header */}
-      <div className="flex justify-between items-start gap-3 mb-3">
-        <h3 className="text-base md:text-lg font-bold text-gray-900 leading-tight flex-1">
+      {/* Card Header: Icon, Title, and Arrow in one row */}
+      <div className="p-3 md:p-4 flex items-center gap-2 md:gap-3">
+        {/* Left: Green Gradient Icon */}
+        <div className="w-10 h-10 md:w-11 md:h-11 bg-gradient-to-br from-lime-400 to-green-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+          {getCategoryIcon(category.title)}
+        </div>
+        
+        {/* Center: Title - takes remaining space */}
+        <h3 className="text-sm md:text-base font-bold text-gray-900 leading-tight flex-1 min-w-0">
           {category.title}
         </h3>
-        <span className="text-xs px-3 py-1 bg-green-50 border border-green-200 rounded-full text-green-700 font-semibold whitespace-nowrap">
-          Category
-        </span>
-      </div>
-
-      {/* Description */}
-      <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-        {truncatedSummary}
-      </p>
-
-      {/* Meta Grid */}
-      <div className="grid grid-cols-2 gap-3 mb-4 text-xs">
-        <div>
-          <span className="text-gray-500 block mb-1">Type</span>
-          <span className="text-gray-900 font-semibold">Category</span>
-        </div>
-        <div>
-          <span className="text-gray-500 block mb-1">Services</span>
-          <span className="text-gray-900 font-semibold">Multiple</span>
-        </div>
-        <div>
-          <span className="text-gray-500 block mb-1">Mode</span>
-          <span className="text-gray-900 font-semibold">Online</span>
-        </div>
-        <div>
-          <span className="text-gray-500 block mb-1">Support</span>
-          <span className="text-gray-900 font-semibold">Expert Help</span>
-        </div>
-      </div>
-
-      {/* Card Footer */}
-      <div className="flex justify-between items-center pt-3 border-t border-gray-100">
-        <div className="text-sm text-gray-600">
-          Explore Services
-        </div>
+        
+        {/* Right: Blue Circular Arrow Icon */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             handleClick();
           }}
-          className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-full transition-all duration-200"
+          className="w-7 h-7 md:w-8 md:h-8 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center flex-shrink-0 transition-colors duration-200"
         >
-          View →
+          <svg className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
         </button>
       </div>
+
+      {/* Description */}
+      <div className="px-3 md:px-4 pb-3">
+        <p className="text-xs md:text-sm text-gray-600 line-clamp-2">
+          {truncatedSummary}
+        </p>
+      </div>
+
+      {/* Category Image */}
+      {category.imageUrl && (
+        <div className="w-full h-32 md:h-40 relative overflow-hidden">
+          <Image
+            src={category.imageUrl}
+            alt={category.imgAltTag || category.title}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        </div>
+      )}
     </div>
   );
 };
@@ -205,106 +140,18 @@ export default function OurServicesPage() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const [currentNav, setCurrentNav] = useState("Services");
-  const [selectedFilter, setSelectedFilter] = useState<string>("All");
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [sortBy, setSortBy] = useState<string>("Recommended");
   
-  // Get data from Redux store
+  // Get data from Redux store - only categories
   const { data: categories, status: categoryStatus } = useSelector((state: RootState) => state.category);
-  const { data: services, status: serviceStatus } = useSelector((state: RootState) => state.service);
 
-  // Fetch data on component mount
+  // Fetch data on component mount - only categories
   useEffect(() => {
     dispatch(FetchCategory());
-    dispatch(FetchService());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Get unique category titles for filter chips
-  const availableCategories = useMemo(() => {
-    const categoryTitles = new Set<string>();
-    categories.forEach(cat => {
-      if (cat.category) categoryTitles.add(cat.category);
-    });
-    services.forEach(service => {
-      if (service.category?.title) categoryTitles.add(service.category.title);
-    });
-    return Array.from(categoryTitles).sort();
-  }, [categories, services]);
-
-  // Combine categories and services for unified display
-  const allItems = useMemo(() => {
-    const items: Array<{ type: 'category' | 'service'; data: CategoryDataType | ServiceDataType }> = [];
-    
-    // Add categories
-    categories.forEach(cat => {
-      items.push({ type: 'category', data: cat });
-    });
-    
-    // Add services
-    services.forEach(service => {
-      items.push({ type: 'service', data: service });
-    });
-    
-    return items;
-  }, [categories, services]);
-
-  // Filter items based on selected filter and search
-  const filteredItems = useMemo(() => {
-    let filtered = allItems;
-
-    // Filter by category
-    if (selectedFilter !== "All") {
-      filtered = filtered.filter(item => {
-        if (item.type === 'category') {
-          const cat = item.data as CategoryDataType;
-          return cat.category === selectedFilter;
-        } else {
-          const service = item.data as ServiceDataType;
-          return service.category?.title === selectedFilter;
-        }
-      });
-    }
-
-    // Filter by search query
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(item => {
-        const title = item.type === 'category' 
-          ? (item.data as CategoryDataType).title 
-          : (item.data as ServiceDataType).title || (item.data as ServiceDataType).displayName;
-        const summary = item.type === 'category'
-          ? (item.data as CategoryDataType).summary
-          : (item.data as ServiceDataType).overView?.summarys?.[0] || (item.data as ServiceDataType).metaDescription;
-        
-        return title?.toLowerCase().includes(query) || summary?.toLowerCase().includes(query);
-      });
-    }
-
-    // Sort items
-    if (sortBy === "Price: Low to High") {
-      filtered.sort((a, b) => {
-        if (a.type === 'category') return 1;
-        if (b.type === 'category') return -1;
-        const priceA = (a.data as ServiceDataType).priceData?.[0]?.price || "9999";
-        const priceB = (b.data as ServiceDataType).priceData?.[0]?.price || "9999";
-        return parseInt(priceA) - parseInt(priceB);
-      });
-    } else if (sortBy === "Price: High to Low") {
-      filtered.sort((a, b) => {
-        if (a.type === 'category') return 1;
-        if (b.type === 'category') return -1;
-        const priceA = (a.data as ServiceDataType).priceData?.[0]?.price || "0";
-        const priceB = (b.data as ServiceDataType).priceData?.[0]?.price || "0";
-        return parseInt(priceB) - parseInt(priceA);
-      });
-    }
-
-    return filtered;
-  }, [allItems, selectedFilter, searchQuery, sortBy]);
-
-  const isLoading = categoryStatus === "loading" || serviceStatus === "loading";
-  const hasError = categoryStatus === "error" || serviceStatus === "error";
+  const isLoading = categoryStatus === "loading";
+  const hasError = categoryStatus === "error";
 
   return (
     <div className="w-full min-h-screen bg-gray-50">
@@ -330,11 +177,11 @@ export default function OurServicesPage() {
           {/* Hero Section */}
           <section className="bg-gradient-to-br from-green-50 via-blue-50 to-green-50 rounded-2xl p-6 md:p-10 mb-10 border border-gray-200 shadow-md">
             <h1 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-gray-900 mb-3">
-              Our <span className="bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">Comprehensive Services</span>
+              Our <span className="bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">Service Categories</span>
             </h1>
             <p className="text-sm md:text-base text-gray-600 max-w-3xl mb-6">
-              Professional tax, compliance, and business services to help you stay compliant and grow your business. 
-              Expert guidance, online processing, and dedicated support for every service.
+              Explore our comprehensive service categories covering tax, compliance, business registration, and more. 
+              Each category contains multiple professional services to help you stay compliant and grow your business.
             </p>
             <div className="flex flex-wrap gap-2">
               <div className="px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-full text-gray-700">
@@ -352,67 +199,13 @@ export default function OurServicesPage() {
             </div>
           </section>
 
-          {/* Filters Section */}
-          <section className="mb-8">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-              {/* Filter Chips */}
-              <div className="flex flex-wrap gap-2 flex-1">
-                <button
-                  onClick={() => setSelectedFilter("All")}
-                  className={`px-4 py-2 text-sm rounded-full border transition-all whitespace-nowrap ${
-                    selectedFilter === "All"
-                      ? "bg-orange-50 border-orange-500 text-orange-600 font-semibold"
-                      : "bg-white border-gray-300 text-gray-600 hover:border-gray-400"
-                  }`}
-                >
-                  All
-                </button>
-                {availableCategories.slice(0, 6).map((catTitle) => (
-                  <button
-                    key={catTitle}
-                    onClick={() => setSelectedFilter(catTitle)}
-                    className={`px-4 py-2 text-sm rounded-full border transition-all whitespace-nowrap ${
-                      selectedFilter === catTitle
-                        ? "bg-orange-50 border-orange-500 text-orange-600 font-semibold"
-                        : "bg-white border-gray-300 text-gray-600 hover:border-gray-400"
-                    }`}
-                  >
-                    {catTitle}
-                  </button>
-                ))}
-              </div>
-
-              {/* Search and Sort */}
-              <div className="flex items-center gap-3 flex-nowrap flex-shrink-0">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="px-4 py-2 text-sm rounded-full border border-gray-300 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 whitespace-nowrap"
-                >
-                  <option>Recommended</option>
-                  <option>Price: Low to High</option>
-                  <option>Price: High to Low</option>
-                </select>
-                <div className="relative flex-shrink-0">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</span>
-                  <input
-                    type="text"
-                    placeholder="Search services..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-4 py-2 text-sm rounded-full border border-gray-300 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 w-64"
-                  />
-                </div>
-              </div>
-            </div>
-          </section>
 
           {/* Loading State */}
           {isLoading && (
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading services...</p>
+                <p className="text-gray-600">Loading categories...</p>
               </div>
             </div>
           )}
@@ -421,11 +214,10 @@ export default function OurServicesPage() {
           {hasError && !isLoading && (
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
-                <p className="text-red-600 text-xl mb-4">Failed to load services</p>
+                <p className="text-red-600 text-xl mb-4">Failed to load categories</p>
                 <button
                   onClick={() => {
                     dispatch(FetchCategory());
-                    dispatch(FetchService());
                   }}
                   className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
                 >
@@ -435,31 +227,18 @@ export default function OurServicesPage() {
             </div>
           )}
 
-          {/* Services Grid */}
+          {/* Categories Grid */}
           {!isLoading && !hasError && (
             <>
-              {filteredItems.length > 0 ? (
+              {categories.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                  {filteredItems.map((item, index) => (
-                    item.type === 'category' ? (
-                      <CategoryCard key={`cat-${(item.data as CategoryDataType)._id || index}`} category={item.data as CategoryDataType} />
-                    ) : (
-                      <ServiceCard key={`service-${(item.data as ServiceDataType)._id || index}`} service={item.data as ServiceDataType} />
-                    )
+                  {categories.map((category, index) => (
+                    <CategoryCard key={`cat-${category._id || index}`} category={category} />
                   ))}
                 </div>
               ) : (
                 <div className="text-center py-20">
-                  <p className="text-gray-600 text-lg">No services found matching your criteria.</p>
-                  <button
-                    onClick={() => {
-                      setSelectedFilter("All");
-                      setSearchQuery("");
-                    }}
-                    className="mt-4 px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
-                  >
-                    Clear Filters
-                  </button>
+                  <p className="text-gray-600 text-lg">No categories found.</p>
                 </div>
               )}
             </>
@@ -468,8 +247,8 @@ export default function OurServicesPage() {
           {/* CTA Banner */}
           <section className="mt-12 bg-gray-900 text-gray-100 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
-              <h3 className="text-lg md:text-xl font-bold mb-2">Not sure which service you need?</h3>
-              <p className="text-sm md:text-base text-gray-300">Get expert guidance and find the right solution for your business.</p>
+              <h3 className="text-lg md:text-xl font-bold mb-2">Not sure which category you need?</h3>
+              <p className="text-sm md:text-base text-gray-300">Explore our categories to find the right services for your business needs.</p>
             </div>
             <button
               onClick={() => router.push("/contact-us")}
