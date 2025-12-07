@@ -36,8 +36,12 @@ import { RootState, AppDispatch } from "@/store/store";
 export default function CreateJobSection() {
   const experienceRef = useRef<Quill | null>(null);
   const jobDescriptionRef = useRef<Quill | null>(null);
+  const aboutThisRoleRef = useRef<Quill | null>(null);
+  const keyResponsibilitiesRef = useRef<Quill | null>(null);
   const experienceRefUpdate = useRef<Quill | null>(null);
   const jobDescriptionRefUpdate = useRef<Quill | null>(null);
+  const aboutThisRoleRefUpdate = useRef<Quill | null>(null);
+  const keyResponsibilitiesRefUpdate = useRef<Quill | null>(null);
   const ActivePage = typeof window !== 'undefined' ? localStorage.getItem("ActivePage") : null;
   const dispatch = useDispatch<AppDispatch>();
   const { data, status } = useSelector((state: RootState) => state.job);
@@ -53,6 +57,8 @@ export default function CreateJobSection() {
   const [jobLocation, setJobLocation] = useState<string | undefined>();
   const [experience, setExperience] = useState<string>("");
   const [jobDescription, setJobDescription] = useState<string>("");
+  const [aboutThisRole, setAboutThisRole] = useState<string>("");
+  const [keyResponsibilities, setKeyResponsibilities] = useState<string>("");
   const [inputSkill, setInputSkill] = useState<string>();
   const [skills, setSkills] = useState<string[]>([]);
 
@@ -67,6 +73,8 @@ export default function CreateJobSection() {
 
   const [experienceUpdate, setExperienceUpdate] = useState<string>("");
   const [jobDescriptionUpdate, setJobDescriptionUpdate] = useState<string>("");
+  const [aboutThisRoleUpdate, setAboutThisRoleUpdate] = useState<string>("");
+  const [keyResponsibilitiesUpdate, setKeyResponsibilitiesUpdate] = useState<string>("");
 
   
   const [deleteJobId, setDeleteJobId] = useState<string>();
@@ -107,14 +115,22 @@ export default function CreateJobSection() {
       return skills;
     })();
 
+    // Get content directly from refs to ensure we have the latest content
+    const experienceContent = experienceRef.current?.root?.innerHTML || experience || "";
+    const jobDescriptionContent = jobDescriptionRef.current?.root?.innerHTML || jobDescription || "";
+    const aboutThisRoleContent = aboutThisRoleRef.current?.root?.innerHTML || aboutThisRole || "";
+    const keyResponsibilitiesContent = keyResponsibilitiesRef.current?.root?.innerHTML || keyResponsibilities || "";
+
     const missingFields: string[] = [];
     if (!jobLocData.title?.trim()) missingFields.push("Job Title");
     if (!jobLocData.location?.trim()) missingFields.push("Location");
     if (!jobLocData.salary?.trim()) missingFields.push("Salary");
     if (!jobType?.trim()) missingFields.push("Job Type");
     if (!jobLocation?.trim()) missingFields.push("Work Arrangement");
-    if (!experience?.trim()) missingFields.push("Experience Required");
-    if (!jobDescription?.trim()) missingFields.push("Job Description");
+    if (!experienceContent?.trim()) missingFields.push("Experience Required");
+    if (!jobDescriptionContent?.trim()) missingFields.push("Job Description");
+    if (!aboutThisRoleContent?.trim()) missingFields.push("About this Role");
+    if (!keyResponsibilitiesContent?.trim()) missingFields.push("Key Responsibilities");
     if (!currentSkills || currentSkills.length === 0) missingFields.push("Required Skills");
 
     if (missingFields.length > 0) {
@@ -127,14 +143,17 @@ export default function CreateJobSection() {
         title: jobLocData?.title,
         location: jobLocData?.location,
         salary: jobLocData?.salary,
-        experience: experience,
-        description: jobDescription,
+        experience: experienceContent,
+        description: jobDescriptionContent,
+        aboutThisRole: aboutThisRoleContent,
+        keyResponsibilities: keyResponsibilitiesContent,
         skills: currentSkills,
         metaTitle: jobLocData?.metaTitle,
         metaDescription: jobLocData?.metaDescription,
         type: jobType as string,
         jobLocation: jobLocation as string,
-      })
+        postedDate: Date.now(),
+      } as any)
     );
   };
 
@@ -144,14 +163,16 @@ export default function CreateJobSection() {
     setUpdateIndex(index);
     setJobLocUpdateData((prv) => ({
       ...prv,
-      title: data[index]?.title,
-      location: data[index]?.location,
-      salary: data[index]?.salary,
-      metaTitle: data[index]?.metaTitle,
-      metaDescription: data[index]?.metaDescription,
+      title: data[index]?.title || "",
+      location: data[index]?.location || "",
+      salary: data[index]?.salary || "",
+      metaTitle: data[index]?.metaTitle || "",
+      metaDescription: data[index]?.metaDescription || "",
     }));
-    setExperienceUpdate(data[index].experience);
-    setJobDescriptionUpdate(data[index].description);
+    setExperienceUpdate(data[index]?.experience || "");
+    setJobDescriptionUpdate(data[index]?.description || "");
+    setAboutThisRoleUpdate(data[index]?.aboutThisRole || "");
+    setKeyResponsibilitiesUpdate(data[index]?.keyResponsibilities || "");
     setJobType(data[index]?.type as unknown as string);
     setJobLocation(data[index]?.jobLocation as unknown as string);
     setSkills(data[index]?.skills || []);
@@ -162,34 +183,75 @@ export default function CreateJobSection() {
     if (!data[updateIndex]?._id) {
       return;
     }
+
+    // Helper function to get content from ref or state
+    // Prioritize state since TextEditor keeps it in sync, but also check ref as fallback
+    const getEditorContent = (ref: React.RefObject<Quill | null>, state: string): string => {
+      // First check state (most reliable since TextEditor keeps it in sync)
+      const stateContent = (state || "").trim();
+      if (stateContent && stateContent !== '<p><br></p>' && stateContent !== '<p></p>') {
+        return stateContent;
+      }
+      // Fall back to ref if state is empty
+      if (ref.current?.root?.innerHTML) {
+        const refContent = ref.current.root.innerHTML.trim();
+        if (refContent && refContent !== '<p><br></p>' && refContent !== '<p></p>') {
+          return refContent;
+        }
+      }
+      return "";
+    };
+
+    // Get content from refs (which should have latest) or fallback to state
+    const experienceContent = getEditorContent(experienceRefUpdate, experienceUpdate);
+    const jobDescriptionContent = getEditorContent(jobDescriptionRefUpdate, jobDescriptionUpdate);
+    const aboutThisRoleContent = getEditorContent(aboutThisRoleRefUpdate, aboutThisRoleUpdate);
+    const keyResponsibilitiesContent = getEditorContent(keyResponsibilitiesRefUpdate, keyResponsibilitiesUpdate);
+
+    // Helper to check if content is actually empty (not just whitespace or empty HTML)
+    const isEmptyContent = (content: string): boolean => {
+      if (!content || !content.trim()) return true;
+      const stripped = content.replace(/<[^>]*>/g, '').trim();
+      return stripped.length === 0;
+    };
+
     const missingFields: string[] = [];
     if (!jobLocUpdateData.title?.trim()) missingFields.push("Job Title");
     if (!jobLocUpdateData.location?.trim()) missingFields.push("Location");
     if (!jobLocUpdateData.salary?.trim()) missingFields.push("Salary");
     if (!jobType?.trim()) missingFields.push("Job Type");
     if (!jobLocation?.trim()) missingFields.push("Work Arrangement");
-    if (!experienceUpdate?.trim()) missingFields.push("Experience Required");
-    if (!jobDescriptionUpdate?.trim()) missingFields.push("Job Description");
+    if (isEmptyContent(experienceContent)) missingFields.push("Experience Required");
+    if (isEmptyContent(jobDescriptionContent)) missingFields.push("Job Description");
+    if (isEmptyContent(aboutThisRoleContent)) missingFields.push("About this Role");
+    if (isEmptyContent(keyResponsibilitiesContent)) missingFields.push("Key Responsibilities");
 
     if (missingFields.length > 0) {
       toast.error(`Missing required: ${missingFields.join(", ")}`);
       return;
     }
 
+    const updatePayload = {
+      title: jobLocUpdateData?.title,
+      location: jobLocUpdateData?.location,
+      salary: jobLocUpdateData?.salary,
+      experience: experienceContent,
+      description: jobDescriptionContent,
+      aboutThisRole: aboutThisRoleContent,
+      keyResponsibilities: keyResponsibilitiesContent,
+      metaTitle: jobLocUpdateData?.metaTitle,
+      metaDescription: jobLocUpdateData?.metaDescription,
+      type: jobType as string,
+      jobLocation: jobLocation as string,
+      skills: skills,
+    };
+
+    console.log("updateJob - Payload being sent:", updatePayload);
+    console.log("updateJob - Job ID:", data[updateIndex]?._id);
+
     dispatch(
       UpdateJob({
-        data: {
-          title: jobLocUpdateData?.title,
-          location: jobLocUpdateData?.location,
-          salary: jobLocUpdateData?.salary,
-          experience: experienceUpdate,
-          description: jobDescriptionUpdate,
-          metaTitle: jobLocUpdateData?.metaTitle,
-          metaDescription: jobLocUpdateData?.metaDescription,
-          type: jobType as string,
-          jobLocation: jobLocation as string,
-          skills: skills,
-        },
+        data: updatePayload,
         id: data[updateIndex]?._id,
       })
     );
@@ -237,6 +299,25 @@ export default function CreateJobSection() {
 
   const removeSkill = (skillToRemove: string) => {
     setSkills(skills.filter((skill) => skill !== skillToRemove));
+  };
+
+  const resetCreateForm = () => {
+    setJobLocData({
+      title: "",
+      location: "",
+      salary: "",
+      metaTitle: "",
+      metaDescription: "",
+    });
+    setJobType(undefined);
+    setJobLocation(undefined);
+    setExperience("");
+    setJobDescription("");
+    setAboutThisRole("");
+    setKeyResponsibilities("");
+    setInputSkill("");
+    setSkills([]);
+    setShowCreateSeo(false);
   };
 
   useEffect(() => {
@@ -298,7 +379,10 @@ export default function CreateJobSection() {
                   src={Images.crossIcon}
                   className="w-4 h-4 cursor-pointer"
                   alt=""
-                  onClick={() => setCreateJobPop(false)}
+                  onClick={() => {
+                    setCreateJobPop(false);
+                    resetCreateForm();
+                  }}
                 />
               </div>
 
@@ -369,6 +453,16 @@ export default function CreateJobSection() {
                 <div className="w-full">
                   <p className="text-lg mb-2">Job Description</p>
                   <RichTextEditor ref={jobDescriptionRef} state={jobDescription} setState={setJobDescription} />
+                </div>
+
+                <div className="w-full">
+                  <p className="text-lg mb-2">About this Role</p>
+                  <RichTextEditor ref={aboutThisRoleRef} state={aboutThisRole} setState={setAboutThisRole} />
+                </div>
+
+                <div className="w-full">
+                  <p className="text-lg mb-2">Key Responsibilities</p>
+                  <RichTextEditor ref={keyResponsibilitiesRef} state={keyResponsibilities} setState={setKeyResponsibilities} />
                 </div>
 
                 <div className="w-full flex flex-col gap-5">
@@ -508,9 +602,15 @@ export default function CreateJobSection() {
                                 className="w-4 h-4 cursor-pointer"
                                 alt=""
                                 onClick={() => {
-                                  setUpdateIndex(9999);
+                                  setUpdateIndex(1111111111111);
                                   setSkills([]);
                                   setInputSkill("");
+                                  setExperienceUpdate("");
+                                  setJobDescriptionUpdate("");
+                                  setAboutThisRoleUpdate("");
+                                  setKeyResponsibilitiesUpdate("");
+                                  setJobType(undefined);
+                                  setJobLocation(undefined);
                                 }}
                               />
                               <img
@@ -540,6 +640,18 @@ export default function CreateJobSection() {
                             <h3 className="text-sm font-semibold mb-1 text-gray-800">Job Description:</h3>
                             <div className="prose prose-sm max-w-none text-sm">{parse(el?.description)}</div>
                           </div>
+                          {el?.aboutThisRole && (
+                            <div className="w-full">
+                              <h3 className="text-sm font-semibold mb-1 text-gray-800">About this Role:</h3>
+                              <div className="prose prose-sm max-w-none text-sm">{parse(el?.aboutThisRole)}</div>
+                            </div>
+                          )}
+                          {el?.keyResponsibilities && (
+                            <div className="w-full">
+                              <h3 className="text-sm font-semibold mb-1 text-gray-800">Key Responsibilities:</h3>
+                              <div className="prose prose-sm max-w-none text-sm">{parse(el?.keyResponsibilities)}</div>
+                            </div>
+                          )}
                           <div className="w-full">
                             <h3 className="text-sm font-semibold mb-1 text-gray-800">Required Skills:</h3>
                             <div className="flex flex-row gap-2 flex-wrap">
@@ -611,6 +723,7 @@ export default function CreateJobSection() {
                                 setDropVal={setJobType}
                                 list={["Full-time", "Part-time", "Contract", "Internship"]}
                                 defaultVal="Select Job Type"
+                                value={i === updateIndex ? (jobType || el?.type) : el?.type}
                               />
                             </div>
                           </div>
@@ -622,18 +735,49 @@ export default function CreateJobSection() {
                                 setDropVal={setJobLocation}
                                 list={["on-site", "hybrid", "remote"]}
                                 defaultVal="Select Work Arrangement"
+                                value={i === updateIndex ? (jobLocation || el?.jobLocation) : el?.jobLocation}
                               />
                             </div>
                           </div>
 
                           <div className="w-full">
                             <p className="text-lg mb-2">Experience Required</p>
-                            <RichTextEditor ref={experienceRefUpdate} state={experienceUpdate} setState={setExperienceUpdate} />
+                            <RichTextEditor 
+                              key={`experience-${updateIndex}-${i}-${el?._id || ''}`}
+                              ref={experienceRefUpdate} 
+                              state={i === updateIndex ? experienceUpdate : el?.experience || ""} 
+                              setState={setExperienceUpdate} 
+                            />
                           </div>
 
                           <div className="w-full">
                             <p className="text-lg mb-2">Job Description</p>
-                            <RichTextEditor ref={jobDescriptionRefUpdate} state={jobDescriptionUpdate} setState={setJobDescriptionUpdate} />
+                            <RichTextEditor 
+                              key={`description-${updateIndex}-${i}-${el?._id || ''}`}
+                              ref={jobDescriptionRefUpdate} 
+                              state={i === updateIndex ? jobDescriptionUpdate : el?.description || ""} 
+                              setState={setJobDescriptionUpdate} 
+                            />
+                          </div>
+
+                          <div className="w-full">
+                            <p className="text-lg mb-2">About this Role</p>
+                            <RichTextEditor 
+                              key={`about-${updateIndex}-${i}-${el?._id || ''}`}
+                              ref={aboutThisRoleRefUpdate} 
+                              state={i === updateIndex ? aboutThisRoleUpdate : el?.aboutThisRole || ""} 
+                              setState={setAboutThisRoleUpdate} 
+                            />
+                          </div>
+
+                          <div className="w-full">
+                            <p className="text-lg mb-2">Key Responsibilities</p>
+                            <RichTextEditor 
+                              key={`responsibilities-${updateIndex}-${i}-${el?._id || ''}`}
+                              ref={keyResponsibilitiesRefUpdate} 
+                              state={i === updateIndex ? keyResponsibilitiesUpdate : el?.keyResponsibilities || ""} 
+                              setState={setKeyResponsibilitiesUpdate} 
+                            />
                           </div>
 
                           <div className="w-full flex flex-col gap-5">

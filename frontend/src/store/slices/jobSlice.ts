@@ -23,6 +23,8 @@ export interface JobDataType {
   type: string;
   skills: string[];
   description: string;
+  aboutThisRole?: string;
+  keyResponsibilities?: string;
   postedDate: number;
   jobLocation: string;
   _id?: string;

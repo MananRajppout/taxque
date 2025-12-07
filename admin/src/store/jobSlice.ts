@@ -24,6 +24,8 @@ export interface JobDataType {
   type: string;
   skills: string[];
   description: string;
+  aboutThisRole?: string;
+  keyResponsibilities?: string;
   postedDate: number;
   jobLocation: string;
   _id?: string;
@@ -39,6 +41,8 @@ export interface JobUpdateDataType {
   type?: string;
   skills?: string[];
   description?: string;
+  aboutThisRole?: string;
+  keyResponsibilities?: string;
   postedDate?: number;
   jobLocation?: string;
   _id?: string;
@@ -105,12 +109,16 @@ export const DeleteJob = createAsyncThunk<void, string>(
 
 export const UpdateJob = createAsyncThunk<JobUpdateDataType, UpdateJobArgs>("job/update", async ({ data, id }, { rejectWithValue }) => {
   try {
+    console.log("UpdateJob - Sending request:", { id, data, url: `${baseURL}/job/update/${id}` });
     const response = await Axios.post(`${baseURL}/job/update/${id}`, data);
+    console.log("UpdateJob - Response received:", response.data);
     toast.success("Job updated successfully !");
     setTimeout(() => window.location.reload(), 1000);
-    return response.data;
+    return response.data.data || response.data;
   } catch (error: any) {
-    toast.error("Failed to update Job");
+    console.error("UpdateJob - Error:", error);
+    console.error("UpdateJob - Error response:", error.response?.data);
+    toast.error(error.response?.data?.message || "Failed to update Job");
     return rejectWithValue(error.response?.data || "An error occurred");
   }
 });

@@ -111,21 +111,26 @@ interface dropProps {
   list?: Number[] | String[] | CategoryDataType[] | categoryListProps[];
   defaultVal: string;
   width?: string;
+  value?: string;
 }
 
-export const DropBox = ({ setDropVal, list, defaultVal, width }: dropProps) => {
+export const DropBox = ({ setDropVal, list, defaultVal, width, value }: dropProps) => {
   return (
     <select
       style={{ width: width || "100%" }}
       className="h-11 border border-gray-300 rounded-md pl-5 pr-10 flex items-center flex-row relative cursor-pointer bg-white bg-opacity-90"
       onChange={(e) => setDropVal(e.target.value)}
+      value={value || defaultVal}
     >
-      <option>{defaultVal}</option>
-      {list?.map((el, i: number) => (
-        <option key={i}>
-          {typeof el === "object" && "title" in el ? el.title : String(el)}
-        </option>
-      ))}
+      <option value={defaultVal} disabled>{defaultVal}</option>
+      {list?.map((el, i: number) => {
+        const optionValue = typeof el === "object" && "title" in el ? el.title : String(el);
+        return (
+          <option key={i} value={optionValue}>
+            {optionValue}
+          </option>
+        );
+      })}
     </select>
   );
 };

@@ -27,6 +27,12 @@ const JobSchema = new mongoose.Schema({
   description: {
     type: String,
   },
+  aboutThisRole: {
+    type: String,
+  },
+  keyResponsibilities: {
+    type: String,
+  },
   postedDate: {
     type: Date,
     default: Date.now,

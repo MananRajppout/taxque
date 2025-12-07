@@ -161,6 +161,7 @@ export default function CareerDetails() {
 
   // Find job data by ID
   const jobData = data.find((val: any) => val?._id === id) || mockJobData[id as keyof typeof mockJobData];
+  
 
   // State
   const [applyPop, setApplyPop] = useState<boolean>(false);
@@ -359,20 +360,32 @@ export default function CareerDetails() {
     return plainText.substring(0, maxLength) + "...";
   };
 
-  // Parse description to extract sections
+  // Use dedicated fields if available, otherwise fallback to parsing from description
   const descriptionHtml = jobData?.description || "";
   const experienceHtml = jobData?.experience || "";
+  const aboutThisRoleHtml = jobData?.aboutThisRole || "";
+  const keyResponsibilitiesHtml = jobData?.keyResponsibilities || "";
   
-  // Extract "About this Role" - first paragraph
-  const aboutText = extractFirstParagraph(descriptionHtml);
+  // Check if fields have actual content (not just empty or whitespace)
+  const hasAboutThisRole = aboutThisRoleHtml && aboutThisRoleHtml.trim().length > 0 && aboutThisRoleHtml.replace(/<[^>]*>/g, "").trim().length > 0;
+  const hasKeyResponsibilities = keyResponsibilitiesHtml && keyResponsibilitiesHtml.trim().length > 0 && keyResponsibilitiesHtml.replace(/<[^>]*>/g, "").trim().length > 0;
   
-  // Extract "Key Responsibilities" - from description
-  const responsibilitiesMatch = descriptionHtml.match(/<h4>Key Responsibilities:<\/h4>\s*<ul>([\s\S]*?)<\/ul>/);
-  const responsibilities = responsibilitiesMatch 
-    ? extractListItems(responsibilitiesMatch[1])
-    : extractListItems(descriptionHtml).slice(0, 5);
+  // Extract "About this Role" - use dedicated field or fallback to first paragraph
+  const aboutText = hasAboutThisRole
+    ? aboutThisRoleHtml.replace(/<[^>]*>/g, "").trim().substring(0, 200) + (aboutThisRoleHtml.replace(/<[^>]*>/g, "").trim().length > 200 ? "..." : "")
+    : extractFirstParagraph(descriptionHtml);
   
-  // Extract "What We Offer" - from description
+  // Extract "Key Responsibilities" - use dedicated field or fallback to parsing
+  const responsibilities = hasKeyResponsibilities
+    ? extractListItems(keyResponsibilitiesHtml)
+    : (() => {
+        const responsibilitiesMatch = descriptionHtml.match(/<h4>Key Responsibilities:<\/h4>\s*<ul>([\s\S]*?)<\/ul>/);
+        return responsibilitiesMatch 
+          ? extractListItems(responsibilitiesMatch[1])
+          : extractListItems(descriptionHtml).slice(0, 5);
+      })();
+  
+  // Extract "What We Offer" - from description (keep this parsing as it's not a separate field)
   const benefitsMatch = descriptionHtml.match(/<h4>What We Offer:<\/h4>\s*<ul>([\s\S]*?)<\/ul>/);
   const benefits = benefitsMatch 
     ? extractListItems(benefitsMatch[1])
@@ -614,9 +627,20 @@ export default function CareerDetails() {
           <h1 className="text-black text-[28px] font-bold mb-2">
             {jobData?.title || "Job Title"} <span className="bg-gradient-to-r from-orange-500 via-orange-500 to-yellow-500 bg-clip-text text-transparent">({jobData?.jobLocation || "Location"})</span>
           </h1>
-          <p className="text-sm text-gray-600 max-w-[560px] mb-4">
-            {aboutText || "Join our team and help build innovative solutions that make a difference."}
-          </p>
+          <div className="flex items-start justify-between mb-4">
+            <p className="text-sm text-gray-600 max-w-[560px]">
+              {aboutText || "Join our team and help build innovative solutions that make a difference."}
+            </p>
+            {jobData?.postedDate && (
+              <div className="text-xs text-gray-500 ml-4">
+                Posted: {new Date(jobData.postedDate).toLocaleDateString('en-US', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </div>
+            )}
+          </div>
           <div className="flex flex-wrap gap-2.5 mt-4">
             <div className="px-3 py-1.5 bg-white border border-gray-200 rounded-full text-xs text-orange-600 font-medium">
               {jobData?.jobLocation || "Hybrid"} – {jobData?.location || "Location"}
@@ -629,9 +653,9 @@ export default function CareerDetails() {
                 {stripHtml(jobData.experience, 50)}
               </div>
             )}
-            {(jobData as any)?.salary && (
+            {jobData?.salary && (
               <div className="px-3 py-1.5 bg-white border border-gray-200 rounded-full text-xs text-orange-600 font-medium">
-                {(jobData as any).salary}
+                {jobData.salary}
               </div>
             )}
           </div>
@@ -640,35 +664,82 @@ export default function CareerDetails() {
         {/* About this Role */}
         <h2 className="text-[17px] font-semibold text-gray-900 mb-3">About this Role</h2>
         <div className="bg-white/80 p-5 rounded-[22px] border border-orange-200/35 shadow-[0_20px_40px_rgba(15,23,42,0.10)] mb-6 text-sm text-gray-600 leading-relaxed">
-          {aboutText || "We are looking for a talented individual to join our team."}
+          {hasAboutThisRole ? (
+            <div className="prose prose-sm max-w-none prose-headings:font-semibold prose-p:mb-3 prose-ul:list-disc prose-ol:list-decimal prose-li:mb-1 prose-headings:text-gray-900 prose-strong:text-gray-900">
+              {parse(aboutThisRoleHtml)}
+            </div>
+          ) : (
+            <p>{aboutText || "We are looking for a talented individual to join our team."}</p>
+          )}
         </div>
 
         {/* Key Responsibilities */}
         <h2 className="text-[17px] font-semibold text-gray-900 mb-3">Key Responsibilities</h2>
         <div className="bg-white/80 p-5 rounded-[22px] border border-orange-200/35 shadow-[0_20px_40px_rgba(15,23,42,0.10)] mb-6 text-sm text-gray-600">
-          <ul className="pl-5 space-y-2.5">
-            {responsibilities.length > 0 ? (
-              responsibilities.map((item, idx) => (
-                <li key={idx}>{item}</li>
-              ))
-            ) : (
-              <li>No specific responsibilities listed</li>
-            )}
-          </ul>
+          {hasKeyResponsibilities ? (
+            <div className="prose prose-sm max-w-none prose-headings:font-semibold prose-p:mb-3 prose-ul:list-disc prose-ol:list-decimal prose-li:mb-1 prose-headings:text-gray-900 prose-strong:text-gray-900">
+              {parse(keyResponsibilitiesHtml)}
+            </div>
+          ) : (
+            <ul className="pl-5 space-y-2.5">
+              {responsibilities.length > 0 ? (
+                responsibilities.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))
+              ) : (
+                <li>No specific responsibilities listed</li>
+              )}
+            </ul>
+          )}
         </div>
+
+        {/* Job Description */}
+        {descriptionHtml && descriptionHtml.trim().length > 0 && (
+          <>
+            <h2 className="text-[17px] font-semibold text-gray-900 mb-3">Job Description</h2>
+            <div className="bg-white/80 p-5 rounded-[22px] border border-orange-200/35 shadow-[0_20px_40px_rgba(15,23,42,0.10)] mb-6 text-sm text-gray-600">
+              <div className="prose prose-sm max-w-none prose-headings:font-semibold prose-p:mb-3 prose-ul:list-disc prose-ol:list-decimal prose-li:mb-1 prose-headings:text-gray-900 prose-strong:text-gray-900">
+                {parse(descriptionHtml)}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Experience Required */}
+        {experienceHtml && experienceHtml.trim().length > 0 && (
+          <>
+            <h2 className="text-[17px] font-semibold text-gray-900 mb-3">Experience Required</h2>
+            <div className="bg-white/80 p-5 rounded-[22px] border border-orange-200/35 shadow-[0_20px_40px_rgba(15,23,42,0.10)] mb-6 text-sm text-gray-600">
+              <div className="prose prose-sm max-w-none prose-headings:font-semibold prose-p:mb-3 prose-ul:list-disc prose-ol:list-decimal prose-li:mb-1 prose-headings:text-gray-900 prose-strong:text-gray-900">
+                {parse(experienceHtml)}
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Skills Required */}
         <h2 className="text-[17px] font-semibold text-gray-900 mb-3">Skills Required</h2>
         <div className="bg-white/80 p-5 rounded-[22px] border border-orange-200/35 shadow-[0_20px_40px_rgba(15,23,42,0.10)] mb-6 text-sm text-gray-600">
-          <ul className="pl-5 space-y-2.5">
-            {skills.length > 0 ? (
-              skills.map((item, idx) => (
+          {jobData?.skills && Array.isArray(jobData.skills) && jobData.skills.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {jobData.skills.map((skill: string, idx: number) => (
+                <span 
+                  key={idx}
+                  className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-full text-xs font-medium border border-orange-200"
+                >
+                  {skill}
+                </span>
+              ))}
+            </div>
+          ) : skills.length > 0 ? (
+            <ul className="pl-5 space-y-2.5">
+              {skills.map((item, idx) => (
                 <li key={idx}>{item}</li>
-              ))
-            ) : (
-              <li>No specific skills listed</li>
-            )}
-          </ul>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500">No specific skills listed</p>
+          )}
         </div>
 
         {/* Benefits */}
